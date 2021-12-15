@@ -1,13 +1,13 @@
 import { NextPage } from 'next';
-import { NavBar } from '../src/components/NavBar';
+import { Navbar } from '../src/components/NavBar';
 import { Container } from '@chakra-ui/layout';
 
-const Home: NextPage = () => {
+const Landing: NextPage = () => {
 	return (
 		<Container maxWidth="full" padding={0}>
-			<NavBar />
+			<Navbar />
 		</Container>
 	);
 };
 
-export default Home;
+export default Landing;
