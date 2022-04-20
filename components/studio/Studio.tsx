@@ -255,8 +255,8 @@ const Studio = () => {
 						<PropertiesPanel
 							numTracks={tracks.length}
 							selectedIndex={selectedIndex}
-							release={tracks[selectedIndex].sampler.release}
-							attack={tracks[selectedIndex].sampler.attack}
+							release={tracks[selectedIndex].sampler.release as number}
+							attack={tracks[selectedIndex].sampler.attack as number}
 							setRelease={SetRelease}
 							setAttack={SetAttack}
 						/>

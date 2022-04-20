@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { HStack, VStack, Button, Icon, Container, Box, Flex, useRadioGroup } from '@chakra-ui/react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VscClearAll } from 'react-icons/vsc';
+import { FixedSizeGrid as Grid } from 'react-window';
 
 import { StickyGrid } from '@Components/studio/StickyGrid';
 import { ButtonRadio } from '@Components/ButtonRadio';
@@ -58,7 +59,7 @@ export const PianoRoll = (props: PianoRollProps) => {
 	const [ noteDivisor, setNoteDivisor ] = useState(4);
 
 	const hasScrolledRef = useRef(false);
-	const gridRef = useRef(null);
+	const gridRef = useRef<Grid<any>>(null);
 
 	const { getRootProps, getRadioProps } = useRadioGroup({
 		name: 'Note Length',

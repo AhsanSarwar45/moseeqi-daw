@@ -2,7 +2,7 @@ import React, { Fragment, useRef, useEffect } from 'react';
 import { Button, Flex, Text, IconButton, Box, VStack, HStack, useDisclosure } from '@chakra-ui/react';
 import { TiPlus, TiVolumeMute } from 'react-icons/ti';
 import { BiDuplicate } from 'react-icons/bi';
-import { Resizable } from 'react-resizable';
+import { Resizable, ResizeCallbackData } from 'react-resizable';
 import Ruler from '@scena/react-ruler';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
@@ -10,6 +10,7 @@ import { AddTrackModal } from '@Components/studio/AddTrackModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import * as Tone from 'tone';
 import { useState } from 'react';
+import { Track } from '@Interfaces/Track';
 
 interface TimeHandleProps {
 	playbackState: number;
@@ -90,23 +91,27 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 	);
 };
 
-interface MeterProps {}
+interface MeterProps {
+	width:number|string; meter:Tone.Meter; fillColor:string; bgColor:string; borderColor:string; borderWidth:number|string;
+}
 
-const Meter = ({ width, meter, fillColor, bgColor, borderColor, borderWidth }) => {
-	const meterAnimationRef = useRef(null);
-	const metersRef = useRef([]);
+const Meter = (props:MeterProps) => {
+	const meterAnimationRef = useRef(0);
+	const metersRef = useRef<Array<HTMLDivElement>>([]);
 	// const maxHeight =
 
 	useEffect(() => {
 		meterAnimationRef.current = requestAnimationFrame(function animate() {
-			const values = meter.getValue();
+			const values = props.meter.getValue();
 
-			if (meter.channels > 1) {
-				for (let index = 0; index < values.length; index++) {
-					metersRef.current[index].style.height = `${values[index] + 100}%`;
+			if (props.meter.channels > 1) {
+				const values_list =  values as Array<number>;
+				for (let index = 0; index < values_list.length; index++) {
+					metersRef.current[index].style.height = `${values_list[index] + 100}%`;
 				}
 			} else {
-				metersRef.current[0].style.height = `${values + 100}%`;
+				const value  = values as number;
+				metersRef.current[0].style.height = `${value + 100}%`;
 			}
 
 			//	metersRef.current.style.height = `${meter.getValue() + 100}%`;
@@ -116,35 +121,35 @@ const Meter = ({ width, meter, fillColor, bgColor, borderColor, borderWidth }) =
 		return () => {
 			cancelAnimationFrame(meterAnimationRef.current);
 		};
-	}, []);
+	}, [props.meter]);
 
 	useEffect(
 		() => {
-			metersRef.current = metersRef.current.slice(0, meter.channels);
+			metersRef.current = metersRef.current.slice(0, props.meter.channels);
 		},
-		[ meter ]
+		[ props.meter ]
 	);
 
 	return (
 		<HStack top={1} spacing={1} position="absolute" bottom={1} right={1}>
-			{[ ...Array(meter.channels) ].map((channel, i) => (
+			{[ ...Array(props.meter.channels) ].map((channel, i) => (
 				<Box
 					height="100%"
-					width={width}
-					bgColor={bgColor}
+					width={props.width}
+					bgColor={props.bgColor}
 					position="relative"
-					borderColor={borderColor}
-					borderWidth={borderWidth}
+					borderColor={props.borderColor}
+					borderWidth={props.borderWidth}
 					key={i}
 					//id={`meter${i}`}
 				>
 					<Box
-						ref={(el) => (metersRef.current[i] = el)}
+						ref={(el) => (metersRef.current[i] = el as HTMLDivElement)}
 						position="absolute"
 						bottom={0}
 						// height={`${meterHeight + 100}%`}
 						width="100%"
-						bgColor={fillColor}
+						bgColor={props.fillColor}
 					/>
 				</Box>
 			))}
@@ -152,43 +157,46 @@ const Meter = ({ width, meter, fillColor, bgColor, borderColor, borderWidth }) =
 	);
 };
 
-export const TracksView = ({
-	playbackState,
-	tracks,
-	onAddTrack,
-	selected,
-	setSelected,
-	activeWidth,
-	setActiveWidth,
-	setStopTime,
-	toggleMute
-}) => {
+interface TracksViewProps{
+	tracks:Array<Track>;
+	playbackState:number;
+	onAddTrack:(instrument:number) => void;
+	selected:number;
+	setSelected:(trackIndex:number) => void;
+	activeWidth:number;
+	setActiveWidth:(width:number) => void;
+	setStopTime:(time:number) => void;
+	toggleMute:(trackIndex:number) => void;
+
+}
+
+export const TracksView = (props:TracksViewProps) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
-	const timeScale = useRef(null);
+	const timeScale = useRef<Ruler>(null);
 
 	useEffect(() => {
 		window.addEventListener('resize', () => {
-			timeScale.current.resize();
+			timeScale.current?.resize();
 		});
 		return () => {
 			window.removeEventListener('resize', () => {
-				timeScale.current.resize();
+				timeScale.current?.resize();
 			});
 		};
 	}, []);
 
-	const OnSetActiveWidth = (event, { element, size, handle }) => {
-		setActiveWidth(size.width);
+	const OnSetActiveWidth = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
+		props.setActiveWidth(data.size.width);
 	};
 
-	const OnResizeStop = (event, { element, size, handle }) => {
-		setStopTime(size.width / 20);
+	const OnResizeStop = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
+		props.setStopTime(data.size.width / 20);
 	};
 
 	return (
 		<Fragment>
 			<VStack spacing={0} position="relative" width="full" height="100%" overflow="auto" bgColor="primary.600">
-				<HStack borderBottom="1px solid gray" height="30px" spacing={0} width="full" flexShrink="0">
+				<HStack borderBottom="1px solid gray" height="30px" spacing={0} width="full" flexShrink={0}>
 					<HStack
 						paddingLeft={1}
 						height="full"
@@ -203,7 +211,7 @@ export const TracksView = ({
 							aria-label="add-track"
 							icon={<TiPlus />}
 							onClick={onOpen}
-							flexShrink="0"
+							flexShrink={0}
 							borderRadius="5px"
 						/>
 						<IconButton
@@ -211,17 +219,17 @@ export const TracksView = ({
 							size="xs"
 							aria-label="duplicate-track"
 							icon={<BiDuplicate />}
-							flexShrink="0"
+							flexShrink={0}
 							borderRadius="5px"
 						/>
 					</HStack>
 					<Box height="full" width="full" padding="0px">
-						<TimeLineHandle playbackState={playbackState} />
+						<TimeLineHandle playbackState={props.playbackState} />
 						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
 					</Box>
 				</HStack>
 
-				{tracks.map((track, index) => (
+				{props.tracks.map((track : Track, index : number) => (
 					<HStack
 						borderBottom="1px solid gray"
 						height={`${MusicNotes.length}px`}
@@ -235,8 +243,8 @@ export const TracksView = ({
 							color="white"
 							padding={1}
 							width="300px"
-							bgColor={selected === index ? 'secondary.500' : 'primary.500'}
-							onClick={() => setSelected(index)}
+							bgColor={props.selected === index ? 'secondary.500' : 'primary.500'}
+							onClick={() => props.setSelected(index)}
 							flexDirection="row"
 							position="relative"
 						>
@@ -253,9 +261,9 @@ export const TracksView = ({
 										bgColor={track.muted ? 'secondary.700' : 'secondary.500'}
 										colorScheme="secondary"
 										size="xs"
-										flexShrink="0"
+										flexShrink={0}
 										borderRadius="5px"
-										onClick={() => toggleMute(index)}
+										onClick={() => props.toggleMute(index)}
 									>
 										M
 									</Button>
@@ -265,7 +273,7 @@ export const TracksView = ({
 										borderWidth="1px"
 										colorScheme="secondary"
 										size="xs"
-										flexShrink="0"
+										flexShrink={0}
 										borderRadius="5px"
 									>
 										S
@@ -288,22 +296,19 @@ export const TracksView = ({
 							bgColor="primary.400"
 							padding="0px"
 							position="relative"
-							onClick={() => setSelected(index)}
+							onClick={() => props.setSelected(index)}
 						>
 							<Resizable
-								position="absolute"
-								left={0}
-								top={0}
+								
 								height={1}
-								bgColor="primary.700"
-								width={activeWidth}
+								width={props.activeWidth}
 								onResize={OnSetActiveWidth}
 								onResizeStop={OnResizeStop}
 								axis="x"
 								draggableOpts={{ grid: [ 5, 5 ] }}
 								resizeHandles={[ 'e' ]}
 							>
-								<Box height="full" width={activeWidth} overflow="hidden">
+								<Box height="full" width={props.activeWidth} overflow="hidden" bgColor="primary.500">
 									{track.notes.map((note, index) => (
 										<Box
 											key={index}
@@ -321,7 +326,7 @@ export const TracksView = ({
 					</HStack>
 				))}
 			</VStack>
-			<AddTrackModal onClose={onClose} isOpen={isOpen} onSubmit={onAddTrack} />
+			<AddTrackModal onClose={onClose} isOpen={isOpen} onSubmit={props.onAddTrack} />
 		</Fragment>
 	);
 };

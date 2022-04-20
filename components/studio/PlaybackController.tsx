@@ -8,7 +8,13 @@ import {
 } from '@chakra-ui/number-input';
 import { TiMediaPlay, TiMediaRewind, TiMediaFastForward, TiMediaPause, TiMediaStop } from 'react-icons/ti';
 
-export const PlayBackController = ({ playbackState, setPlaybackState, setBPM }) => {
+interface PlayBackControllerProps {
+	playbackState: number;
+	setPlaybackState: (playbackState: number) => void;
+	setBPM: (playbackState: number) => void;
+}
+
+export const PlayBackController = (props: PlayBackControllerProps) => {
 	return (
 		<HStack
 			height="20px"
@@ -25,25 +31,25 @@ export const PlayBackController = ({ playbackState, setPlaybackState, setBPM }) 
 					aria-label="play"
 					icon={<TiMediaPlay />}
 					borderWidth={1}
-					isDisabled={playbackState === 1}
+					isDisabled={props.playbackState === 1}
 					borderColor="secondary.700"
-					onClick={() => setPlaybackState(1)}
+					onClick={() => props.setPlaybackState(1)}
 				/>
 				<IconButton
 					aria-label="pause"
 					icon={<TiMediaPause />}
 					borderWidth={1}
-					isDisabled={playbackState === 2}
+					isDisabled={props.playbackState === 2}
 					borderColor="secondary.700"
-					onClick={() => setPlaybackState(2)}
+					onClick={() => props.setPlaybackState(2)}
 				/>
 				<IconButton
 					aria-label="stop"
 					icon={<TiMediaStop />}
 					borderWidth={1}
-					isDisabled={playbackState === 0}
+					isDisabled={props.playbackState === 0}
 					borderColor="secondary.700"
-					onClick={() => setPlaybackState(0)}
+					onClick={() => props.setPlaybackState(0)}
 				/>
 				<IconButton
 					aria-label="fast-forward"
@@ -65,7 +71,7 @@ export const PlayBackController = ({ playbackState, setPlaybackState, setBPM }) 
 				defaultValue={120}
 				borderRadius="full"
 				onChange={(s, n) => {
-					setBPM(n);
+					props.setBPM(n);
 				}}
 			>
 				<NumberInputField borderRadius="full" />
