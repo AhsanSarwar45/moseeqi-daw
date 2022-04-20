@@ -6,23 +6,31 @@ import { VscClearAll } from 'react-icons/vsc';
 import { StickyGrid } from '@Components/studio/StickyGrid';
 import { ButtonRadio } from '@Components/ButtonRadio';
 import { MusicNotes } from '@Instruments/Instruments';
+import { Track } from '@Interfaces/Track';
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) => (x.includes('#') ? 'primary.600' : 'primary.500'));
 
-const GridCell = ({ data, rowIndex, columnIndex, style }) => {
+interface GridCellProps {
+	data: any; // TODO: Remove any
+	rowIndex: number;
+	columnIndex: number;
+	style: any; // TODO: Remove any
+}
+
+const GridCell = (props: GridCellProps) => {
 	const HandleOnClick = () => {
-		data.onCellClick(columnIndex, rowIndex, data.divisor);
+		props.data.onCellClick(props.columnIndex, props.rowIndex, props.data.divisor);
 	};
 	return (
 		<Box
 			onClick={HandleOnClick}
-			bgColor={colors[rowIndex]}
+			bgColor={colors[props.rowIndex]}
 			overflowX="visible"
-			zIndex={500 - columnIndex}
-			style={style}
+			zIndex={500 - props.columnIndex}
+			style={props.style}
 			color="primary.700"
-			boxShadow={columnIndex % 8 === 7 ? '1px 0 0' : '0'}
+			boxShadow={props.columnIndex % 8 === 7 ? '1px 0 0' : '0'}
 			borderColor="primary.700"
 			borderBottomWidth="1px"
 			borderRightWidth="1px"
@@ -31,7 +39,16 @@ const GridCell = ({ data, rowIndex, columnIndex, style }) => {
 	);
 };
 
-export const PianoRoll = ({ track, addNote, moveNote, removeNote, clearNotes, numCols }) => {
+interface PianoRollProps {
+	track: Track;
+	addNote: (column: number, row: number, divisor: number) => void;
+	moveNote: (index: number, column: number, row: number) => void;
+	removeNote: (index: number) => void;
+	clearNotes: () => void;
+	numCols?: number;
+}
+
+export const PianoRoll = (props: PianoRollProps) => {
 	const cellWidth = 8;
 	const noteWidth = cellWidth * 8;
 	const cellHeight = 6;
@@ -71,15 +88,15 @@ export const PianoRoll = ({ track, addNote, moveNote, removeNote, clearNotes, nu
 				hasScrolledRef.current = true;
 			}
 		},
-		[ gridRef, gridRef.current ]
+		[ gridRef ]
 	);
 
-	const OnKeyDown = (key) => {
-		track.sampler.triggerAttack([ key ]);
+	const OnKeyDown = (key: string) => {
+		props.track.sampler.triggerAttack([ key ]);
 	};
 
-	const OnKeyUp = (key) => {
-		track.sampler.triggerRelease([ key ]);
+	const OnKeyUp = (key: string) => {
+		props.track.sampler.triggerRelease([ key ]);
 	};
 
 	return (
@@ -104,20 +121,19 @@ export const PianoRoll = ({ track, addNote, moveNote, removeNote, clearNotes, nu
 						);
 					})}
 				</HStack>
-				<Icon as={VscClearAll} color="White" h={30} w={30} onClick={clearNotes} />
+				<Icon as={VscClearAll} color="White" h={30} w={30} onClick={props.clearNotes} />
 			</HStack>
 			<Container
+				margin={0}
+				padding={0}
 				height="full"
 				width="full"
 				maxWidth="full"
-				margin={0}
-				padding={0}
-				spacing={0}
 				overflowY="hidden"
 				overflowX="hidden"
 			>
 				<AutoSizer>
-					{({ height, width }) => (
+					{({ height, width }: { height: number; width: number }) => (
 						<StickyGrid
 							ref={gridRef}
 							height={height}
@@ -132,11 +148,11 @@ export const PianoRoll = ({ track, addNote, moveNote, removeNote, clearNotes, nu
 							activeRowIndex={currentStepIndex}
 							onKeyDown={OnKeyDown}
 							onKeyUp={OnKeyUp}
-							notes={track.notes}
-							moveNote={moveNote}
-							onFilledNoteClick={removeNote}
+							notes={props.track.notes}
+							moveNote={props.moveNote}
+							onFilledNoteClick={props.removeNote}
 							itemData={{
-								onCellClick: addNote,
+								onCellClick: props.addNote,
 								divisor: noteDivisor
 							}}
 						>

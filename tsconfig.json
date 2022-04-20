@@ -18,6 +18,7 @@
       "@Components/*": ["components/*"],
       "@Styles/*": ["styles/*"],
       "@Instruments/*": ["assets/instruments/*"],
+      "@Interfaces/*": ["interfaces/*"],
 			// "@SoundFonts/*":  ["asoundFonts/*"],
 			"@Theme/*": ["theme/*"],
     }

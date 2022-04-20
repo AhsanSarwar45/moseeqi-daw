@@ -4,22 +4,26 @@ import { TiPlus, TiVolumeMute } from 'react-icons/ti';
 import { BiDuplicate } from 'react-icons/bi';
 import { Resizable } from 'react-resizable';
 import Ruler from '@scena/react-ruler';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { AddTrackModal } from '@Components/studio/AddTrackModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import * as Tone from 'tone';
 import { useState } from 'react';
 
-const TimeLineHandle = ({ playbackState }) => {
+interface TimeHandleProps {
+	playbackState: number;
+}
+
+const TimeLineHandle = (props: TimeHandleProps) => {
 	const seekHandleRef = useRef(null);
 	const dragging = useRef(false);
 
-	const seekAnimationRef = useRef(null);
+	const seekAnimationRef = useRef(0);
 
 	const [ seek, setSeek ] = useState(0);
 
-	const HandleDrag = (event, data) => {
+	const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
 		setSeek(data.lastX / 5);
 		Tone.Transport.seconds = data.lastX / 20;
 		dragging.current = false;
@@ -27,7 +31,7 @@ const TimeLineHandle = ({ playbackState }) => {
 
 	useEffect(
 		() => {
-			if (playbackState === 1) {
+			if (props.playbackState === 1) {
 				seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
 					// let interval = (Date.now() - start)
 					setSeek(Tone.Transport.seconds * 4);
@@ -36,16 +40,16 @@ const TimeLineHandle = ({ playbackState }) => {
 					// else seekHandleRef.current.position = null;
 					seekAnimationRef.current = requestAnimationFrame(UpdateSeek);
 				});
-			} else if (playbackState === 0) {
+			} else if (props.playbackState === 0) {
 				// Stop
 				setSeek(0);
 				cancelAnimationFrame(seekAnimationRef.current);
-			} else if (playbackState === 2) {
+			} else if (props.playbackState === 2) {
 				//Pause
 				cancelAnimationFrame(seekAnimationRef.current);
 			}
 		},
-		[ playbackState ]
+		[ props.playbackState ]
 	);
 
 	return (
@@ -53,11 +57,13 @@ const TimeLineHandle = ({ playbackState }) => {
 			axis="x"
 			handle=".handle"
 			defaultPosition={{ x: 0, y: 0 }}
-			position={dragging.current ? null : { x: seek * 5, y: 0 }}
+			position={dragging.current ? null as any : { x: seek * 5, y: 0 }}
 			grid={[ 5, 5 ]}
 			scale={1}
 			bounds={{ left: 0, right: 10000 }}
-			onStart={() => (dragging.current = true)}
+			onStart={(props: any) => {
+				dragging.current = true;
+			}}
 			onStop={HandleDrag}
 			nodeRef={seekHandleRef}
 		>
@@ -83,6 +89,8 @@ const TimeLineHandle = ({ playbackState }) => {
 		</Draggable>
 	);
 };
+
+interface MeterProps {}
 
 const Meter = ({ width, meter, fillColor, bgColor, borderColor, borderWidth }) => {
 	const meterAnimationRef = useRef(null);

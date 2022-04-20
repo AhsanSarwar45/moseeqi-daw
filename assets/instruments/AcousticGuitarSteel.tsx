@@ -1,6 +1,8 @@
+import { InstrumentUrl } from '@Interfaces/InstrumentUrl';
+
 const baseURL = '//gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_guitar_steel-mp3/';
 
-export const AcousticGuitarSteel = {
+export const AcousticGuitarSteel: InstrumentUrl = {
 	A0: baseURL + 'A0.mp3',
 	Bb0: baseURL + 'Bb0.mp3',
 	B0: baseURL + 'B0.mp3',

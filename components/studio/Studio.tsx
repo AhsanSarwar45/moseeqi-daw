@@ -9,6 +9,7 @@ import { TracksView } from '@Components/studio/TracksView';
 import { PropertiesPanel } from '@Components/studio/PropertiesPanel';
 import { WaitingModal } from '@Components/WaitingModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
+import { Track } from '@Interfaces/Track';
 
 const Studio = () => {
 	//const [ numCols, setNumCols ] = useState(40);
@@ -16,7 +17,7 @@ const Studio = () => {
 	const [ activeWidth, setActiveWidth ] = useState(5 * 40);
 	const [ stopTime, setStopTime ] = useState(activeWidth / 20);
 	const [ isInstrumentLoading, setIsInstrumentLoading ] = useState(0);
-	const [ tracks, setTracks ] = useState(() => {
+	const [ tracks, setTracks ] = useState<Array<Track>>(() => {
 		setIsInstrumentLoading(1);
 		const instrument = Instruments[0];
 		const meter = new Tone.Meter();
@@ -26,7 +27,7 @@ const Studio = () => {
 				instrument: instrument,
 				notes: [],
 				sampler: new Tone.Sampler({
-					urls: instrument.urls,
+					urls: instrument.urls as any,
 					release: instrument.release,
 					attack: instrument.attack,
 					onload: () => {
@@ -46,12 +47,8 @@ const Studio = () => {
 	const [ isContextStarted, setIsContextStarted ] = useState(false);
 	const needToAddPart = useRef(false);
 	const parts = useRef([
-		new Tone.Part((time, value) => {
-			// const activeCells = activeWidth / 5;
-			// console.log(activeCells);
-			// if (value.time <= activeCells) {
-			tracks.at(-1).sampler.triggerAttackRelease(value.note, value.duration, time, value.velocity);
-			//}
+		new Tone.Part((time, value: any) => {
+			tracks.at(-1)?.sampler.triggerAttackRelease(value.note, value.duration, time, value.velocity);
 		}, []).start()
 	]);
 
@@ -81,7 +78,7 @@ const Studio = () => {
 				onClose();
 			}
 		},
-		[ isInstrumentLoading ]
+		[isInstrumentLoading, onClose, onOpen]
 	);
 
 	useEffect(
@@ -99,7 +96,7 @@ const Studio = () => {
 					Tone.Transport.pause();
 				}
 
-				const HandleKeyboardEvent = (event) => {
+				const HandleKeyboardEvent = (event: KeyboardEvent) => {
 					if (event.keyCode === 32) {
 						if (playbackState === 0) setPlaybackState(1);
 						else if (playbackState === 2) setPlaybackState(1);
@@ -120,8 +117,8 @@ const Studio = () => {
 		() => {
 			if (needToAddPart.current) {
 				parts.current.push(
-					new Tone.Part((time, value) => {
-						tracks.at(-1).sampler.triggerAttackRelease(value.note, value.duration, time, value.velocity);
+					new Tone.Part((time, value: any) => {
+						tracks.at(-1)?.sampler.triggerAttackRelease(value.note, value.duration, time, value.velocity);
 					}, []).start()
 				);
 				needToAddPart.current = false;
@@ -130,15 +127,15 @@ const Studio = () => {
 		[ tracks ]
 	);
 
-	const SetRelease = (value) => {
+	const SetRelease = (value: number) => {
 		tracks[selectedIndex].sampler.release = value;
 	};
 
-	const SetAttack = (value) => {
+	const SetAttack = (value: number) => {
 		tracks[selectedIndex].sampler.attack = value;
 	};
 
-	const AddTrack = (instrument) => {
+	const AddTrack = (instrument: number) => {
 		Tone.Transport.stop();
 		Tone.Transport.seconds = 0;
 		let copy = [ ...tracks ];
@@ -149,7 +146,7 @@ const Studio = () => {
 			instrument: Instruments[instrument],
 			notes: [],
 			sampler: new Tone.Sampler({
-				urls: Instruments[instrument].urls,
+				urls: Instruments[instrument].urls as any,
 				release: Instruments[instrument].release,
 				attack: Instruments[instrument].attack,
 				onload: () => {
@@ -158,13 +155,14 @@ const Studio = () => {
 			})
 				.toDestination()
 				.connect(meter),
-			meter: meter
+			meter: meter,
+			muted: false
 		});
 		setTracks(copy);
 		needToAddPart.current = true;
 	};
 
-	const AddNote = (column, row, divisor) => {
+	const AddNote = (column: number, row: number, divisor: number) => {
 		let copy = [ ...tracks ];
 		const note = {
 			time: column,
@@ -190,7 +188,7 @@ const Studio = () => {
 	// 	setTracks(copy);
 	// };
 
-	const RemoveNote = (index) => {
+	const RemoveNote = (index: number) => {
 		parts.current[selectedIndex].clear();
 		let copy = [ ...tracks ];
 		copy[selectedIndex].notes.splice(index, 1);
@@ -208,7 +206,7 @@ const Studio = () => {
 		//console.log(parts.current);
 	};
 
-	const MoveNote = (index, column, row) => {
+	const MoveNote = (index: number, column: number, row: number) => {
 		parts.current[selectedIndex].clear();
 
 		let copy = [ ...tracks ];
@@ -238,20 +236,20 @@ const Studio = () => {
 		setTracks(copy);
 	};
 
-	const ToggleMuteAtIndex = (index) => {
+	const ToggleMuteAtIndex = (index: number) => {
 		parts.current[index].mute = !parts.current[index].mute;
 		let copy = [ ...tracks ];
 		copy[index].muted = !copy[index].muted;
 		setTracks(copy);
 	};
 
-	const ToggleSoloAtIndex = (index) => {
+	const ToggleSoloAtIndex = (index: number) => {
 		parts.current[index].mute = !parts.current[index].mute;
 	};
 
 	return (
 		<Fragment>
-			<Flex height="100vh" width="full" spacing={0} overflow="hidden" flexDirection="column">
+			<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
 				<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
 					<Splitter initialSizes={[ 20, 80 ]}>
 						<PropertiesPanel
@@ -263,7 +261,7 @@ const Studio = () => {
 							setAttack={SetAttack}
 						/>
 
-						<Flex height="100%" spacing={0} overflow="hidden" flexDirection="column" flexGrow="3">
+						<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
 							<Splitter direction={SplitDirection.Vertical}>
 								<TracksView
 									playbackState={playbackState}

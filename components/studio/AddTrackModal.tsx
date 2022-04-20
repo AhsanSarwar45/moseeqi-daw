@@ -17,11 +17,17 @@ import {
 
 import { Instruments } from '@Instruments/Instruments';
 
-export const AddTrackModal = ({ onClose, isOpen, onSubmit }) => {
-	const [ selectedInstrument, setInstrument ] = useState(null);
+interface AddTrackModalProps {
+	onClose: () => void;
+	isOpen: boolean;
+	onSubmit: Function;
+}
+
+export const AddTrackModal = (props: AddTrackModalProps) => {
+	const [ selectedInstrument, setSelectedInstrument ] = useState('');
 
 	return (
-		<Modal isCentered onClose={onClose} isOpen={isOpen} motionPreset="slideInBottom">
+		<Modal isCentered onClose={props.onClose} isOpen={props.isOpen} motionPreset="slideInBottom">
 			<ModalOverlay />
 			<ModalContent>
 				<ModalHeader>Add Track</ModalHeader>
@@ -31,7 +37,7 @@ export const AddTrackModal = ({ onClose, isOpen, onSubmit }) => {
 					<Select
 						placeholder="Select Instrument"
 						onChange={(event) => {
-							setInstrument(event.target.selectedOptions[0].value);
+							setSelectedInstrument(event.target.selectedOptions[0].value);
 						}}
 					>
 						{Instruments.map((instrument, index) => (
@@ -48,15 +54,15 @@ export const AddTrackModal = ({ onClose, isOpen, onSubmit }) => {
 						mr={3}
 						onClick={() => {
 							if (selectedInstrument === '') return;
-							onSubmit(selectedInstrument);
+							props.onSubmit(selectedInstrument);
 							//console.log(onClose);
-							onClose();
-							setInstrument(null);
+							props.onClose();
+							setSelectedInstrument('');
 						}}
 					>
 						Add
 					</Button>
-					<Button variant="ghost" onClick={onClose}>
+					<Button variant="ghost" onClick={props.onClose}>
 						Cancel
 					</Button>
 				</ModalFooter>
