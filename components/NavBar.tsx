@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
-import { INavBarProps } from './interfaces/INavBarProps';
+import { INavBarProps } from '../interfaces/INavBarProps';
 
 export const Navbar = () => {
 	return (

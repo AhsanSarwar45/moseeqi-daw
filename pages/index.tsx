@@ -1,5 +1,5 @@
 import { NextPage } from 'next';
-import { Navbar } from '../src/components/NavBar';
+import { Navbar } from '@Components/NavBar';
 import { Container } from '@chakra-ui/layout';
 
 const Landing: NextPage = () => {

@@ -1,6 +1,6 @@
 import { NextPage } from 'next';
 import { Button, VStack, Heading, Container, Text } from '@chakra-ui/react';
-import { TextInput, PasswordInput } from '../../src/components/TextInput';
+import { TextInput, PasswordInput } from '../../components/TextInput';
 
 const SignUpPage: NextPage = () => {
 	return (

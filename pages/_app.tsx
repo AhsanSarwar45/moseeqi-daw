@@ -1,7 +1,10 @@
 import { AppProps } from 'next/app';
 import { ChakraProvider } from '@chakra-ui/react';
 
-import Theme from '../src/components/theme';
+import Theme from '@Theme/index';
+
+import '@Styles/Knob.css';
+import '@Styles/Resizable.css';
 
 function App({ Component, pageProps }: AppProps) {
 	return (
