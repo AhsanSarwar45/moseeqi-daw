@@ -9,10 +9,12 @@ export default class MyDocument extends Document {
 				<body>
 					<Main />
 					<NextScript />
-					<style jsx global>{`
-						/* Other global styles such as 'html, body' etc... */
-
-						#__next {
+					<style global jsx>{`
+						html,
+						body,
+						body > div:first-child,
+						div#__next,
+						div#__next > div {
 							height: 100%;
 						}
 					`}</style>

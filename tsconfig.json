@@ -19,6 +19,8 @@
       "@Styles/*": ["styles/*"],
       "@Instruments/*": ["assets/instruments/*"],
       "@Interfaces/*": ["interfaces/*"],
+      "@Assets/*": ["assets/*"],
+      "@Logos/*": ["assets/logos/*"],
 			// "@SoundFonts/*":  ["asoundFonts/*"],
 			"@Theme/*": ["theme/*"],
     }
