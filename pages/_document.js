@@ -12,10 +12,8 @@ export default class MyDocument extends Document {
 					<style global jsx>{`
 						html,
 						body,
-						body > div:first-child,
-						div#__next,
-						div#__next > div {
-							height: 100%;
+						#__next {
+						@apply flex flex-col h-screen;
 						}
 					`}</style>
 				</body>

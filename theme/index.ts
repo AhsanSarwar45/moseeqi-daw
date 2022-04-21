@@ -50,7 +50,7 @@ const Theme = extendTheme({
 	components: {
 		Button: {
 			baseStyle: {
-				borderRadius: 'full',
+				borderRadius: 'sm',
 				fontWeight: 'bold'
 			}
 		},
@@ -59,7 +59,7 @@ const Theme = extendTheme({
 				md: {
 					field: {
 						height: 12,
-						borderRadius: 'full'
+						borderRadius: 'sm'
 					}
 				}
 			},

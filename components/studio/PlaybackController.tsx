@@ -63,21 +63,21 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
 				allowMouseWheel
 				size="sm"
 				textColor="white"
-				borderColor="secondary.700"
-				borderWidth="2px"
+				borderColor="secondary.500"
+				borderWidth="1px"
 				maxWidth={20}
 				min={30}
 				max={600}
 				defaultValue={120}
-				borderRadius="full"
+				borderRadius="sm"
 				onChange={(s, n) => {
 					props.setBPM(n);
 				}}
 			>
-				<NumberInputField borderRadius="full" />
+				<NumberInputField />
 				<NumberInputStepper>
-					<NumberIncrementStepper borderColor="secondary.700" borderTopRightRadius="full" />
-					<NumberDecrementStepper borderColor="secondary.700" borderBottomRightRadius="full" />
+					<NumberIncrementStepper borderColor="secondary.500" />
+					<NumberDecrementStepper borderColor="secondary.500" />
 				</NumberInputStepper>
 			</NumberInput>
 		</HStack>

@@ -199,7 +199,7 @@ export const TracksView = (props: TracksViewProps) => {
 			<VStack spacing={0} position="relative" width="full" height="100%" overflow="auto" bgColor="primary.600">
 				<HStack borderBottom="1px solid gray" height="30px" spacing={0} width="full" flexShrink={0}>
 					<HStack
-						paddingLeft={1}
+						paddingLeft={2}
 						height="full"
 						width="300px"
 						spacing={1}
@@ -213,7 +213,7 @@ export const TracksView = (props: TracksViewProps) => {
 							icon={<TiPlus />}
 							onClick={onOpen}
 							flexShrink={0}
-							borderRadius="5px"
+							borderRadius="sm"
 						/>
 						<IconButton
 							colorScheme="secondary"
@@ -221,7 +221,7 @@ export const TracksView = (props: TracksViewProps) => {
 							aria-label="duplicate-track"
 							icon={<BiDuplicate />}
 							flexShrink={0}
-							borderRadius="5px"
+							borderRadius="sm"
 						/>
 					</HStack>
 					<Box height="full" width="full" padding="0px">
@@ -243,6 +243,7 @@ export const TracksView = (props: TracksViewProps) => {
 							height="full"
 							color="white"
 							padding={1}
+							paddingLeft={2}
 							width="300px"
 							bgColor={props.selected === index ? 'secondary.500' : 'primary.500'}
 							onClick={() => props.setSelected(index)}
@@ -250,7 +251,7 @@ export const TracksView = (props: TracksViewProps) => {
 							position="relative"
 						>
 							<VStack alignItems="flex-start">
-								<Text paddingLeft="5px" color="white">
+								<Text color="white">
 									{track.name}
 								</Text>
 
@@ -263,7 +264,7 @@ export const TracksView = (props: TracksViewProps) => {
 										colorScheme="secondary"
 										size="xs"
 										flexShrink={0}
-										borderRadius="5px"
+										borderRadius="sm"
 										onClick={() => props.toggleMute(index)}
 									>
 										M
@@ -275,7 +276,7 @@ export const TracksView = (props: TracksViewProps) => {
 										colorScheme="secondary"
 										size="xs"
 										flexShrink={0}
-										borderRadius="5px"
+										borderRadius="sm"
 									>
 										S
 									</Button>
