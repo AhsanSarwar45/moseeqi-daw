@@ -21,6 +21,7 @@
       "@Interfaces/*": ["interfaces/*"],
       "@Assets/*": ["assets/*"],
       "@Logos/*": ["assets/logos/*"],
+      "@Data/*": ["data/*"],
 			// "@SoundFonts/*":  ["asoundFonts/*"],
 			"@Theme/*": ["theme/*"],
     }

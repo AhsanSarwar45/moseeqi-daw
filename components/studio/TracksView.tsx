@@ -11,85 +11,8 @@ import { useState } from 'react';
 import { AddTrackModal } from '@Components/studio/AddTrackModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
+import TimeLineHandle from './TimeLineHandle';
 
-interface TimeHandleProps {
-	playbackState: number;
-}
-
-const TimeLineHandle = (props: TimeHandleProps) => {
-	const seekHandleRef = useRef(null);
-	const dragging = useRef(false);
-
-	const seekAnimationRef = useRef(0);
-
-	const [seek, setSeek] = useState(0);
-
-	const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
-		setSeek(data.lastX / 5);
-		Tone.Transport.seconds = data.lastX / 20;
-		dragging.current = false;
-	};
-
-	useEffect(
-		() => {
-			if (props.playbackState === 1) {
-				seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
-					// let interval = (Date.now() - start)
-					setSeek(Tone.Transport.seconds * 4);
-					// console.log(seekHandleRef.current);
-					// if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
-					// else seekHandleRef.current.position = null;
-					seekAnimationRef.current = requestAnimationFrame(UpdateSeek);
-				});
-			} else if (props.playbackState === 0) {
-				// Stop
-				setSeek(0);
-				cancelAnimationFrame(seekAnimationRef.current);
-			} else if (props.playbackState === 2) {
-				//Pause
-				cancelAnimationFrame(seekAnimationRef.current);
-			}
-		},
-		[props.playbackState]
-	);
-
-	return (
-		<Draggable
-			axis="x"
-			handle=".handle"
-			defaultPosition={{ x: 0, y: 0 }}
-			position={dragging.current ? null as any : { x: seek * 5, y: 0 }}
-			grid={[5, 5]}
-			scale={1}
-			bounds={{ left: 0, right: 10000 }}
-			onStart={(props: any) => {
-				dragging.current = true;
-			}}
-			onStop={HandleDrag}
-			nodeRef={seekHandleRef}
-		>
-			{/* <div className="handle">Drag from here</div> */}
-			<Box
-				ref={seekHandleRef}
-				zIndex={700}
-				position="absolute"
-				bgColor="brand.accent2"
-				//left={`${300 + seek}px`}
-				height="full"
-				width="1px"
-			>
-				<Box
-					className="handle"
-					//zIndex={1501}
-					bgColor="brand.accent2"
-					marginLeft="-10px"
-					width="20px"
-					height="20px"
-				/>
-			</Box>
-		</Draggable>
-	);
-};
 
 interface MeterProps {
 	width: number | string; meter: Tone.Meter; fillColor: string; bgColor: string; borderColor: string; borderWidth: number | string;
@@ -159,7 +82,6 @@ const Meter = (props: MeterProps) => {
 
 interface TracksViewProps {
 	tracks: Array<Track>;
-	playbackState: number;
 	onAddTrack: (instrument: number) => void;
 	selected: number;
 	setSelected: (trackIndex: number) => void;
@@ -225,7 +147,7 @@ export const TracksView = (props: TracksViewProps) => {
 						/>
 					</HStack>
 					<Box height="full" width="full" padding="0px">
-						<TimeLineHandle playbackState={props.playbackState} />
+						<TimeLineHandle />
 						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
 					</Box>
 				</HStack>

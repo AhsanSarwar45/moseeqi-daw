@@ -53,10 +53,10 @@ export const PianoRoll = (props: PianoRollProps) => {
 	const cellWidth = 8;
 	const noteWidth = cellWidth * 8;
 	const cellHeight = 6;
-	const options = [ 'Whole', '1/2', '1/4', '1/8' ];
+	const options = ['Whole', '1/2', '1/4', '1/8'];
 
-	const [ currentStepIndex, setCurrentStepIndex ] = useState(0);
-	const [ noteDivisor, setNoteDivisor ] = useState(4);
+	const [currentStepIndex, setCurrentStepIndex] = useState(0);
+	const [noteDivisor, setNoteDivisor] = useState(4);
 
 	const hasScrolledRef = useRef(false);
 	const gridRef = useRef<Grid<any>>(null);
@@ -89,15 +89,15 @@ export const PianoRoll = (props: PianoRollProps) => {
 				hasScrolledRef.current = true;
 			}
 		},
-		[ gridRef ]
+		[gridRef]
 	);
 
 	const OnKeyDown = (key: string) => {
-		props.track.sampler.triggerAttack([ key ]);
+		props.track.sampler.triggerAttack([key]);
 	};
 
 	const OnKeyUp = (key: string) => {
-		props.track.sampler.triggerRelease([ key ]);
+		props.track.sampler.triggerRelease([key]);
 	};
 
 	return (

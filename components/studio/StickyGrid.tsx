@@ -1,10 +1,11 @@
 import { createContext, forwardRef, useRef, useEffect, ReactNode } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
-import { Box, Flex, HStack } from '@chakra-ui/react';
+import { Box, Container, Flex, HStack } from '@chakra-ui/react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { MusicNotes } from '@Instruments/Instruments';
 import { CellCoordinates } from '@Interfaces/CellProps';
 import { Note } from '@Interfaces/Note';
+import TimeLineHandle from './TimeLineHandle';
 
 const blackKeyWidth = 0.6;
 
@@ -113,7 +114,7 @@ const pianoOctaveStyles = [
 
 const GetRenderedCursor = (children: any) =>
 	children.reduce(
-		([ minRow, maxRow, minColumn, maxColumn ]: Array<number>, { props }: { props: CellCoordinates }) => {
+		([minRow, maxRow, minColumn, maxColumn]: Array<number>, { props }: { props: CellCoordinates }) => {
 			if (props.rowIndex < minRow) {
 				minRow = props.rowIndex;
 			}
@@ -127,9 +128,9 @@ const GetRenderedCursor = (children: any) =>
 				maxColumn = props.columnIndex;
 			}
 
-			return [ minRow, maxRow, minColumn, maxColumn ];
+			return [minRow, maxRow, minColumn, maxColumn];
 		},
-		[ Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY ]
+		[Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]
 	);
 
 const HeaderBuilder = (
@@ -190,7 +191,11 @@ interface StickHeaderProps {
 
 const StickyHeader = (props: StickHeaderProps) => {
 	return (
-		<Flex zIndex={1001} position="sticky" top={0} left={0}>
+		<Flex zIndex={9001} position="sticky" top={0} left={0} overflow="visible">
+			<Container position="absolute" paddingLeft={props.stickyWidth}>
+				<TimeLineHandle />
+			</Container>
+
 			<Box
 				zIndex={1001}
 				position="sticky"
@@ -280,8 +285,8 @@ interface StickyGridContextProps {
 	onFilledNoteClick: (index: number) => void;
 	notes: Array<Note>;
 	children?: ReactNode;
-	columnCount? : number;
-	rowCount? : number;
+	columnCount?: number;
+	rowCount?: number;
 	height?: number;
 	width?: number;
 	itemData?: any;
@@ -294,10 +299,10 @@ const StickyGridContext = createContext<StickyGridContextProps>({
 	rowHeight: 0,
 	rowHeaderLabels: null as any,
 	activeRowIndex: 0,
-	onKeyDown: (label: string) => {},
-	onKeyUp: (label: string) => {},
-	moveNote: (index: number, column: number, row: number) => {},
-	onFilledNoteClick: (index: number) => {},
+	onKeyDown: (label: string) => { },
+	onKeyUp: (label: string) => { },
+	moveNote: (index: number, column: number, row: number) => { },
+	onFilledNoteClick: (index: number) => { },
 	notes: [] as Array<Note>
 
 });
@@ -324,7 +329,7 @@ const FilledCell = (props: FilledCellProps) => {
 	useEffect(() => {
 		handleRef.current?.addEventListener(
 			'contextmenu',
-			function(event: any) {
+			function (event: any) {
 				event.preventDefault();
 				return false;
 			},
@@ -339,7 +344,7 @@ const FilledCell = (props: FilledCellProps) => {
 			position={
 				dragging.current ? null as any : { x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }
 			}
-			grid={[ 60, props.rowHeight ]}
+			grid={[60, props.rowHeight]}
 			scale={1}
 			onStart={() => {
 				dragging.current = true;
@@ -366,7 +371,7 @@ const FilledCell = (props: FilledCellProps) => {
 					props.onClick(props.index);
 					return false;
 				}}
-				//onClick={() => onClick(index)}
+			//onClick={() => onClick(index)}
 			>
 				{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
 			</Box>
@@ -377,7 +382,7 @@ const FilledCell = (props: FilledCellProps) => {
 const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 	<StickyGridContext.Consumer>
 		{(props: StickyGridContextProps) => {
-			const [ minRow, maxRow, minColumn, maxColumn ] = GetRenderedCursor(children); // TODO maybe there is more elegant way to get this
+			const [minRow, maxRow, minColumn, maxColumn] = GetRenderedCursor(children); // TODO maybe there is more elegant way to get this
 			const headerColumns = HeaderBuilder(
 				minColumn,
 				maxColumn,
@@ -401,6 +406,8 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 			return (
 				<Box ref={ref} {...containerProps} bgColor="primary.600">
+
+
 					<StickyHeader
 						headerColumns={headerColumns}
 						stickyHeight={props.stickyHeight}
@@ -417,6 +424,7 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 					<Box position="absolute" top={props.stickyHeight} left={props.stickyWidth}>
 						{children}
 					</Box>
+
 					<Box position="absolute" top={props.stickyHeight} left={props.stickyWidth} zIndex={600}>
 						{props.notes.map((note: Note, index: number) => (
 							<FilledCell
@@ -437,13 +445,26 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 InnerGridElementType.displayName = 'InnerGridElementType';
 
-interface StickyGridProps {
-	children: React.ReactNode;
-	stickGridContextProps: StickyGridContextProps;
-}
-
 export const StickyGrid = forwardRef((
-		{
+	{
+		stickyHeight,
+		stickyWidth,
+		columnWidth,
+		rowHeight,
+		rowHeaderLabels,
+		activeRowIndex,
+		onKeyDown,
+		onKeyUp,
+		notes,
+		moveNote,
+		onFilledNoteClick,
+		children,
+		...rest
+	}: StickyGridContextProps,
+	ref
+) => (
+	<StickyGridContext.Provider
+		value={{
 			stickyHeight,
 			stickyWidth,
 			columnWidth,
@@ -455,36 +476,18 @@ export const StickyGrid = forwardRef((
 			notes,
 			moveNote,
 			onFilledNoteClick,
-			children,
-			...rest
-		} : StickyGridContextProps,
-		ref
-	) => (
-		<StickyGridContext.Provider
-			value={{
-				stickyHeight,
-				stickyWidth,
-				columnWidth,
-				rowHeight,
-				rowHeaderLabels,
-				activeRowIndex,
-				onKeyDown,
-				onKeyUp,
-				notes,
-				moveNote,
-				onFilledNoteClick,
-			}}
+		}}
+	>
+		<Grid
+			ref={ref as any}
+			columnWidth={columnWidth}
+			rowHeight={rowHeight}
+			innerElementType={InnerGridElementType}
+			{...rest as any}
 		>
-			<Grid
-				ref={ref as any}
-				columnWidth={columnWidth}
-				rowHeight={rowHeight}
-				innerElementType={InnerGridElementType}
-				{...rest as any}
-			>
-				{children as any}
-			</Grid>
-		</StickyGridContext.Provider>
-	));
+			{children as any}
+		</Grid>
+	</StickyGridContext.Provider>
+));
 
 StickyGrid.displayName = 'StickyGrid';

@@ -10,14 +10,17 @@ import { PropertiesPanel } from '@Components/studio/PropertiesPanel';
 import { WaitingModal } from '@Components/WaitingModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
+import { SeekContext } from 'data/SeekContext';
 
 const Studio = () => {
 	//const [ numCols, setNumCols ] = useState(40);
-	const [ playbackState, setPlaybackState ] = useState(0);
-	const [ activeWidth, setActiveWidth ] = useState(5 * 40);
-	const [ stopTime, setStopTime ] = useState(activeWidth / 20);
-	const [ isInstrumentLoading, setIsInstrumentLoading ] = useState(0);
-	const [ tracks, setTracks ] = useState<Array<Track>>(() => {
+	const [playbackState, setPlaybackState] = useState(0);
+	const [activeWidth, setActiveWidth] = useState(5 * 40);
+	const [stopTime, setStopTime] = useState(activeWidth / 20);
+	const [seek, setSeek] = useState(0);
+	const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
+	const seekAnimationRef = useRef(0);
+	const [tracks, setTracks] = useState<Array<Track>>(() => {
 		setIsInstrumentLoading(1);
 		const instrument = Instruments[0];
 		const meter = new Tone.Meter();
@@ -42,9 +45,9 @@ const Studio = () => {
 		];
 		return initialState;
 	});
-	const [ bpm, setBPM ] = useState(120);
-	const [ selectedIndex, setSelectedIndex ] = useState(0);
-	const [ isContextStarted, setIsContextStarted ] = useState(false);
+	const [bpm, setBPM] = useState(120);
+	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [isContextStarted, setIsContextStarted] = useState(false);
 	const needToAddPart = useRef(false);
 	const parts = useRef([
 		new Tone.Part((time, value: any) => {
@@ -67,7 +70,7 @@ const Studio = () => {
 				part.stop(stopTime);
 			});
 		},
-		[ stopTime ]
+		[stopTime]
 	);
 
 	useEffect(
@@ -110,7 +113,7 @@ const Studio = () => {
 				};
 			}
 		},
-		[ playbackState, isContextStarted ]
+		[playbackState, isContextStarted]
 	);
 
 	useEffect(
@@ -124,7 +127,30 @@ const Studio = () => {
 				needToAddPart.current = false;
 			}
 		},
-		[ tracks ]
+		[tracks]
+	);
+
+	useEffect(
+		() => {
+			if (playbackState === 1) {
+				seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
+					// let interval = (Date.now() - start)
+					setSeek(Tone.Transport.seconds * 4);
+					// console.log(seekHandleRef.current);
+					// if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
+					// else seekHandleRef.current.position = null;
+					seekAnimationRef.current = requestAnimationFrame(UpdateSeek);
+				});
+			} else if (playbackState === 0) {
+				// Stop
+				setSeek(0);
+				cancelAnimationFrame(seekAnimationRef.current);
+			} else if (playbackState === 2) {
+				//Pause
+				cancelAnimationFrame(seekAnimationRef.current);
+			}
+		},
+		[playbackState]
 	);
 
 	const SetRelease = (value: number) => {
@@ -138,7 +164,7 @@ const Studio = () => {
 	const AddTrack = (instrument: number) => {
 		Tone.Transport.stop();
 		Tone.Transport.seconds = 0;
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		setIsInstrumentLoading(1);
 		const meter = new Tone.Meter();
 		copy.push({
@@ -163,7 +189,7 @@ const Studio = () => {
 	};
 
 	const AddNote = (column: number, row: number, divisor: number) => {
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		const note = {
 			time: column,
 			noteIndex: row,
@@ -190,7 +216,7 @@ const Studio = () => {
 
 	const RemoveNote = (index: number) => {
 		parts.current[selectedIndex].clear();
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		copy[selectedIndex].notes.splice(index, 1);
 		setTracks(copy);
 
@@ -209,7 +235,7 @@ const Studio = () => {
 	const MoveNote = (index: number, column: number, row: number) => {
 		parts.current[selectedIndex].clear();
 
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		const newNote = copy[selectedIndex].notes[index];
 		newNote.note = MusicNotes[row];
 		newNote.noteIndex = row;
@@ -231,14 +257,14 @@ const Studio = () => {
 
 	const ClearNotes = () => {
 		parts.current[selectedIndex].clear();
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		copy[selectedIndex].notes = [];
 		setTracks(copy);
 	};
 
 	const ToggleMuteAtIndex = (index: number) => {
 		parts.current[index].mute = !parts.current[index].mute;
-		let copy = [ ...tracks ];
+		let copy = [...tracks];
 		copy[index].muted = !copy[index].muted;
 		setTracks(copy);
 	};
@@ -249,44 +275,46 @@ const Studio = () => {
 
 	return (
 		<Fragment>
-			<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
-				<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
-					<Splitter initialSizes={[ 20, 80 ]}>
-						<PropertiesPanel
-							numTracks={tracks.length}
-							selectedIndex={selectedIndex}
-							release={tracks[selectedIndex].sampler.release as number}
-							attack={tracks[selectedIndex].sampler.attack as number}
-							setRelease={SetRelease}
-							setAttack={SetAttack}
-						/>
+			<SeekContext.Provider value={{ seek, setSeek }}>
+				<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
+					<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
+						<Splitter initialSizes={[20, 80]}>
+							<PropertiesPanel
+								numTracks={tracks.length}
+								selectedIndex={selectedIndex}
+								release={tracks[selectedIndex].sampler.release as number}
+								attack={tracks[selectedIndex].sampler.attack as number}
+								setRelease={SetRelease}
+								setAttack={SetAttack}
+							/>
 
-						<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
-							<Splitter direction={SplitDirection.Vertical}>
-								<TracksView
-									playbackState={playbackState}
-									tracks={tracks}
-									onAddTrack={AddTrack}
-									selected={selectedIndex}
-									setSelected={setSelectedIndex}
-									activeWidth={activeWidth}
-									setActiveWidth={setActiveWidth}
-									toggleMute={ToggleMuteAtIndex}
-									setStopTime={setStopTime}
-								/>
-								<PianoRoll
-									track={tracks[selectedIndex]}
-									addNote={AddNote}
-									moveNote={MoveNote}
-									removeNote={RemoveNote}
-									clearNotes={ClearNotes}
-								/>
-							</Splitter>
-						</Flex>
-					</Splitter>
+							<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
+								<Splitter direction={SplitDirection.Vertical}>
+									<TracksView
+										tracks={tracks}
+										onAddTrack={AddTrack}
+										selected={selectedIndex}
+										setSelected={setSelectedIndex}
+										activeWidth={activeWidth}
+										setActiveWidth={setActiveWidth}
+										toggleMute={ToggleMuteAtIndex}
+										setStopTime={setStopTime}
+
+									/>
+									<PianoRoll
+										track={tracks[selectedIndex]}
+										addNote={AddNote}
+										moveNote={MoveNote}
+										removeNote={RemoveNote}
+										clearNotes={ClearNotes}
+									/>
+								</Splitter>
+							</Flex>
+						</Splitter>
+					</Flex>
+					<PlayBackController playbackState={playbackState} setPlaybackState={setPlaybackState} setBPM={setBPM} />
 				</Flex>
-				<PlayBackController playbackState={playbackState} setPlaybackState={setPlaybackState} setBPM={setBPM} />
-			</Flex>
+			</SeekContext.Provider>
 			<WaitingModal onClose={onClose} isOpen={isOpen} />
 		</Fragment>
 	);
