@@ -5,11 +5,11 @@ import { BiDuplicate } from 'react-icons/bi';
 import { Resizable, ResizeCallbackData } from 'react-resizable';
 import Ruler from '@scena/react-ruler';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
+import * as Tone from 'tone';
+import { useState } from 'react';
 
 import { AddTrackModal } from '@Components/studio/AddTrackModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
-import * as Tone from 'tone';
-import { useState } from 'react';
 import { Track } from '@Interfaces/Track';
 
 interface TimeHandleProps {
@@ -22,7 +22,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 
 	const seekAnimationRef = useRef(0);
 
-	const [ seek, setSeek ] = useState(0);
+	const [seek, setSeek] = useState(0);
 
 	const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
 		setSeek(data.lastX / 5);
@@ -50,7 +50,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 				cancelAnimationFrame(seekAnimationRef.current);
 			}
 		},
-		[ props.playbackState ]
+		[props.playbackState]
 	);
 
 	return (
@@ -59,7 +59,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 			handle=".handle"
 			defaultPosition={{ x: 0, y: 0 }}
 			position={dragging.current ? null as any : { x: seek * 5, y: 0 }}
-			grid={[ 5, 5 ]}
+			grid={[5, 5]}
 			scale={1}
 			bounds={{ left: 0, right: 10000 }}
 			onStart={(props: any) => {
@@ -92,10 +92,10 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 };
 
 interface MeterProps {
-	width:number|string; meter:Tone.Meter; fillColor:string; bgColor:string; borderColor:string; borderWidth:number|string;
+	width: number | string; meter: Tone.Meter; fillColor: string; bgColor: string; borderColor: string; borderWidth: number | string;
 }
 
-const Meter = (props:MeterProps) => {
+const Meter = (props: MeterProps) => {
 	const meterAnimationRef = useRef(0);
 	const metersRef = useRef<Array<HTMLDivElement>>([]);
 	// const maxHeight =
@@ -105,12 +105,12 @@ const Meter = (props:MeterProps) => {
 			const values = props.meter.getValue();
 
 			if (props.meter.channels > 1) {
-				const values_list =  values as Array<number>;
+				const values_list = values as Array<number>;
 				for (let index = 0; index < values_list.length; index++) {
 					metersRef.current[index].style.height = `${values_list[index] + 100}%`;
 				}
 			} else {
-				const value  = values as number;
+				const value = values as number;
 				metersRef.current[0].style.height = `${value + 100}%`;
 			}
 
@@ -127,12 +127,12 @@ const Meter = (props:MeterProps) => {
 		() => {
 			metersRef.current = metersRef.current.slice(0, props.meter.channels);
 		},
-		[ props.meter ]
+		[props.meter]
 	);
 
 	return (
 		<HStack top={1} spacing={1} position="absolute" bottom={1} right={1}>
-			{[ ...Array(props.meter.channels) ].map((channel, i) => (
+			{[...Array(props.meter.channels)].map((channel, i) => (
 				<Box
 					height="100%"
 					width={props.width}
@@ -141,7 +141,7 @@ const Meter = (props:MeterProps) => {
 					borderColor={props.borderColor}
 					borderWidth={props.borderWidth}
 					key={i}
-					//id={`meter${i}`}
+				//id={`meter${i}`}
 				>
 					<Box
 						ref={(el) => (metersRef.current[i] = el as HTMLDivElement)}
@@ -157,20 +157,20 @@ const Meter = (props:MeterProps) => {
 	);
 };
 
-interface TracksViewProps{
-	tracks:Array<Track>;
-	playbackState:number;
-	onAddTrack:(instrument:number) => void;
-	selected:number;
-	setSelected:(trackIndex:number) => void;
-	activeWidth:number;
-	setActiveWidth:(width:number) => void;
-	setStopTime:(time:number) => void;
-	toggleMute:(trackIndex:number) => void;
+interface TracksViewProps {
+	tracks: Array<Track>;
+	playbackState: number;
+	onAddTrack: (instrument: number) => void;
+	selected: number;
+	setSelected: (trackIndex: number) => void;
+	activeWidth: number;
+	setActiveWidth: (width: number) => void;
+	setStopTime: (time: number) => void;
+	toggleMute: (trackIndex: number) => void;
 
 }
 
-export const TracksView = (props:TracksViewProps) => {
+export const TracksView = (props: TracksViewProps) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const timeScale = useRef<Ruler>(null);
 
@@ -186,6 +186,7 @@ export const TracksView = (props:TracksViewProps) => {
 	}, []);
 
 	const OnSetActiveWidth = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
+		console.log(data.size.width);
 		props.setActiveWidth(data.size.width);
 	};
 
@@ -229,7 +230,7 @@ export const TracksView = (props:TracksViewProps) => {
 					</Box>
 				</HStack>
 
-				{props.tracks.map((track : Track, index : number) => (
+				{props.tracks.map((track: Track, index: number) => (
 					<HStack
 						borderBottom="1px solid gray"
 						height={`${MusicNotes.length}px`}
@@ -299,14 +300,14 @@ export const TracksView = (props:TracksViewProps) => {
 							onClick={() => props.setSelected(index)}
 						>
 							<Resizable
-								
+
 								height={1}
 								width={props.activeWidth}
 								onResize={OnSetActiveWidth}
 								onResizeStop={OnResizeStop}
 								axis="x"
-								draggableOpts={{ grid: [ 5, 5 ] }}
-								resizeHandles={[ 'e' ]}
+								draggableOpts={{ grid: [5, 5] }}
+								resizeHandles={['e']}
 							>
 								<Box height="full" width={props.activeWidth} overflow="hidden" bgColor="primary.500">
 									{track.notes.map((note, index) => (
