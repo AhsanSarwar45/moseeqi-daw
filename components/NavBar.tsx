@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
-import { INavBarProps } from '../interfaces/NavBarProps';
+import { NavBarProps } from '../interfaces/NavBarProps';
 
 export const Navbar = () => {
 	return (
@@ -29,10 +29,8 @@ export const Navbar = () => {
 				px={{ base: 4 }}
 				align={'center'}
 				justify="space-between"
-				paddingLeft={20}
-				paddingRight={20}
-				paddingTop={5}
-				paddingBottom={5}
+				paddingX="20%"
+				paddingY={5}
 			>
 				<Text textColor="white" fontFamily={'heading'}>
 					moseeqi
@@ -108,7 +106,7 @@ const NavbarItems = () => {
 	);
 };
 
-const SubNavBar = ({ label, href, subLabel }: INavBarProps) => {
+const SubNavBar = ({ label, href, subLabel }: NavBarProps) => {
 	return (
 		<NextLink href={href}>
 			<a>
