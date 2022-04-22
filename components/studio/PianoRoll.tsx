@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { HStack, VStack, Button, Icon, Container, Box, Flex, useRadioGroup } from '@chakra-ui/react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VscClearAll } from 'react-icons/vsc';
@@ -8,6 +8,7 @@ import { StickyGrid } from '@Components/studio/StickyGrid';
 import { ButtonRadio } from '@Components/ButtonRadio';
 import { MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
+import TimeLineHandle from './TimeLineHandle';
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) => (x.includes('#') ? 'primary.600' : 'primary.500'));
@@ -19,7 +20,7 @@ interface GridCellProps {
 	style: any; // TODO: Remove any
 }
 
-const GridCell = (props: GridCellProps) => {
+const GridCell = memo((props: GridCellProps) => {
 	const HandleOnClick = () => {
 		props.data.onCellClick(props.columnIndex, props.rowIndex, props.data.divisor);
 	};
@@ -30,7 +31,6 @@ const GridCell = (props: GridCellProps) => {
 			overflowX="visible"
 			zIndex={500 - props.columnIndex}
 			style={props.style}
-			color="primary.700"
 			boxShadow={props.columnIndex % 8 === 7 ? '1px 0 0' : '0'}
 			borderColor="primary.700"
 			borderBottomWidth="1px"
@@ -38,10 +38,15 @@ const GridCell = (props: GridCellProps) => {
 			cursor="url(https://cur.cursors-4u.net/cursors/cur-11/cur1046.cur), auto"
 		/>
 	);
-};
+});
+
+GridCell.displayName = 'GridCell';
 
 interface PianoRollProps {
 	track: Track;
+	seek: number;
+	setSeek: (seek: number) => void;
+	playbackState: number;
 	addNote: (column: number, row: number, divisor: number) => void;
 	moveNote: (index: number, column: number, row: number) => void;
 	removeNote: (index: number) => void;
@@ -49,13 +54,13 @@ interface PianoRollProps {
 	numCols?: number;
 }
 
-export const PianoRoll = (props: PianoRollProps) => {
+const PianoRoll = memo((props: PianoRollProps) => {
 	const cellWidth = 8;
 	const noteWidth = cellWidth * 8;
 	const cellHeight = 6;
 	const options = ['Whole', '1/2', '1/4', '1/8'];
 
-	const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
 	const [noteDivisor, setNoteDivisor] = useState(4);
 
 	const hasScrolledRef = useRef(false);
@@ -133,8 +138,13 @@ export const PianoRoll = (props: PianoRollProps) => {
 				overflowY="hidden"
 				overflowX="hidden"
 			>
+
+
+
 				<AutoSizer>
+
 					{({ height, width }: { height: number; width: number }) => (
+
 						<StickyGrid
 							ref={gridRef}
 							height={height}
@@ -145,8 +155,11 @@ export const PianoRoll = (props: PianoRollProps) => {
 							columnWidth={60}
 							stickyHeight={30}
 							stickyWidth={150}
+							seek={props.seek}
+							setSeek={props.setSeek}
+							playbackState={props.playbackState}
 							rowHeaderLabels={MusicNotes}
-							activeRowIndex={currentStepIndex}
+							activeRowIndex={1}
 							onKeyDown={OnKeyDown}
 							onKeyUp={OnKeyUp}
 							notes={props.track.notes}
@@ -164,4 +177,8 @@ export const PianoRoll = (props: PianoRollProps) => {
 			</Container>
 		</Flex>
 	);
-};
+});
+
+PianoRoll.displayName = 'PianoRoll';
+
+export default PianoRoll;

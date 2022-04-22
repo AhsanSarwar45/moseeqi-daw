@@ -6,28 +6,61 @@ import * as Tone from 'tone';
 
 
 interface TimeHandleProps {
-
+    playbackState: number;
+    seek: number;
+    setSeek: (seek: number) => void;
+    scale: number;
 }
 
 
 const TimeLineHandle = (props: TimeHandleProps) => {
-    const { seek, setSeek } = useContext(SeekContext)
-
+    const [seek, setSeek] = useState(0)
+    const seekAnimationRef = useRef(0);
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
-        setSeek(data.lastX / 5);
-        Tone.Transport.seconds = data.lastX / 20;
+        props.setSeek(data.lastX / (5 * props.scale));
+        Tone.Transport.seconds = data.lastX / (20 * props.scale);
         dragging.current = false;
     };
+
+    useEffect(() => {
+        setSeek(props.seek);
+    }, [props.seek])
+
+
+
+    useEffect(
+        () => {
+            if (props.playbackState === 1) {
+                seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
+                    // let interval = (Date.now() - start)
+                    setSeek(Tone.Transport.seconds * 4);
+                    // console.log(Tone.Transport.seconds);
+                    // console.log(seekHandleRef.current);
+                    // if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
+                    // else seekHandleRef.current.position = null;
+                    seekAnimationRef.current = requestAnimationFrame(UpdateSeek);
+                });
+            } else if (props.playbackState === 0) {
+                // Stop
+                setSeek(0);
+                cancelAnimationFrame(seekAnimationRef.current);
+            } else if (props.playbackState === 2) {
+                //Pause
+                cancelAnimationFrame(seekAnimationRef.current);
+            }
+        },
+        [props.playbackState]
+    );
 
     return (
         <Draggable
             axis="x"
             handle=".handle"
             defaultPosition={{ x: 0, y: 0 }}
-            position={dragging.current ? null as any : { x: seek * 5, y: 0 }}
+            position={dragging.current ? null as any : { x: seek * 5 * props.scale, y: 0 }}
             grid={[5, 5]}
             scale={1}
             bounds={{ left: 0, right: 10000 }}
@@ -38,9 +71,11 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             nodeRef={seekHandleRef}
         >
             {/* <div className="handle">Drag from here</div> */}
+
             <Box
+                // pointerEvents="none"
                 ref={seekHandleRef}
-                zIndex={700}
+                zIndex={9800}
                 position="absolute"
                 bgColor="white"
                 //left={`${300 + seek}px`}
@@ -49,7 +84,6 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             >
                 <Box
                     className="handle"
-                    zIndex={1501}
                     bgColor="white"
                     marginLeft="-10px"
                     width="20px"
@@ -59,6 +93,10 @@ const TimeLineHandle = (props: TimeHandleProps) => {
         </Draggable>
     );
 };
+
+TimeLineHandle.defaultProps = {
+    scale: 1,
+}
 
 
 export default TimeLineHandle;

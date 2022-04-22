@@ -148,7 +148,6 @@ const HeaderBuilder = (
 			width: columnWidth,
 			left: i * columnWidth,
 			first: i % 8 === 0,
-			isActive: i === activeRowIndex,
 			index: i,
 			label: ''
 		});
@@ -187,14 +186,15 @@ interface StickHeaderProps {
 	stickyHeight: number;
 	stickyWidth: number;
 	headerColumns: any; // TODO: remove any
+	playbackState: number;
+	seek: number;
+	setSeek: (seek: number) => void;
 }
 
 const StickyHeader = (props: StickHeaderProps) => {
 	return (
 		<Flex zIndex={9001} position="sticky" top={0} left={0} overflow="visible">
-			<Container position="absolute" paddingLeft={props.stickyWidth}>
-				<TimeLineHandle />
-			</Container>
+
 
 			<Box
 				zIndex={1001}
@@ -213,7 +213,7 @@ const StickyHeader = (props: StickHeaderProps) => {
 						color="white"
 						justifyContent="center"
 						alignItems="center"
-						bgColor={style.isActive ? 'brand.secondary' : style.first ? 'brand.accent2' : 'brand.accent1'}
+						bgColor={style.first ? 'brand.accent2' : 'brand.accent1'}
 						position="absolute"
 						borderBottom="1px solid gray"
 						borderRight="1px solid gray"
@@ -278,7 +278,10 @@ interface StickyGridContextProps {
 	columnWidth: number;
 	rowHeight: number;
 	rowHeaderLabels: any;
+	playbackState: number;
 	activeRowIndex: number;
+	seek: number;
+	setSeek: (seek: number) => void;
 	onKeyDown: (label: string) => void;
 	onKeyUp: (label: string) => void;
 	moveNote: (index: number, column: number, row: number) => void;
@@ -297,8 +300,11 @@ const StickyGridContext = createContext<StickyGridContextProps>({
 	stickyWidth: 0,
 	columnWidth: 0,
 	rowHeight: 0,
+	playbackState: 0,
 	rowHeaderLabels: null as any,
 	activeRowIndex: 0,
+	seek: 0,
+	setSeek: (seek: number) => { },
 	onKeyDown: (label: string) => { },
 	onKeyUp: (label: string) => { },
 	moveNote: (index: number, column: number, row: number) => { },
@@ -406,12 +412,17 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 			return (
 				<Box ref={ref} {...containerProps} bgColor="primary.600">
-
+					<Container position="absolute" height="full" paddingLeft={props.stickyWidth} >
+						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
+					</Container>
 
 					<StickyHeader
 						headerColumns={headerColumns}
 						stickyHeight={props.stickyHeight}
 						stickyWidth={props.stickyWidth}
+						playbackState={props.playbackState}
+						seek={props.seek}
+						setSeek={props.setSeek}
 					/>
 					<StickyColumns
 						rows={leftSideRows}
@@ -420,6 +431,7 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 						onKeyDown={props.onKeyDown}
 						onKeyUp={props.onKeyUp}
 					/>
+
 
 					<Box position="absolute" top={props.stickyHeight} left={props.stickyWidth}>
 						{children}
@@ -455,6 +467,9 @@ export const StickyGrid = forwardRef((
 		activeRowIndex,
 		onKeyDown,
 		onKeyUp,
+		playbackState,
+		seek,
+		setSeek,
 		notes,
 		moveNote,
 		onFilledNoteClick,
@@ -473,6 +488,9 @@ export const StickyGrid = forwardRef((
 			activeRowIndex,
 			onKeyDown,
 			onKeyUp,
+			playbackState,
+			seek,
+			setSeek,
 			notes,
 			moveNote,
 			onFilledNoteClick,

@@ -1,4 +1,4 @@
-import React, { Fragment, useRef, useEffect } from 'react';
+import React, { Fragment, useRef, useEffect, memo } from 'react';
 import { Button, Flex, Text, IconButton, Box, VStack, HStack, useDisclosure } from '@chakra-ui/react';
 import { TiPlus, TiVolumeMute } from 'react-icons/ti';
 import { BiDuplicate } from 'react-icons/bi';
@@ -82,6 +82,9 @@ const Meter = (props: MeterProps) => {
 
 interface TracksViewProps {
 	tracks: Array<Track>;
+	playbackState: number;
+	seek: number;
+	setSeek: (seek: number) => void;
 	onAddTrack: (instrument: number) => void;
 	selected: number;
 	setSelected: (trackIndex: number) => void;
@@ -92,7 +95,7 @@ interface TracksViewProps {
 
 }
 
-export const TracksView = (props: TracksViewProps) => {
+const TracksView = memo((props: TracksViewProps) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const timeScale = useRef<Ruler>(null);
 
@@ -147,7 +150,7 @@ export const TracksView = (props: TracksViewProps) => {
 						/>
 					</HStack>
 					<Box height="full" width="full" padding="0px">
-						<TimeLineHandle />
+						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
 						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
 					</Box>
 				</HStack>
@@ -253,4 +256,8 @@ export const TracksView = (props: TracksViewProps) => {
 			<AddTrackModal onClose={onClose} isOpen={isOpen} onSubmit={props.onAddTrack} />
 		</Fragment>
 	);
-};
+});
+
+TracksView.displayName = 'TracksView';
+
+export default TracksView;

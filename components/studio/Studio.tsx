@@ -4,8 +4,8 @@ import Splitter, { SplitDirection } from '@devbookhq/splitter';
 import * as Tone from 'tone';
 
 import { PlayBackController } from '@Components/studio/PlaybackController';
-import { PianoRoll } from '@Components/studio/PianoRoll';
-import { TracksView } from '@Components/studio/TracksView';
+import PianoRoll from '@Components/studio/PianoRoll';
+import TracksView from '@Components/studio/TracksView';
 import { PropertiesPanel } from '@Components/studio/PropertiesPanel';
 import { WaitingModal } from '@Components/WaitingModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
@@ -17,9 +17,9 @@ const Studio = () => {
 	const [playbackState, setPlaybackState] = useState(0);
 	const [activeWidth, setActiveWidth] = useState(5 * 40);
 	const [stopTime, setStopTime] = useState(activeWidth / 20);
-	const [seek, setSeek] = useState(0);
+	const [seek, setSeek] = useState(0)
+	const [currentStepIndex, setCurrentStepIndex] = useState(0);
 	const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
-	const seekAnimationRef = useRef(0);
 	const [tracks, setTracks] = useState<Array<Track>>(() => {
 		setIsInstrumentLoading(1);
 		const instrument = Instruments[0];
@@ -62,6 +62,10 @@ const Studio = () => {
 		setIsContextStarted(true);
 	};
 
+	// const SetSeek = (newSeek: number) => {
+	// 	seek = newSeek;
+	// }
+
 	useEffect(
 		() => {
 			console.log(stopTime);
@@ -72,6 +76,12 @@ const Studio = () => {
 		},
 		[stopTime]
 	);
+
+	// useEffect(() => {
+	// 	console.log(seek);
+
+	// }, [seek])
+
 
 	useEffect(
 		() => {
@@ -130,28 +140,6 @@ const Studio = () => {
 		[tracks]
 	);
 
-	useEffect(
-		() => {
-			if (playbackState === 1) {
-				seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
-					// let interval = (Date.now() - start)
-					setSeek(Tone.Transport.seconds * 4);
-					// console.log(seekHandleRef.current);
-					// if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
-					// else seekHandleRef.current.position = null;
-					seekAnimationRef.current = requestAnimationFrame(UpdateSeek);
-				});
-			} else if (playbackState === 0) {
-				// Stop
-				setSeek(0);
-				cancelAnimationFrame(seekAnimationRef.current);
-			} else if (playbackState === 2) {
-				//Pause
-				cancelAnimationFrame(seekAnimationRef.current);
-			}
-		},
-		[playbackState]
-	);
 
 	const SetRelease = (value: number) => {
 		tracks[selectedIndex].sampler.release = value;
@@ -275,46 +263,57 @@ const Studio = () => {
 
 	return (
 		<Fragment>
-			<SeekContext.Provider value={{ seek, setSeek }}>
-				<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
-					<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
-						<Splitter initialSizes={[20, 80]}>
-							<PropertiesPanel
-								numTracks={tracks.length}
-								selectedIndex={selectedIndex}
-								release={tracks[selectedIndex].sampler.release as number}
-								attack={tracks[selectedIndex].sampler.attack as number}
-								setRelease={SetRelease}
-								setAttack={SetAttack}
-							/>
 
-							<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
-								<Splitter direction={SplitDirection.Vertical}>
-									<TracksView
-										tracks={tracks}
-										onAddTrack={AddTrack}
-										selected={selectedIndex}
-										setSelected={setSelectedIndex}
-										activeWidth={activeWidth}
-										setActiveWidth={setActiveWidth}
-										toggleMute={ToggleMuteAtIndex}
-										setStopTime={setStopTime}
+			<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
+				<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
+					<Splitter initialSizes={[20, 80]}>
+						<PropertiesPanel
+							numTracks={tracks.length}
+							selectedIndex={selectedIndex}
+							release={tracks[selectedIndex].sampler.release as number}
+							attack={tracks[selectedIndex].sampler.attack as number}
+							setRelease={SetRelease}
+							setAttack={SetAttack}
+						/>
 
-									/>
-									<PianoRoll
-										track={tracks[selectedIndex]}
-										addNote={AddNote}
-										moveNote={MoveNote}
-										removeNote={RemoveNote}
-										clearNotes={ClearNotes}
-									/>
-								</Splitter>
-							</Flex>
-						</Splitter>
-					</Flex>
-					<PlayBackController playbackState={playbackState} setPlaybackState={setPlaybackState} setBPM={setBPM} />
+						<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
+							{/* <SeekContext.Provider value={{ seek: seek, setSeek: setSeek }}> */}
+							<Splitter direction={SplitDirection.Vertical}>
+
+								<TracksView
+									playbackState={playbackState}
+									seek={seek}
+									setSeek={setSeek}
+									tracks={tracks}
+									onAddTrack={AddTrack}
+									selected={selectedIndex}
+									setSelected={setSelectedIndex}
+									activeWidth={activeWidth}
+									setActiveWidth={setActiveWidth}
+									toggleMute={ToggleMuteAtIndex}
+									setStopTime={setStopTime}
+
+
+								/>
+								<PianoRoll
+									playbackState={playbackState}
+									seek={seek}
+									setSeek={setSeek}
+									track={tracks[selectedIndex]}
+									addNote={AddNote}
+									moveNote={MoveNote}
+									removeNote={RemoveNote}
+									clearNotes={ClearNotes}
+								/>
+
+							</Splitter>
+							{/* </SeekContext.Provider> */}
+						</Flex>
+					</Splitter>
 				</Flex>
-			</SeekContext.Provider>
+				<PlayBackController playbackState={playbackState} setPlaybackState={setPlaybackState} setBPM={setBPM} />
+			</Flex>
+
 			<WaitingModal onClose={onClose} isOpen={isOpen} />
 		</Fragment>
 	);
