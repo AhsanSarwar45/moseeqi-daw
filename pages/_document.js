@@ -15,6 +15,7 @@ export default class MyDocument extends Document {
 						#__next {
 						@apply flex flex-col h-screen;
 						}
+
 					`}</style>
 				</body>
 			</Html>
