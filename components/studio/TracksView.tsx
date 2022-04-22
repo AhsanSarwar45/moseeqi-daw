@@ -121,15 +121,17 @@ const TracksView = memo((props: TracksViewProps) => {
 
 	return (
 		<Fragment>
-			<VStack spacing={0} position="relative" width="full" height="100%" overflow="auto" bgColor="primary.600">
-				<HStack borderBottom="1px solid gray" height="30px" spacing={0} width="full" flexShrink={0}>
+			<HStack alignItems="flex-start" spacing={0} position="relative" width="full" height="100%" overflow="auto" bgColor="primary.600" flexShrink={0}>
+				<VStack width="300px" spacing={0} flexShrink={0}>
 					<HStack
 						paddingLeft={2}
-						height="full"
-						width="300px"
+						paddingY={2}
+						height="30px"
+						width="full"
 						spacing={1}
 						justifyContent="flex-start"
 						bgColor="primary.500"
+						borderBottom="1px solid gray"
 					>
 						<IconButton
 							colorScheme="secondary"
@@ -149,31 +151,19 @@ const TracksView = memo((props: TracksViewProps) => {
 							borderRadius="sm"
 						/>
 					</HStack>
-					<Box height="full" width="full" padding="0px">
-						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
-						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
-					</Box>
-				</HStack>
-
-				{props.tracks.map((track: Track, index: number) => (
-					<HStack
-						borderBottom="1px solid gray"
-						height={`${MusicNotes.length}px`}
-						padding={0}
-						spacing={0}
-						width="full"
-						key={index}
-					>
-						<Flex
-							height="full"
+					{props.tracks.map((track: Track, index: number) => (
+						<HStack
+							key={index}
 							color="white"
 							padding={1}
 							paddingLeft={2}
-							width="300px"
+							width="full"
 							bgColor={props.selected === index ? 'secondary.500' : 'primary.500'}
 							onClick={() => props.setSelected(index)}
-							flexDirection="row"
+							height="86px"
 							position="relative"
+							borderBottom="1px solid gray"
+							alignItems="flex-start"
 						>
 							<VStack alignItems="flex-start">
 								<Text color="white">
@@ -215,18 +205,28 @@ const TracksView = memo((props: TracksViewProps) => {
 								borderColor="primary.700"
 								borderWidth="1px"
 							/>
-						</Flex>
+						</HStack>))}
+
+				</VStack>
+
+				<VStack alignItems="flex-start" width="full" spacing={0} flexShrink={1} overflowX="scroll">
+					<Box height="30px" padding="0px" width="full">
+						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
+						<Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} />
+					</Box>
+					{props.tracks.map((track: Track, index: number) => (
 						<Box
-							height="full"
+							key={index}
+							height="86px"
 							color="white"
 							width="full"
 							bgColor="primary.400"
 							padding="0px"
 							position="relative"
 							onClick={() => props.setSelected(index)}
+							borderBottom="1px solid gray"
 						>
 							<Resizable
-
 								height={1}
 								width={props.activeWidth}
 								onResize={OnSetActiveWidth}
@@ -250,9 +250,10 @@ const TracksView = memo((props: TracksViewProps) => {
 								</Box>
 							</Resizable>
 						</Box>
-					</HStack>
-				))}
-			</VStack>
+					))}
+				</VStack>
+
+			</HStack>
 			<AddTrackModal onClose={onClose} isOpen={isOpen} onSubmit={props.onAddTrack} />
 		</Fragment>
 	);

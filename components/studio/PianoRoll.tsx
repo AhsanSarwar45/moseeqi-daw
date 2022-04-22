@@ -135,12 +135,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
 				height="full"
 				width="full"
 				maxWidth="full"
-				overflowY="hidden"
-				overflowX="hidden"
+				overflow="hidden"
 			>
-
-
-
 				<AutoSizer>
 
 					{({ height, width }: { height: number; width: number }) => (

@@ -195,7 +195,9 @@ const StickyHeader = (props: StickHeaderProps) => {
 	return (
 		<Flex zIndex={9001} position="sticky" top={0} left={0} overflow="visible">
 
-
+			<Container position="absolute" height="full" paddingLeft={props.stickyWidth}>
+				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
+			</Container>
 			<Box
 				zIndex={1001}
 				position="sticky"
@@ -412,9 +414,7 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 			return (
 				<Box ref={ref} {...containerProps} bgColor="primary.600">
-					<Container position="absolute" height="full" paddingLeft={props.stickyWidth} >
-						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
-					</Container>
+
 
 					<StickyHeader
 						headerColumns={headerColumns}
@@ -498,6 +498,7 @@ export const StickyGrid = forwardRef((
 	>
 		<Grid
 			ref={ref as any}
+
 			columnWidth={columnWidth}
 			rowHeight={rowHeight}
 			innerElementType={InnerGridElementType}
