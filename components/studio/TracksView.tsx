@@ -111,7 +111,7 @@ const TracksView = memo((props: TracksViewProps) => {
 	}, []);
 
 	const OnSetActiveWidth = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
-		console.log(data.size.width);
+		// console.log(data.size.width);
 		props.setActiveWidth(data.size.width);
 	};
 

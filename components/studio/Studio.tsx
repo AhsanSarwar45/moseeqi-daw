@@ -68,7 +68,7 @@ const Studio = () => {
 
 	useEffect(
 		() => {
-			console.log(stopTime);
+			// console.log(stopTime);
 			parts.current.forEach((part) => {
 				part.cancel(0.1);
 				part.stop(stopTime);
