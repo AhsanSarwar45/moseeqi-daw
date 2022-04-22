@@ -3,6 +3,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 
 import Theme from '@Theme/index';
 
+import '@Styles/globals.css';
 import '@Styles/Knob.css';
 import '@Styles/Resizable.css';
 
