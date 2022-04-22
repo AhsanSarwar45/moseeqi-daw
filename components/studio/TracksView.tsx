@@ -12,6 +12,7 @@ import { AddTrackModal } from '@Components/studio/AddTrackModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
 import TimeLineHandle from './TimeLineHandle';
+import TrackSequence from './TrackSequence';
 
 
 interface MeterProps {
@@ -92,10 +93,12 @@ interface TracksViewProps {
 	setActiveWidth: (width: number) => void;
 	setStopTime: (time: number) => void;
 	toggleMute: (trackIndex: number) => void;
+	setPartTime: (partIndex: number, startTime: number, stopTime: number) => void;
 
 }
 
 const TracksView = memo((props: TracksViewProps) => {
+
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const timeScale = useRef<Ruler>(null);
 
@@ -110,14 +113,7 @@ const TracksView = memo((props: TracksViewProps) => {
 		};
 	}, []);
 
-	const OnSetActiveWidth = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
-		// console.log(data.size.width);
-		props.setActiveWidth(data.size.width);
-	};
 
-	const OnResizeStop = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
-		props.setStopTime(data.size.width / 20);
-	};
 
 	return (
 		<Fragment>
@@ -160,7 +156,7 @@ const TracksView = memo((props: TracksViewProps) => {
 							width="full"
 							bgColor={props.selected === index ? 'secondary.500' : 'primary.500'}
 							onClick={() => props.setSelected(index)}
-							height="86px"
+							height="88px"
 							position="relative"
 							borderBottom="1px solid gray"
 							alignItems="flex-start"
@@ -212,44 +208,16 @@ const TracksView = memo((props: TracksViewProps) => {
 				<VStack alignItems="flex-start" width="full" spacing={0} flexShrink={1} overflowX="scroll">
 					<Box height="30px" padding="0px" width="full">
 						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
-						<Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} />
+						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
 					</Box>
 					{props.tracks.map((track: Track, index: number) => (
-						<Box
+						<TrackSequence
 							key={index}
-							height="86px"
-							color="white"
-							width="full"
-							bgColor="primary.400"
-							padding="0px"
-							position="relative"
-							onClick={() => props.setSelected(index)}
-							borderBottom="1px solid gray"
-						>
-							<Resizable
-								height={1}
-								width={props.activeWidth}
-								onResize={OnSetActiveWidth}
-								onResizeStop={OnResizeStop}
-								axis="x"
-								draggableOpts={{ grid: [5, 5] }}
-								resizeHandles={['e']}
-							>
-								<Box height="full" width={props.activeWidth} overflow="hidden" bgColor="primary.500">
-									{track.notes.map((note, index) => (
-										<Box
-											key={index}
-											bgColor="secondary.500"
-											position="absolute"
-											top={`${note.noteIndex}px`}
-											left={`${5 * note.time}px`}
-											width={`${5 * 8 / note.duration}px`}
-											height="1px"
-										/>
-									))}
-								</Box>
-							</Resizable>
-						</Box>
+							track={track}
+							index={index}
+							setSelected={props.setSelected}
+							setStopTime={props.setStopTime}
+							setPartTime={props.setPartTime} />
 					))}
 				</VStack>
 

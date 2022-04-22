@@ -23,6 +23,7 @@
     "react-draggable": "^4.4.4",
     "react-icons": "^4.3.1",
     "react-resizable": "^3.0.4",
+    "react-rnd": "^10.3.7",
     "react-virtualized-auto-sizer": "^1.0.6",
     "react-window": "^1.8.6",
     "tone": "^14.7.77"

@@ -16,9 +16,8 @@ const Studio = () => {
 	//const [ numCols, setNumCols ] = useState(40);
 	const [playbackState, setPlaybackState] = useState(0);
 	const [activeWidth, setActiveWidth] = useState(5 * 40);
-	const [stopTime, setStopTime] = useState(activeWidth / 20);
+	const [stopTime, setStopTime] = useState(10);
 	const [seek, setSeek] = useState(0)
-	const [currentStepIndex, setCurrentStepIndex] = useState(0);
 	const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
 	const [tracks, setTracks] = useState<Array<Track>>(() => {
 		setIsInstrumentLoading(1);
@@ -52,7 +51,7 @@ const Studio = () => {
 	const parts = useRef([
 		new Tone.Part((time, value: any) => {
 			tracks.at(-1)?.sampler.triggerAttackRelease(value.note, value.duration, time, value.velocity);
-		}, []).start()
+		}, []).start(0)
 	]);
 
 	const { isOpen, onOpen, onClose } = useDisclosure();
@@ -66,16 +65,24 @@ const Studio = () => {
 	// 	seek = newSeek;
 	// }
 
-	useEffect(
-		() => {
-			// console.log(stopTime);
-			parts.current.forEach((part) => {
-				part.cancel(0.1);
-				part.stop(stopTime);
-			});
-		},
-		[stopTime]
-	);
+	const SetPartTime = (index: number, startTime: number, stopTime: number) => {
+		parts.current[index].cancel(0).start(startTime).stop(stopTime);
+		console.log("Start time set to: " + startTime);
+		console.log("Stop time set to: " + stopTime);
+
+
+	}
+
+	// useEffect(
+	// 	() => {
+	// 		// console.log(stopTime);
+	// 		parts.current.forEach((part) => {
+	// 			part.cancel(0.1);
+	// 			part.stop(stopTime);
+	// 		});
+	// 	},
+	// 	[stopTime]
+	// );
 
 	// useEffect(() => {
 	// 	console.log(seek);
@@ -292,6 +299,8 @@ const Studio = () => {
 									setActiveWidth={setActiveWidth}
 									toggleMute={ToggleMuteAtIndex}
 									setStopTime={setStopTime}
+									setPartTime={SetPartTime}
+
 
 
 								/>
