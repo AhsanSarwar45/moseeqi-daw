@@ -189,7 +189,7 @@ const Studio = () => {
 	};
 
 	const AddNote = (column: number, row: number, divisor: number) => {
-		console.log(divisor)
+		// console.log(divisor)
 		const key = MusicNotes[row];
 
 		let copy = [...tracks];
@@ -219,6 +219,7 @@ const Studio = () => {
 	// };
 
 	const RemoveNote = (index: number) => {
+		// console.log(index)
 		parts.current[selectedIndex].clear();
 		let copy = [...tracks];
 		copy[selectedIndex].notes.splice(index, 1);
@@ -233,7 +234,7 @@ const Studio = () => {
 			};
 			parts.current[selectedIndex].add(partNote);
 		});
-		//console.log(parts.current);
+		// console.log(copy[selectedIndex].notes);
 	};
 
 	const MoveNote = (index: number, column: number, row: number) => {

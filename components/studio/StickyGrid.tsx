@@ -7,6 +7,8 @@ import { CellCoordinates } from '@Interfaces/CellProps';
 import { Note } from '@Interfaces/Note';
 import TimeLineHandle from './TimeLineHandle';
 import { Rnd } from 'react-rnd'
+import Ruler from '@scena/react-ruler';
+import { useTheme } from '@emotion/react';
 
 
 const blackKeyWidth = 0.6;
@@ -140,7 +142,6 @@ const HeaderBuilder = (
 	maxColumn: number,
 	columnWidth: number,
 	stickyHeight: number,
-	activeRowIndex: number
 ) => {
 	const columns = [];
 
@@ -187,19 +188,21 @@ const ColumnsBuilder = (
 interface StickHeaderProps {
 	stickyHeight: number;
 	stickyWidth: number;
-	headerColumns: any; // TODO: remove any
+	headerWidth: number;
+	headerColumns: Array<any>; // TODO: remove any
 	playbackState: number;
 	seek: number;
 	setSeek: (seek: number) => void;
 }
 
 const StickyHeader = (props: StickHeaderProps) => {
+	const theme = useTheme();
 	return (
 		<Flex zIndex={9001} position="sticky" top={0} left={0} overflow="visible">
 
-			<Container position="absolute" height="full" paddingLeft={props.stickyWidth}>
+			{/* <Container position="absolute" height="full" paddingLeft={props.stickyWidth}>
 				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
-			</Container>
+			</Container> */}
 			<Box
 				zIndex={1001}
 				position="sticky"
@@ -211,7 +214,11 @@ const StickyHeader = (props: StickHeaderProps) => {
 				width={props.stickyWidth}
 				height={props.stickyHeight}
 			/>
-			<Box position="absolute" left={props.stickyWidth}>
+			<Box position="absolute" left={props.stickyWidth} height={props.stickyHeight} width={props.headerWidth}>
+				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
+				<Ruler type="horizontal" unit={1} zoom={120} backgroundColor={theme.colors.primary[600]} />
+			</Box>
+			{/* <Box position="absolute" left={props.stickyWidth}>
 				{props.headerColumns.map(({ label, ...style }: any, index: number) => (
 					<Flex
 						color="white"
@@ -227,7 +234,7 @@ const StickyHeader = (props: StickHeaderProps) => {
 						{style.first ? style.index / 8 + 1 : ''}
 					</Flex>
 				))}
-			</Box>
+			</Box> */}
 		</Flex>
 	);
 };
@@ -280,10 +287,10 @@ interface StickyGridContextProps {
 	stickyHeight: number;
 	stickyWidth: number;
 	columnWidth: number;
+	columnHeaderWidth?: number;
 	rowHeight: number;
-	rowHeaderLabels: any;
+	rowHeaderLabels: Array<string>;
 	playbackState: number;
-	activeRowIndex: number;
 	seek: number;
 	setSeek: (seek: number) => void;
 	onKeyDown: (label: string) => void;
@@ -305,10 +312,10 @@ const StickyGridContext = createContext<StickyGridContextProps>({
 	stickyHeight: 0,
 	stickyWidth: 0,
 	columnWidth: 0,
+	columnHeaderWidth: 0,
 	rowHeight: 0,
 	playbackState: 0,
-	rowHeaderLabels: null as any,
-	activeRowIndex: 0,
+	rowHeaderLabels: [],
 	seek: 0,
 	setSeek: (seek: number) => { },
 	onKeyDown: (label: string) => { },
@@ -337,13 +344,10 @@ const FilledCell = (props: FilledCellProps) => {
 	const [position, setPosition] = useState({ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight });
 
 	const handleRef = useRef<HTMLElement | null>(null);
-	const dragging = useRef(false);
 
-	const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
-		console.log(data.lastX / 60, data.lastY / props.rowHeight);
-		props.onDrag(props.index, data.lastX / 60, data.lastY / props.rowHeight);
-		dragging.current = false;
-	};
+	useEffect(() => {
+		setPosition({ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight });
+	}, [props.note, props.rowHeight]);
 
 	useEffect(() => {
 		handleRef.current?.addEventListener(
@@ -395,12 +399,7 @@ const FilledCell = (props: FilledCellProps) => {
 				// className={`cellHandle${props.note.time}${props.note.noteIndex}`}
 				// cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
 				cursor="move"
-				//key={index}
-				// height={`${props.rowHeight - 1}px`}
 				height="full"
-				//left={`${note.time * 60}px`}
-				//top={`${note.noteIndex * rowHeight}px`}
-				// width={`${8 / props.note.duration * 60 - 1}px`}
 				borderRadius="5px"
 				borderWidth="1px"
 				borderColor="secondary.700"
@@ -414,44 +413,6 @@ const FilledCell = (props: FilledCellProps) => {
 				{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
 			</Box>
 		</Rnd>
-		// <Draggable
-		// 	handle={`.cellHandle${props.note.time}${props.note.noteIndex}`}
-		// 	defaultPosition={{ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }}
-		// 	position={
-		// 		dragging.current ? null as any : { x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }
-		// 	}
-		// 	grid={[60, props.rowHeight]}
-		// 	scale={1}
-		// 	onStart={() => {
-		// 		dragging.current = true;
-		// 	}}
-		// 	onStop={HandleDrag}
-		// 	nodeRef={handleRef}
-		// >
-		// 	<Box
-		// 		ref={handleRef as any}
-		// 		className={`cellHandle${props.note.time}${props.note.noteIndex}`}
-		// 		// cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
-		// 		cursor="move"
-		// 		//key={index}
-		// 		height={`${props.rowHeight - 1}px`}
-		// 		position="absolute"
-		// 		//left={`${note.time * 60}px`}
-		// 		//top={`${note.noteIndex * rowHeight}px`}
-		// 		width={`${8 / props.note.duration * 60 - 1}px`}
-		// 		borderRadius="5px"
-		// 		borderWidth="1px"
-		// 		borderColor="secondary.700"
-		// 		bgColor="secondary.500"
-		// 		onContextMenu={() => {
-		// 			props.onClick(props.index);
-		// 			return false;
-		// 		}}
-		// 	//onClick={() => onClick(index)}
-		// 	>
-		// 		{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
-		// 	</Box>
-		// </Draggable>
 	);
 };
 
@@ -464,7 +425,6 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 				maxColumn,
 				props.columnWidth,
 				props.stickyHeight,
-				props.activeRowIndex
 			);
 			const leftSideRows = ColumnsBuilder(
 				minRow,
@@ -485,6 +445,7 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 
 					<StickyHeader
+						headerWidth={props.columnHeaderWidth as number}
 						headerColumns={headerColumns}
 						stickyHeight={props.stickyHeight}
 						stickyWidth={props.stickyWidth}
@@ -534,7 +495,6 @@ export const StickyGrid = forwardRef((
 		columnWidth,
 		rowHeight,
 		rowHeaderLabels,
-		activeRowIndex,
 		onKeyDown,
 		onKeyUp,
 		playbackState,
@@ -555,9 +515,9 @@ export const StickyGrid = forwardRef((
 			stickyHeight,
 			stickyWidth,
 			columnWidth,
+			columnHeaderWidth: columnWidth * (rest.columnCount as number),
 			rowHeight,
 			rowHeaderLabels,
-			activeRowIndex,
 			onKeyDown,
 			onKeyUp,
 			playbackState,

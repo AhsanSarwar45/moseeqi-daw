@@ -1,5 +1,5 @@
 import React, { Fragment, useRef, useEffect, memo } from 'react';
-import { Button, Flex, Text, IconButton, Box, VStack, HStack, useDisclosure } from '@chakra-ui/react';
+import { Button, Flex, Text, IconButton, Box, VStack, HStack, useDisclosure, useTheme } from '@chakra-ui/react';
 import { TiPlus, TiVolumeMute } from 'react-icons/ti';
 import { BiDuplicate } from 'react-icons/bi';
 import { Resizable, ResizeCallbackData } from 'react-resizable';
@@ -98,7 +98,7 @@ interface TracksViewProps {
 }
 
 const TracksView = memo((props: TracksViewProps) => {
-
+	const theme = useTheme();
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const timeScale = useRef<Ruler>(null);
 
@@ -208,7 +208,7 @@ const TracksView = memo((props: TracksViewProps) => {
 				<VStack alignItems="flex-start" width="full" spacing={0} flexShrink={1} overflowX="scroll">
 					<Box height="30px" padding="0px" width="full">
 						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
-						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} />
+						<Ruler type="horizontal" unit={1} zoom={20} ref={timeScale} backgroundColor={theme.colors.primary[600]} />
 					</Box>
 					{props.tracks.map((track: Track, index: number) => (
 						<TrackSequence

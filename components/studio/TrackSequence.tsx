@@ -84,48 +84,6 @@ const TrackSequence = (props: TrackProps) => {
                     ))}
                 </Box>
             </Rnd>
-            {/* <Draggable
-                axis="x"
-                handle=".handle"
-                defaultPosition={{ x: 0, y: 0 }}
-                // position={dragging.current ? null as any : { x: seek * 5 * props.scale, y: 0 }}
-                grid={[5, 5]}
-                scale={1}
-                bounds={{ left: 0, right: 10000 }}
-                onStart={(props: any) => {
-                    console.log('start')
-                    dragging.current = true;
-                }}
-                onStop={HandleDrag}
-                nodeRef={seekHandleRef}
-            >
-                <Resizable
-
-                    height={1}
-                    width={activeWidth}
-                    onResize={OnSetActiveWidth}
-                    onResizeStop={OnResizeStop}
-                    axis="x"
-                    draggableOpts={{ grid: [5, 5] }}
-                    resizeHandles={['e']}
-                >
-
-                    <Box ref={seekHandleRef} height="full" width={activeWidth} overflow="hidden" bgColor="primary.500">
-                        {props.track.notes.map((note, index) => (
-                            <Box
-                                key={index}
-                                bgColor="secondary.500"
-                                position="absolute"
-                                top={`${note.noteIndex}px`}
-                                left={`${5 * note.time}px`}
-                                width={`${5 * 8 / note.duration}px`}
-                                height="1px"
-                            />
-                        ))}
-                    </Box>
-
-                </Resizable>
-            </Draggable> */}
         </Box >
 
     )

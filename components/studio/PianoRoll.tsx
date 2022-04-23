@@ -162,7 +162,6 @@ const PianoRoll = memo((props: PianoRollProps) => {
 							setSeek={props.setSeek}
 							playbackState={props.playbackState}
 							rowHeaderLabels={MusicNotes}
-							activeRowIndex={1}
 							onKeyDown={OnKeyDown}
 							onKeyUp={OnKeyUp}
 							notes={props.track.notes}
