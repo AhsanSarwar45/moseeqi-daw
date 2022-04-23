@@ -20,8 +20,9 @@ const TimeLineHandle = (props: TimeHandleProps) => {
     const dragging = useRef(false);
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
-        props.setSeek(data.lastX / (5 * props.scale));
-        Tone.Transport.seconds = data.lastX / (20 * props.scale);
+        const newSeek = data.lastX / (5 * props.scale)
+        props.setSeek(newSeek);
+        Tone.Transport.ticks = newSeek * 100;
         dragging.current = false;
     };
 
@@ -36,7 +37,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             if (props.playbackState === 1) {
                 seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
                     // let interval = (Date.now() - start)
-                    setSeek(Tone.Transport.seconds * 4);
+                    setSeek(Tone.Transport.ticks / 100);
                     // console.log(Tone.Transport.seconds);
                     // console.log(seekHandleRef.current);
                     // if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
@@ -61,7 +62,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             handle=".handle"
             defaultPosition={{ x: 0, y: 0 }}
             position={dragging.current ? null as any : { x: seek * 5 * props.scale, y: 0 }}
-            grid={[5, 5]}
+            grid={[5 * props.scale, 5 * props.scale]}
             scale={1}
             bounds={{ left: 0, right: 10000 }}
             onStart={(props: any) => {

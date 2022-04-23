@@ -102,6 +102,12 @@ const PianoRoll = memo((props: PianoRollProps) => {
 		props.track.sampler.triggerAttack([key]);
 	};
 
+	const OnNoteClick = (key: string, duration: number) => {
+		props.track.sampler.triggerAttackRelease(key, `${duration}n`);
+		console.log("Duration: " + duration);
+	};
+
+
 	const OnKeyUp = (key: string) => {
 		props.track.sampler.triggerRelease([key]);
 	};
@@ -162,7 +168,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
 							notes={props.track.notes}
 							onMoveNote={props.onMoveNote}
 							onResizeNote={props.onResizeNote}
-							onFilledNoteClick={props.removeNote}
+							onFilledNoteClick={OnNoteClick}
+							onFilledNoteRightClick={props.removeNote}
 							itemData={{
 								onCellClick: props.addNote,
 								divisor: noteDivisor

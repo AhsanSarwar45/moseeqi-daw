@@ -73,6 +73,11 @@ const Studio = () => {
 
 	}
 
+	useEffect(() => {
+		Tone.Transport.bpm.value = bpm;
+	}, [bpm]);
+
+
 	// useEffect(
 	// 	() => {
 	// 		// console.log(stopTime);
@@ -185,11 +190,13 @@ const Studio = () => {
 
 	const AddNote = (column: number, row: number, divisor: number) => {
 		console.log(divisor)
+		const key = MusicNotes[row];
+
 		let copy = [...tracks];
 		const note = {
 			time: column,
 			noteIndex: row,
-			note: MusicNotes[row],
+			note: key,
 			duration: divisor,
 			velocity: 1.0
 		};
@@ -197,11 +204,12 @@ const Studio = () => {
 		setTracks(copy);
 		const partNote = {
 			time: column * 0.25,
-			note: MusicNotes[row],
+			note: key,
 			duration: `${divisor}n`,
 			velocity: 1.0
 		};
 		parts.current[selectedIndex].add(partNote);
+		copy[selectedIndex].sampler.triggerAttackRelease(key, `${divisor}n`);
 	};
 
 	// const SetNotes = (notes) => {
@@ -231,9 +239,11 @@ const Studio = () => {
 	const MoveNote = (index: number, column: number, row: number) => {
 		parts.current[selectedIndex].clear();
 
+		const key = MusicNotes[row];
+
 		let copy = [...tracks];
 		const newNote = copy[selectedIndex].notes[index];
-		newNote.note = MusicNotes[row];
+		newNote.note = key;
 		newNote.noteIndex = row;
 		newNote.time = column;
 		copy[selectedIndex].notes[index] = newNote;
@@ -248,6 +258,9 @@ const Studio = () => {
 			};
 			parts.current[selectedIndex].add(partNote);
 		});
+
+		copy[selectedIndex].sampler.triggerAttackRelease(key, `${newNote.duration}n`);
+
 		//console.log(parts.current);
 	};
 
@@ -271,6 +284,7 @@ const Studio = () => {
 			};
 			parts.current[selectedIndex].add(partNote);
 		});
+		copy[selectedIndex].sampler.triggerAttackRelease(newNote.note, `${duration}n`);
 		//console.log(parts.current);
 	};
 

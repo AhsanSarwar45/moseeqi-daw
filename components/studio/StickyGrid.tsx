@@ -290,7 +290,8 @@ interface StickyGridContextProps {
 	onKeyUp: (label: string) => void;
 	onMoveNote: (index: number, column: number, row: number) => void;
 	onResizeNote: (index: number, duration: number) => void;
-	onFilledNoteClick: (index: number) => void;
+	onFilledNoteClick: (key: string, duration: number) => void;
+	onFilledNoteRightClick: (index: number) => void;
 	notes: Array<Note>;
 	children?: ReactNode;
 	columnCount?: number;
@@ -314,7 +315,8 @@ const StickyGridContext = createContext<StickyGridContextProps>({
 	onKeyUp: (label: string) => { },
 	onMoveNote: (index: number, column: number, row: number) => { },
 	onResizeNote: (index: number, duration: number) => { },
-	onFilledNoteClick: (index: number) => { },
+	onFilledNoteClick: (key: string, duration: number) => { },
+	onFilledNoteRightClick: (index: number) => { },
 	notes: [] as Array<Note>
 
 });
@@ -324,7 +326,8 @@ interface FilledCellProps {
 	note: Note;
 	index: number;
 	rowHeight: number;
-	onClick: (index: number) => void;
+	onClick: (key: string, duration: number) => void;
+	onRightClick: (index: number) => void;
 	onDrag: (index: number, column: number, row: number) => void;
 	onResize: (index: number, duration: number) => void;
 }
@@ -373,16 +376,17 @@ const FilledCell = (props: FilledCellProps) => {
 					x: data.lastX, y: data.lastY
 				});
 				props.onDrag(props.index, data.lastX / 60, data.lastY / props.rowHeight);
+
 			}}
-			minWidth={60}
+			minWidth={59}
 			onResizeStop={(e, direction, ref, delta, position) => {
 				const width = parseInt(ref.style.width)
 
 				setActiveWidth(width - 1);
-
+				const duration = 8 / (width) * 60
 				// console.log("width", width, "position", position);
-				props.onResize(props.index, 8 / (width) * 60);
-
+				props.onResize(props.index, duration);
+				// props.onClick(props.note.note, duration)
 
 			}}
 		>
@@ -402,10 +406,10 @@ const FilledCell = (props: FilledCellProps) => {
 				borderColor="secondary.700"
 				bgColor="secondary.500"
 				onContextMenu={() => {
-					props.onClick(props.index);
+					props.onRightClick(props.index);
 					return false;
 				}}
-			//onClick={() => onClick(index)}
+			// onClick={() => props.onClick(props.note.note, props.note.duration)}
 			>
 				{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
 			</Box>
@@ -509,6 +513,7 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 								index={index}
 								rowHeight={props.rowHeight}
 								onClick={props.onFilledNoteClick}
+								onRightClick={props.onFilledNoteRightClick}
 								onDrag={props.onMoveNote}
 								onResize={props.onResizeNote}
 							/>
@@ -539,6 +544,7 @@ export const StickyGrid = forwardRef((
 		onMoveNote,
 		onResizeNote,
 		onFilledNoteClick,
+		onFilledNoteRightClick,
 		children,
 		...rest
 	}: StickyGridContextProps,
@@ -561,6 +567,7 @@ export const StickyGrid = forwardRef((
 			onMoveNote,
 			onResizeNote,
 			onFilledNoteClick,
+			onFilledNoteRightClick
 		}}
 	>
 		<Grid
