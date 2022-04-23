@@ -184,6 +184,7 @@ const Studio = () => {
 	};
 
 	const AddNote = (column: number, row: number, divisor: number) => {
+		console.log(divisor)
 		let copy = [...tracks];
 		const note = {
 			time: column,
@@ -237,6 +238,29 @@ const Studio = () => {
 		newNote.time = column;
 		copy[selectedIndex].notes[index] = newNote;
 		setTracks(copy);
+
+		copy[selectedIndex].notes.forEach((note) => {
+			const partNote = {
+				time: note.time * 0.25,
+				note: note.note,
+				duration: `${note.duration}n`,
+				velocity: note.velocity
+			};
+			parts.current[selectedIndex].add(partNote);
+		});
+		//console.log(parts.current);
+	};
+
+	const ResizeNote = (index: number, duration: number) => {
+		parts.current[selectedIndex].clear();
+
+		let copy = [...tracks];
+		const newNote = copy[selectedIndex].notes[index];
+		newNote.duration = duration;
+		copy[selectedIndex].notes[index] = newNote;
+		setTracks(copy);
+
+		console.log(duration)
 
 		copy[selectedIndex].notes.forEach((note) => {
 			const partNote = {
@@ -310,9 +334,10 @@ const Studio = () => {
 									setSeek={setSeek}
 									track={tracks[selectedIndex]}
 									addNote={AddNote}
-									moveNote={MoveNote}
+									onMoveNote={MoveNote}
 									removeNote={RemoveNote}
 									clearNotes={ClearNotes}
+									onResizeNote={ResizeNote}
 								/>
 
 							</Splitter>

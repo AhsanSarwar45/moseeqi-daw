@@ -48,7 +48,8 @@ interface PianoRollProps {
 	setSeek: (seek: number) => void;
 	playbackState: number;
 	addNote: (column: number, row: number, divisor: number) => void;
-	moveNote: (index: number, column: number, row: number) => void;
+	onMoveNote: (index: number, column: number, row: number) => void;
+	onResizeNote: (index: number, duration: number) => void;
 	removeNote: (index: number) => void;
 	clearNotes: () => void;
 	numCols?: number;
@@ -159,7 +160,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
 							onKeyDown={OnKeyDown}
 							onKeyUp={OnKeyUp}
 							notes={props.track.notes}
-							moveNote={props.moveNote}
+							onMoveNote={props.onMoveNote}
+							onResizeNote={props.onResizeNote}
 							onFilledNoteClick={props.removeNote}
 							itemData={{
 								onCellClick: props.addNote,

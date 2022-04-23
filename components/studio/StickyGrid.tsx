@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useRef, useEffect, ReactNode } from 'react';
+import { createContext, forwardRef, useRef, useEffect, ReactNode, useState } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import { Box, Container, Flex, HStack } from '@chakra-ui/react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -6,6 +6,8 @@ import { MusicNotes } from '@Instruments/Instruments';
 import { CellCoordinates } from '@Interfaces/CellProps';
 import { Note } from '@Interfaces/Note';
 import TimeLineHandle from './TimeLineHandle';
+import { Rnd } from 'react-rnd'
+
 
 const blackKeyWidth = 0.6;
 
@@ -286,7 +288,8 @@ interface StickyGridContextProps {
 	setSeek: (seek: number) => void;
 	onKeyDown: (label: string) => void;
 	onKeyUp: (label: string) => void;
-	moveNote: (index: number, column: number, row: number) => void;
+	onMoveNote: (index: number, column: number, row: number) => void;
+	onResizeNote: (index: number, duration: number) => void;
 	onFilledNoteClick: (index: number) => void;
 	notes: Array<Note>;
 	children?: ReactNode;
@@ -309,7 +312,8 @@ const StickyGridContext = createContext<StickyGridContextProps>({
 	setSeek: (seek: number) => { },
 	onKeyDown: (label: string) => { },
 	onKeyUp: (label: string) => { },
-	moveNote: (index: number, column: number, row: number) => { },
+	onMoveNote: (index: number, column: number, row: number) => { },
+	onResizeNote: (index: number, duration: number) => { },
 	onFilledNoteClick: (index: number) => { },
 	notes: [] as Array<Note>
 
@@ -322,9 +326,13 @@ interface FilledCellProps {
 	rowHeight: number;
 	onClick: (index: number) => void;
 	onDrag: (index: number, column: number, row: number) => void;
+	onResize: (index: number, duration: number) => void;
 }
 
 const FilledCell = (props: FilledCellProps) => {
+	const [activeWidth, setActiveWidth] = useState(8 / props.note.duration * 60 - 1);
+	const [position, setPosition] = useState({ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight });
+
 	const handleRef = useRef<HTMLElement | null>(null);
 	const dragging = useRef(false);
 
@@ -346,31 +354,49 @@ const FilledCell = (props: FilledCellProps) => {
 	}, []);
 
 	return (
-		<Draggable
-			handle={`.cellHandle${props.note.time}${props.note.noteIndex}`}
-			defaultPosition={{ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }}
-			position={
-				dragging.current ? null as any : { x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }
-			}
-			grid={[60, props.rowHeight]}
-			scale={1}
-			onStart={() => {
-				dragging.current = true;
+		<Rnd
+
+			size={{ width: activeWidth, height: props.rowHeight - 1 }}
+			enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
+			// bounds="parent"
+			resizeGrid={[60, props.rowHeight - 1]}
+			dragGrid={[60, props.rowHeight]}
+			position={position}
+			onDragStop={(event, data) => {
+				if (data.lastX < 0) {
+					data.lastX = 0;
+				}
+				if (data.lastY < 0) {
+					data.lastY = 0;
+				}
+				setPosition({
+					x: data.lastX, y: data.lastY
+				});
+				props.onDrag(props.index, data.lastX / 60, data.lastY / props.rowHeight);
 			}}
-			onStop={HandleDrag}
-			nodeRef={handleRef}
+			minWidth={60}
+			onResizeStop={(e, direction, ref, delta, position) => {
+				const width = parseInt(ref.style.width)
+
+				setActiveWidth(width - 1);
+
+				// console.log("width", width, "position", position);
+				props.onResize(props.index, 8 / (width) * 60);
+
+
+			}}
 		>
 			<Box
 				ref={handleRef as any}
-				className={`cellHandle${props.note.time}${props.note.noteIndex}`}
+				// className={`cellHandle${props.note.time}${props.note.noteIndex}`}
 				// cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
 				cursor="move"
 				//key={index}
-				height={`${props.rowHeight - 1}px`}
-				position="absolute"
+				// height={`${props.rowHeight - 1}px`}
+				height="full"
 				//left={`${note.time * 60}px`}
 				//top={`${note.noteIndex * rowHeight}px`}
-				width={`${8 / props.note.duration * 60 - 1}px`}
+				// width={`${8 / props.note.duration * 60 - 1}px`}
 				borderRadius="5px"
 				borderWidth="1px"
 				borderColor="secondary.700"
@@ -383,7 +409,45 @@ const FilledCell = (props: FilledCellProps) => {
 			>
 				{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
 			</Box>
-		</Draggable>
+		</Rnd>
+		// <Draggable
+		// 	handle={`.cellHandle${props.note.time}${props.note.noteIndex}`}
+		// 	defaultPosition={{ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }}
+		// 	position={
+		// 		dragging.current ? null as any : { x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight }
+		// 	}
+		// 	grid={[60, props.rowHeight]}
+		// 	scale={1}
+		// 	onStart={() => {
+		// 		dragging.current = true;
+		// 	}}
+		// 	onStop={HandleDrag}
+		// 	nodeRef={handleRef}
+		// >
+		// 	<Box
+		// 		ref={handleRef as any}
+		// 		className={`cellHandle${props.note.time}${props.note.noteIndex}`}
+		// 		// cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
+		// 		cursor="move"
+		// 		//key={index}
+		// 		height={`${props.rowHeight - 1}px`}
+		// 		position="absolute"
+		// 		//left={`${note.time * 60}px`}
+		// 		//top={`${note.noteIndex * rowHeight}px`}
+		// 		width={`${8 / props.note.duration * 60 - 1}px`}
+		// 		borderRadius="5px"
+		// 		borderWidth="1px"
+		// 		borderColor="secondary.700"
+		// 		bgColor="secondary.500"
+		// 		onContextMenu={() => {
+		// 			props.onClick(props.index);
+		// 			return false;
+		// 		}}
+		// 	//onClick={() => onClick(index)}
+		// 	>
+		// 		{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
+		// 	</Box>
+		// </Draggable>
 	);
 };
 
@@ -445,7 +509,8 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 								index={index}
 								rowHeight={props.rowHeight}
 								onClick={props.onFilledNoteClick}
-								onDrag={props.moveNote}
+								onDrag={props.onMoveNote}
+								onResize={props.onResizeNote}
 							/>
 						))}
 					</Box>
@@ -471,7 +536,8 @@ export const StickyGrid = forwardRef((
 		seek,
 		setSeek,
 		notes,
-		moveNote,
+		onMoveNote,
+		onResizeNote,
 		onFilledNoteClick,
 		children,
 		...rest
@@ -492,7 +558,8 @@ export const StickyGrid = forwardRef((
 			seek,
 			setSeek,
 			notes,
-			moveNote,
+			onMoveNote,
+			onResizeNote,
 			onFilledNoteClick,
 		}}
 	>
