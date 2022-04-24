@@ -37,7 +37,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             if (props.playbackState === 1) {
                 seekAnimationRef.current = requestAnimationFrame(function UpdateSeek() {
                     // let interval = (Date.now() - start)
-                    setSeek(Tone.Transport.ticks / 100);
+                    setSeek(Tone.Transport.seconds * (Tone.Transport.bpm.value / 30));
                     // console.log(Tone.Transport.seconds);
                     // console.log(seekHandleRef.current);
                     // if (!dragging.current) seekHandleRef.current.position = Tone.Transport.seconds * 4;
@@ -86,8 +86,8 @@ const TimeLineHandle = (props: TimeHandleProps) => {
                 <Box
                     className="handle"
                     bgColor="white"
-                    marginLeft="-10px"
-                    width="20px"
+                    marginLeft="-5px"
+                    width="10px"
                     height="20px"
                 />
             </Box>

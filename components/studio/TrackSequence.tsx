@@ -1,7 +1,8 @@
 
-import { HStack, VStack, Box } from '@chakra-ui/react'
+import { HStack, VStack, Box, useTheme, Container } from '@chakra-ui/react'
 import { Track } from '@Interfaces/Track';
-import React, { useRef, useState } from 'react'
+import Ruler from '@scena/react-ruler';
+import React, { useEffect, useRef, useState } from 'react'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { Resizable, ResizeCallbackData } from 'react-resizable'
 import { Rnd } from 'react-rnd'
@@ -18,6 +19,22 @@ interface TrackProps {
 const TrackSequence = (props: TrackProps) => {
     const [activeWidth, setActiveWidth] = useState(5 * 40);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const timeScale = useRef<Ruler>(null);
+    const timeScaleMain = useRef<Ruler>(null);
+    const theme = useTheme();
+
+    useEffect(() => {
+        window.addEventListener('resize', () => {
+            timeScale.current?.resize();
+            timeScaleMain.current?.resize();
+        });
+        return () => {
+            window.removeEventListener('resize', () => {
+                timeScale.current?.resize();
+                timeScaleMain.current?.resize();
+            });
+        };
+    }, []);
 
     const OnSetActiveWidth = (e: React.SyntheticEvent<Element, Event>, data: ResizeCallbackData) => {
         // console.log(data.size.width);
@@ -32,14 +49,21 @@ const TrackSequence = (props: TrackProps) => {
 
         <Box
             height="88px"
-            color="white"
-            width="full"
-            bgColor="primary.400"
+            // bgColor="white"
+            width={2000}
             padding="0px"
             position="relative"
             onClick={() => props.setSelected(props.index)}
+            // onDoubleClick={() => props.setStopTime(props.track.stopTime)}
             borderBottom="1px solid gray"
         >
+            <Box position="absolute" right={0} top={0} width={2000} p={0}>
+                <Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} backgroundColor={theme.colors.primary[400]} segment={4} height={86} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
+            </Box>
+            <Box position="absolute" right={0} top={0} width={2000} p={0}>
+                <Ruler type="horizontal" unit={1} zoom={40} ref={timeScaleMain} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
+            </Box>
+
             <Rnd
 
                 size={{ width: activeWidth, height: "full" }}
@@ -70,7 +94,7 @@ const TrackSequence = (props: TrackProps) => {
                 {/* <Box height="86px" width="full" bgColor="red.500" /> */}
 
                 {/* </Box> */}
-                <Box height="86px" width="full" overflow="hidden" bgColor="primary.500" >
+                <Box height="86px" width="full" overflow="hidden" bgColor="primary.500">
                     {props.track.notes.map((note, index) => (
                         <Box
                             key={index}

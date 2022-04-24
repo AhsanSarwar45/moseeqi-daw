@@ -9,6 +9,7 @@ import TimeLineHandle from './TimeLineHandle';
 import { Rnd } from 'react-rnd'
 import Ruler from '@scena/react-ruler';
 import { useTheme } from '@emotion/react';
+import Theme from '@Theme/index.ts';
 
 
 const blackKeyWidth = 0.6;
@@ -196,9 +197,10 @@ interface StickHeaderProps {
 }
 
 const StickyHeader = (props: StickHeaderProps) => {
-	const theme = useTheme();
+
+
 	return (
-		<Flex zIndex={9001} position="sticky" top={0} left={0} overflow="visible">
+		<Flex zIndex={9001} position="sticky" top={0} left={0} overflowY="visible">
 
 			{/* <Container position="absolute" height="full" paddingLeft={props.stickyWidth}>
 				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
@@ -214,9 +216,9 @@ const StickyHeader = (props: StickHeaderProps) => {
 				width={props.stickyWidth}
 				height={props.stickyHeight}
 			/>
-			<Box position="absolute" left={props.stickyWidth} height={props.stickyHeight} width={props.headerWidth}>
+			<Box position="absolute" left={props.stickyWidth} height={props.stickyHeight} width={props.headerWidth} overflowY="visible">
 				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
-				<Ruler type="horizontal" unit={1} zoom={120} backgroundColor={theme.colors.primary[600]} />
+				<Ruler type="horizontal" unit={1} zoom={480} segment={4} backgroundColor={Theme.colors.primary[600]} />
 			</Box>
 			{/* <Box position="absolute" left={props.stickyWidth}>
 				{props.headerColumns.map(({ label, ...style }: any, index: number) => (

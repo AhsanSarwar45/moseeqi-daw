@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { HStack, VStack, Button, Icon, Container, Box, Flex, useRadioGroup } from '@chakra-ui/react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VscClearAll } from 'react-icons/vsc';
@@ -28,7 +28,6 @@ const GridCell = memo((props: GridCellProps) => {
 		<Box
 			onClick={HandleOnClick}
 			bgColor={colors[props.rowIndex]}
-			overflowX="visible"
 			zIndex={500 - props.columnIndex}
 			style={props.style}
 			boxShadow={props.columnIndex % 8 === 7 ? '1px 0 0' : '0'}
@@ -65,7 +64,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
 	const [noteDivisor, setNoteDivisor] = useState(4);
 
 	const hasScrolledRef = useRef(false);
-	const gridRef = useRef<Grid<any>>(null);
+	// const gridRef = useRef<Grid<any>>(null);
 
 	const { getRootProps, getRadioProps } = useRadioGroup({
 		name: 'Note Length',
@@ -85,18 +84,29 @@ const PianoRoll = memo((props: PianoRollProps) => {
 
 	const group = getRootProps();
 
-	useEffect(
-		() => {
-			if (gridRef.current !== null && !hasScrolledRef.current) {
-				gridRef.current.scrollToItem({
-					columnIndex: 0,
-					rowIndex: 57
-				});
-				hasScrolledRef.current = true;
-			}
-		},
-		[gridRef]
-	);
+	const gridRef = useCallback(node => {
+		if (node !== null && !hasScrolledRef.current) {
+			node.scrollToItem({
+				columnIndex: 0,
+				rowIndex: 57
+			});
+			hasScrolledRef.current = true;
+		}
+	}, []);
+
+	// useEffect(
+	// 	() => {
+	// 		console.log(gridRef.current, hasScrolledRef.current)
+	// 		if (gridRef.current !== null && !hasScrolledRef.current) {
+	// 			gridRef.current.scrollToItem({
+	// 				columnIndex: 0,
+	// 				rowIndex: 23
+	// 			});
+	// 			hasScrolledRef.current = true;
+	// 		}
+	// 	},
+	// 	[gridRef]
+	// );
 
 	const OnKeyDown = (key: string) => {
 		props.track.sampler.triggerAttack([key]);
