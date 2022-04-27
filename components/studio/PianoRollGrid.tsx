@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useRef, useEffect, ReactNode, useState } from 'react';
+import { createContext, forwardRef, useRef, useEffect, ReactNode, useState, useContext } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import { Box, Container, Flex, HStack } from '@chakra-ui/react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -10,6 +10,9 @@ import { Rnd } from 'react-rnd'
 import Ruler from '@scena/react-ruler';
 import { useTheme } from '@emotion/react';
 import Theme from '@Theme/index.ts';
+import { NotesModifierContext } from '@Data/NotesModifierContext';
+import { GridContext } from '@Data/GridContext';
+import { Part } from '@Interfaces/Part';
 
 
 const blackKeyWidth = 0.6;
@@ -138,27 +141,6 @@ const GetRenderedCursor = (children: any) =>
 		[Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]
 	);
 
-const HeaderBuilder = (
-	minColumn: number,
-	maxColumn: number,
-	columnWidth: number,
-	stickyHeight: number,
-) => {
-	const columns = [];
-
-	for (let i = minColumn; i <= maxColumn; i++) {
-		columns.push({
-			height: stickyHeight,
-			width: columnWidth,
-			left: i * columnWidth,
-			first: i % 8 === 0,
-			index: i,
-			label: ''
-		});
-	}
-
-	return columns;
-};
 
 const ColumnsBuilder = (
 	minRow: number,
@@ -190,7 +172,6 @@ interface StickHeaderProps {
 	stickyHeight: number;
 	stickyWidth: number;
 	headerWidth: number;
-	headerColumns: Array<any>; // TODO: remove any
 	playbackState: number;
 	seek: number;
 	setSeek: (seek: number) => void;
@@ -285,71 +266,23 @@ const StickyColumns = (props: StickyColumnsProps) => {
 	);
 };
 
-interface StickyGridContextProps {
-	stickyHeight: number;
-	stickyWidth: number;
-	columnWidth: number;
-	columnHeaderWidth?: number;
-	rowHeight: number;
-	rowHeaderLabels: Array<string>;
-	playbackState: number;
-	seek: number;
-	setSeek: (seek: number) => void;
-	onKeyDown: (label: string) => void;
-	onKeyUp: (label: string) => void;
-	onMoveNote: (index: number, column: number, row: number) => void;
-	onResizeNote: (index: number, duration: number) => void;
-	onFilledNoteClick: (key: string, duration: number) => void;
-	onFilledNoteRightClick: (index: number) => void;
-	notes: Array<Note>;
-	children?: ReactNode;
-	columnCount?: number;
-	rowCount?: number;
-	height?: number;
-	width?: number;
-	itemData?: any;
-}
 
-const StickyGridContext = createContext<StickyGridContextProps>({
-	stickyHeight: 0,
-	stickyWidth: 0,
-	columnWidth: 0,
-	columnHeaderWidth: 0,
-	rowHeight: 0,
-	playbackState: 0,
-	rowHeaderLabels: [],
-	seek: 0,
-	setSeek: (seek: number) => { },
-	onKeyDown: (label: string) => { },
-	onKeyUp: (label: string) => { },
-	onMoveNote: (index: number, column: number, row: number) => { },
-	onResizeNote: (index: number, duration: number) => { },
-	onFilledNoteClick: (key: string, duration: number) => { },
-	onFilledNoteRightClick: (index: number) => { },
-	notes: [] as Array<Note>
-
-});
-StickyGridContext.displayName = 'StickyGridContext';
 
 interface FilledCellProps {
 	note: Note;
-	index: number;
-	rowHeight: number;
+	part: Part;
+	partIndex: number;
+	noteIndex: number;
+	cellHeight: number;
+	cellWidth: number;
 	onClick: (key: string, duration: number) => void;
-	onRightClick: (index: number) => void;
-	onDrag: (index: number, column: number, row: number) => void;
-	onResize: (index: number, duration: number) => void;
 }
 
 const FilledCell = (props: FilledCellProps) => {
-	const [activeWidth, setActiveWidth] = useState(8 / props.note.duration * 60 - 1);
-	const [position, setPosition] = useState({ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight });
+	const { onMoveNote, onRemoveNote, onResizeNote } = useContext(NotesModifierContext);
+	const [activeWidth, setActiveWidth] = useState(8 / props.note.duration * props.cellWidth - 1);
 
 	const handleRef = useRef<HTMLElement | null>(null);
-
-	useEffect(() => {
-		setPosition({ x: props.note.time * 60, y: props.note.noteIndex * props.rowHeight });
-	}, [props.note, props.rowHeight]);
 
 	useEffect(() => {
 		handleRef.current?.addEventListener(
@@ -364,39 +297,48 @@ const FilledCell = (props: FilledCellProps) => {
 
 	return (
 		<Rnd
-
-			size={{ width: activeWidth, height: props.rowHeight - 1 }}
+			size={{ width: activeWidth, height: props.cellHeight - 1 }}
 			enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
 			// bounds="parent"
-			resizeGrid={[60, props.rowHeight - 1]}
-			dragGrid={[60, props.rowHeight]}
-			position={position}
+			resizeGrid={[props.cellWidth, props.cellHeight - 1]}
+			dragGrid={[props.cellWidth, props.cellHeight]}
+			position={{ x: props.note.time * props.cellWidth, y: props.note.noteIndex * props.cellHeight }}
 			onDragStop={(event, data) => {
-				if (data.lastX < 0) {
-					data.lastX = 0;
+				// Round off data.x to nearest cellWidth
+				data.lastX = Math.round(data.lastX / props.cellWidth) * props.cellWidth;
+				// Round off data.y to nearest cellHeight
+				data.lastY = Math.round(data.lastY / props.cellHeight) * props.cellHeight;
+
+				const localColumn = data.lastX / props.cellWidth;
+				let column = localColumn + props.part.startTime * 4;
+				const row = data.lastY / props.cellHeight;
+
+				console.log(column, props.part.startTime);
+
+				if (column < 0) {
+					column = 0;
 				}
-				if (data.lastY < 0) {
-					data.lastY = 0;
+				if (column < 0) {
+					column = 0;
 				}
-				setPosition({
-					x: data.lastX, y: data.lastY
-				});
-				props.onDrag(props.index, data.lastX / 60, data.lastY / props.rowHeight);
+
+				onMoveNote(props.partIndex, props.noteIndex, column, row);
 
 			}}
-			minWidth={59}
+			minWidth={props.cellWidth - 1}
 			onResizeStop={(e, direction, ref, delta, position) => {
 				const width = parseInt(ref.style.width)
 
 				setActiveWidth(width - 1);
-				const duration = 8 / (width) * 60
+				const duration = 8 / (width) * props.cellWidth
 				// console.log("width", width, "position", position);
-				props.onResize(props.index, duration);
+				onResizeNote(props.partIndex, props.noteIndex, duration);
 				// props.onClick(props.note.note, duration)
 
 			}}
 		>
 			<Box
+				pointerEvents="auto"
 				ref={handleRef as any}
 				// className={`cellHandle${props.note.time}${props.note.noteIndex}`}
 				// cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
@@ -407,9 +349,10 @@ const FilledCell = (props: FilledCellProps) => {
 				borderColor="secondary.700"
 				bgColor="secondary.500"
 				onContextMenu={() => {
-					props.onRightClick(props.index);
+					onRemoveNote(props.partIndex, props.noteIndex);
 					return false;
 				}}
+				zIndex={9999}
 			// onClick={() => props.onClick(props.note.note, props.note.duration)}
 			>
 				{/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
@@ -418,22 +361,18 @@ const FilledCell = (props: FilledCellProps) => {
 	);
 };
 
-const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
-	<StickyGridContext.Consumer>
-		{(props: StickyGridContextProps) => {
+const PianoRollGrid = forwardRef(({ children, ...rest }: any, ref) => (
+	<GridContext.Consumer>
+		{(props) => {
+
 			const [minRow, maxRow, minColumn, maxColumn] = GetRenderedCursor(children); // TODO maybe there is more elegant way to get this
-			const headerColumns = HeaderBuilder(
-				minColumn,
-				maxColumn,
-				props.columnWidth,
-				props.stickyHeight,
-			);
+
 			const leftSideRows = ColumnsBuilder(
 				minRow,
 				maxRow,
 				props.rowHeight,
 				props.stickyWidth,
-				props.rowHeaderLabels
+				MusicNotes
 			);
 			const containerStyle = {
 				...rest.style,
@@ -448,7 +387,6 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 
 					<StickyHeader
 						headerWidth={props.columnHeaderWidth as number}
-						headerColumns={headerColumns}
 						stickyHeight={props.stickyHeight}
 						stickyWidth={props.stickyWidth}
 						playbackState={props.playbackState}
@@ -469,80 +407,36 @@ const InnerGridElementType = forwardRef(({ children, ...rest }: any, ref) => (
 					</Box>
 
 					<Box position="absolute" top={props.stickyHeight} left={props.stickyWidth} zIndex={600}>
-						{props.notes.map((note: Note, index: number) => (
-							<FilledCell
-								key={index}
-								note={note}
-								index={index}
-								rowHeight={props.rowHeight}
-								onClick={props.onFilledNoteClick}
-								onRightClick={props.onFilledNoteRightClick}
-								onDrag={props.onMoveNote}
-								onResize={props.onResizeNote}
-							/>
-						))}
+						{props.parts.map((part, partIndex) => (
+							// <Box key={partIndex} >
+
+							<Box borderWidth={1} zIndex={9998} key={partIndex} position="absolute" pointerEvents="none" left={part.startTime * 240} width={(part.stopTime - part.startTime) * 240} height={2000} bgColor="rgba(255,0,0,0.1)">
+
+								{part.notes.map((note: Note, noteIndex: number) => (
+									<FilledCell
+										key={noteIndex + partIndex * part.notes.length}
+										note={note}
+										noteIndex={noteIndex}
+										part={part}
+										partIndex={partIndex}
+										cellHeight={props.rowHeight}
+										cellWidth={props.columnWidth}
+										onClick={props.onFilledNoteClick}
+									/>
+								))}
+							</Box>
+						))
+						}
+
 					</Box>
 				</Box>
 			);
 		}}
-	</StickyGridContext.Consumer>
+	</GridContext.Consumer>
 ));
 
-InnerGridElementType.displayName = 'InnerGridElementType';
+PianoRollGrid.displayName = 'PianoRollGrid';
 
-export const StickyGrid = forwardRef((
-	{
-		stickyHeight,
-		stickyWidth,
-		columnWidth,
-		rowHeight,
-		rowHeaderLabels,
-		onKeyDown,
-		onKeyUp,
-		playbackState,
-		seek,
-		setSeek,
-		notes,
-		onMoveNote,
-		onResizeNote,
-		onFilledNoteClick,
-		onFilledNoteRightClick,
-		children,
-		...rest
-	}: StickyGridContextProps,
-	ref
-) => (
-	<StickyGridContext.Provider
-		value={{
-			stickyHeight,
-			stickyWidth,
-			columnWidth,
-			columnHeaderWidth: columnWidth * (rest.columnCount as number),
-			rowHeight,
-			rowHeaderLabels,
-			onKeyDown,
-			onKeyUp,
-			playbackState,
-			seek,
-			setSeek,
-			notes,
-			onMoveNote,
-			onResizeNote,
-			onFilledNoteClick,
-			onFilledNoteRightClick
-		}}
-	>
-		<Grid
-			ref={ref as any}
+export default PianoRollGrid;
 
-			columnWidth={columnWidth}
-			rowHeight={rowHeight}
-			innerElementType={InnerGridElementType}
-			{...rest as any}
-		>
-			{children as any}
-		</Grid>
-	</StickyGridContext.Provider>
-));
 
-StickyGrid.displayName = 'StickyGrid';

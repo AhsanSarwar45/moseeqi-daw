@@ -1,7 +1,7 @@
 export interface Note {
 	time: number;
 	noteIndex: number;
-	note: string;
+	key: string;
 	duration: number;
 	velocity: number;
 }

@@ -93,7 +93,7 @@ interface TracksViewProps {
 	setActiveWidth: (width: number) => void;
 	setStopTime: (time: number) => void;
 	toggleMute: (trackIndex: number) => void;
-	setPartTime: (partIndex: number, startTime: number, stopTime: number) => void;
+	setPartTime: (trackIndex: number, partIndex: number, startTime: number, stopTime: number) => void;
 
 }
 
@@ -211,11 +211,11 @@ const TracksView = memo((props: TracksViewProps) => {
 						<Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} backgroundColor={theme.colors.primary[600]} segment={4} />
 
 					</Box>
-					{props.tracks.map((track: Track, index: number) => (
+					{props.tracks.map((track: Track, trackIndex: number) => (
 						<TrackSequence
-							key={index}
+							key={trackIndex}
 							track={track}
-							index={index}
+							trackIndex={trackIndex}
 							setSelected={props.setSelected}
 							setStopTime={props.setStopTime}
 							setPartTime={props.setPartTime} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, memo, useCallback, useContext, createContext } from 'react';
 import { HStack, VStack, Button, Icon, Container, Box, Flex, useRadioGroup } from '@chakra-ui/react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VscClearAll } from 'react-icons/vsc';
@@ -9,6 +9,11 @@ import { ButtonRadio } from '@Components/ButtonRadio';
 import { MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
 import TimeLineHandle from './TimeLineHandle';
+import { NotesModifierContext } from '@Data/NotesModifierContext';
+import { Part } from '@Interfaces/Part';
+import { GridContext } from '@Data/GridContext';
+import { PlaybackState } from '@Types/Types';
+import PianoRollGrid from './PianoRollGrid';
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) => (x.includes('#') ? 'primary.600' : 'primary.500'));
@@ -21,8 +26,10 @@ interface GridCellProps {
 }
 
 const GridCell = memo((props: GridCellProps) => {
+	const { onAddNote } = useContext(NotesModifierContext);
+
 	const HandleOnClick = () => {
-		props.data.onCellClick(props.columnIndex, props.rowIndex, props.data.divisor);
+		onAddNote(props.columnIndex, props.rowIndex, props.data.divisor);
 	};
 	return (
 		<Box
@@ -41,17 +48,31 @@ const GridCell = memo((props: GridCellProps) => {
 
 GridCell.displayName = 'GridCell';
 
+// interface GridContextProps {
+// 	stickyHeight: number;
+// 	stickyWidth: number;
+// 	columnWidth: number;
+// 	columnHeaderWidth?: number;
+// 	rowHeight: number;
+// 	rowHeaderLabels: Array<string>;
+// 	playbackState: number;
+// 	seek: number;
+// 	setSeek: (seek: number) => void;
+// 	onKeyDown: (label: string) => void;
+// 	onKeyUp: (label: string) => void;
+// 	onFilledNoteClick: (key: string, duration: number) => void;
+// 	parts: Array<Part>;
+// }
+
+
+GridContext.displayName = 'StickyGridContext';
+
 interface PianoRollProps {
 	track: Track;
 	seek: number;
 	setSeek: (seek: number) => void;
-	playbackState: number;
-	addNote: (column: number, row: number, divisor: number) => void;
-	onMoveNote: (index: number, column: number, row: number) => void;
-	onResizeNote: (index: number, duration: number) => void;
-	removeNote: (index: number) => void;
-	clearNotes: () => void;
-	numCols?: number;
+	playbackState: PlaybackState
+	numCols: number;
 }
 
 const PianoRoll = memo((props: PianoRollProps) => {
@@ -60,6 +81,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
 	const cellHeight = 6;
 	const options = ['Whole', '1/2', '1/4', '1/8'];
 
+	const { onClearNotes } = useContext(NotesModifierContext)
 
 	const [noteDivisor, setNoteDivisor] = useState(4);
 
@@ -92,21 +114,14 @@ const PianoRoll = memo((props: PianoRollProps) => {
 			});
 			hasScrolledRef.current = true;
 		}
+		window.addEventListener('keydown', function (e) {
+			if (e.keyCode == 32 && e.target == node) {
+				e.preventDefault();
+			}
+		});
+
 	}, []);
 
-	// useEffect(
-	// 	() => {
-	// 		console.log(gridRef.current, hasScrolledRef.current)
-	// 		if (gridRef.current !== null && !hasScrolledRef.current) {
-	// 			gridRef.current.scrollToItem({
-	// 				columnIndex: 0,
-	// 				rowIndex: 23
-	// 			});
-	// 			hasScrolledRef.current = true;
-	// 		}
-	// 	},
-	// 	[gridRef]
-	// );
 
 	const OnKeyDown = (key: string) => {
 		props.track.sampler.triggerAttack([key]);
@@ -116,7 +131,6 @@ const PianoRoll = memo((props: PianoRollProps) => {
 		props.track.sampler.triggerAttackRelease(key, `${duration}n`);
 		console.log("Duration: " + duration);
 	};
-
 
 	const OnKeyUp = (key: string) => {
 		props.track.sampler.triggerRelease([key]);
@@ -144,7 +158,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
 						);
 					})}
 				</HStack>
-				<Icon as={VscClearAll} color="White" h={30} w={30} onClick={props.clearNotes} />
+				<Icon as={VscClearAll} color="White" h={30} w={30} onClick={onClearNotes} />
 			</HStack>
 			<Container
 				margin={0}
@@ -157,35 +171,39 @@ const PianoRoll = memo((props: PianoRollProps) => {
 				<AutoSizer>
 
 					{({ height, width }: { height: number; width: number }) => (
-
-						<StickyGrid
-							ref={gridRef}
-							height={height}
-							width={width}
-							columnCount={500}
-							rowCount={numRows}
-							rowHeight={20}
-							columnWidth={60}
-							stickyHeight={30}
-							stickyWidth={150}
-							seek={props.seek}
-							setSeek={props.setSeek}
-							playbackState={props.playbackState}
-							rowHeaderLabels={MusicNotes}
-							onKeyDown={OnKeyDown}
-							onKeyUp={OnKeyUp}
-							notes={props.track.notes}
-							onMoveNote={props.onMoveNote}
-							onResizeNote={props.onResizeNote}
-							onFilledNoteClick={OnNoteClick}
-							onFilledNoteRightClick={props.removeNote}
-							itemData={{
-								onCellClick: props.addNote,
-								divisor: noteDivisor
+						<GridContext.Provider
+							value={{
+								stickyHeight: 30,
+								stickyWidth: 150,
+								columnWidth: 60,
+								columnHeaderWidth: 60 * props.numCols,
+								rowHeight: 20,
+								onKeyDown: OnKeyDown,
+								onKeyUp: OnKeyUp,
+								playbackState: props.playbackState,
+								seek: props.seek,
+								setSeek: props.setSeek,
+								parts: props.track.parts,
+								onFilledNoteClick: OnNoteClick,
 							}}
 						>
-							{GridCell}
-						</StickyGrid>
+							<Grid
+								ref={gridRef}
+								columnCount={props.numCols}
+								rowCount={numRows}
+								height={height}
+								width={width}
+								columnWidth={60}
+								rowHeight={20}
+								innerElementType={PianoRollGrid}
+								itemData={{
+									divisor: noteDivisor
+								}}
+							>
+								{GridCell}
+							</Grid>
+						</GridContext.Provider>
+
 					)}
 				</AutoSizer>
 			</Container>

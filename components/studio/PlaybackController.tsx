@@ -7,11 +7,12 @@ import {
 	NumberInputStepper
 } from '@chakra-ui/number-input';
 import { TiMediaPlay, TiMediaRewind, TiMediaFastForward, TiMediaPause, TiMediaStop } from 'react-icons/ti';
+import { PlaybackState } from '@Types/Types';
 
 interface PlayBackControllerProps {
-	playbackState: number;
-	setPlaybackState: (playbackState: number) => void;
-	setBPM: (playbackState: number) => void;
+	playbackState: PlaybackState;
+	setPlaybackState: (playbackState: PlaybackState) => void;
+	setBPM: (bpm: number) => void;
 }
 
 export const PlayBackController = (props: PlayBackControllerProps) => {

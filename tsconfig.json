@@ -19,6 +19,7 @@
       "@Styles/*": ["styles/*"],
       "@Instruments/*": ["assets/instruments/*"],
       "@Interfaces/*": ["interfaces/*"],
+      "@Types/*": ["types/*"],
       "@Assets/*": ["assets/*"],
       "@Logos/*": ["assets/logos/*"],
       "@Data/*": ["data/*"],
