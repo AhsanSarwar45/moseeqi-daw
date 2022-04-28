@@ -76,7 +76,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
             <Box
                 // pointerEvents="none"
                 ref={seekHandleRef}
-                zIndex={9800}
+                zIndex={9000}
                 position="absolute"
                 bgColor="white"
                 //left={`${300 + seek}px`}

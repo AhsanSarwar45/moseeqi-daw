@@ -28,8 +28,15 @@ const Studio = () => {
 	const [seek, setSeek] = useState(0)
 	const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
 	const [bpm, setBPM] = useState(120);
-	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [selectedIndex, _setSelectedIndex] = useState(0);
+	const selectedIndexRef = useRef(0)
 	const [isContextStarted, setIsContextStarted] = useState(false);
+	const [indexToDelete, setIndexToDelete] = useState(-1)
+
+	const setSelectedIndex = (index: number) => {
+		selectedIndexRef.current = index;
+		_setSelectedIndex(index);
+	}
 
 	const CreateTrack = (instrumentIndex: number) => {
 		// Causes the loading modal to show
@@ -97,6 +104,35 @@ const Studio = () => {
 		[isInstrumentLoading, onClose, onOpen]
 	);
 
+	useEffect(() => {
+		if (indexToDelete > -1) {
+			let tracksCopy = [...tracks]
+			tracksCopy.splice(selectedIndex, 1);
+			setTracks(tracksCopy);
+
+			setIndexToDelete(-1);
+		}
+	}, [indexToDelete])
+
+	// Use effect hook that prints selected index whenever it changes
+	useEffect(() => {
+		console.log("Selected index: " + selectedIndex);
+	}, [selectedIndex]);
+
+	const HandleKeyboardEvent = (event: KeyboardEvent) => {
+		if (event.keyCode === 32) {
+			if (playbackState === 0) setPlaybackState(1);
+			else if (playbackState === 2) setPlaybackState(1);
+			else if (playbackState === 1) setPlaybackState(2);
+		}
+		else if (event.keyCode === 46) {
+			// Delete selected track
+
+			setIndexToDelete(selectedIndexRef.current);
+			setSelectedIndex(selectedIndexRef.current > 0 ? selectedIndexRef.current - 1 : 0);
+		}
+	};
+
 	useEffect(
 		() => {
 			if (!isContextStarted) StartAudioContext();
@@ -112,13 +148,7 @@ const Studio = () => {
 					Tone.Transport.pause();
 				}
 
-				const HandleKeyboardEvent = (event: KeyboardEvent) => {
-					if (event.keyCode === 32) {
-						if (playbackState === 0) setPlaybackState(1);
-						else if (playbackState === 2) setPlaybackState(1);
-						else if (playbackState === 1) setPlaybackState(2);
-					}
-				};
+
 
 				window.addEventListener('keydown', HandleKeyboardEvent);
 				return () => {
@@ -379,16 +409,7 @@ const Studio = () => {
 				<PlaybackContext.Provider value={{ playbackState: playbackState, bpm: bpm }}>
 					<Flex height="100vh" width="full" overflow="hidden" flexDirection="column">
 						<Flex width="100%" height="100%" flexDirection="row" overflow="hidden">
-							<Splitter initialSizes={[20, 80]}>
-								<PropertiesPanel
-									numTracks={tracks.length}
-									selectedIndex={selectedIndex}
-									release={tracks[selectedIndex].sampler.release as number}
-									attack={tracks[selectedIndex].sampler.attack as number}
-									setRelease={SetRelease}
-									setAttack={SetAttack}
-								/>
-
+							<Splitter initialSizes={[80, 20]}>
 								<Flex height="100%" overflow="hidden" flexDirection="column" flexGrow={3}>
 									{/* <SeekContext.Provider value={{ seek: seek, setSeek: setSeek }}> */}
 									<Splitter direction={SplitDirection.Vertical}>
@@ -408,17 +429,27 @@ const Studio = () => {
 											setPartTime={SetPartTime}
 
 										/>
-										<PianoRoll
-											playbackState={playbackState}
-											seek={seek}
-											setSeek={setSeek}
-											track={tracks[selectedIndex]}
-											numCols={500}
-										/>
+
+										{tracks.length > 0 ?
+											<PianoRoll
+												playbackState={playbackState}
+												seek={seek}
+												setSeek={setSeek}
+												track={tracks[selectedIndex]}
+												numCols={500}
+											/> : null}
 
 									</Splitter>
 									{/* </SeekContext.Provider> */}
 								</Flex>
+								<PropertiesPanel
+									selectedTrack={tracks[selectedIndex]}
+									numTracks={tracks.length}
+									setRelease={SetRelease}
+									setAttack={SetAttack}
+								/>
+
+
 							</Splitter>
 						</Flex>
 						<PlayBackController playbackState={playbackState} setPlaybackState={setPlaybackState} setBPM={setBPM} />

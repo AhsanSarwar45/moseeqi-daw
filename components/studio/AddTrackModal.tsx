@@ -24,7 +24,7 @@ interface AddTrackModalProps {
 }
 
 export const AddTrackModal = (props: AddTrackModalProps) => {
-	const [ selectedInstrument, setSelectedInstrument ] = useState('');
+	const [selectedInstrument, setSelectedInstrument] = useState('');
 
 	return (
 		<Modal isCentered onClose={props.onClose} isOpen={props.isOpen} motionPreset="slideInBottom">
