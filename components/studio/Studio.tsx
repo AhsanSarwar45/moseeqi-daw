@@ -81,7 +81,7 @@ const Studio = () => {
 
 
 	useEffect(() => {
-		console.log("BPM: " + bpm);
+		// console.log("BPM: " + bpm);
 		Tone.Transport.bpm.value = bpm;
 	}, [bpm]);
 
@@ -141,8 +141,8 @@ const Studio = () => {
 
 	const SetPartTime = (trackIndex: number, partIndex: number, startTime: number, endTime: number) => {
 
-		console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
-		console.log(tracks)
+		// console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
+		// console.log(tracks)
 
 		Tone.Transport.bpm.value = bpm;
 		// console.log("Start time set to: " + startTime);
@@ -230,7 +230,7 @@ const Studio = () => {
 
 	// Add a note to the selected track. 
 	const AddNote = (column: number, row: number, divisor: number) => {
-		console.log("Note added", column, row, divisor);
+		// console.log("Note added", column, row, divisor);
 
 		const key = MusicNotes[row];
 
@@ -280,7 +280,7 @@ const Studio = () => {
 	const MoveNote = (partIndex: number, noteIndex: number, column: number, row: number) => {
 		const noteLength = ((gridDivisions / 4) * (bpm / 60));
 
-		console.log("Note moved", partIndex, noteIndex, column, row);
+		// console.log("Note moved", partIndex, noteIndex, column, row);
 
 		let part = tracks[selectedIndex].parts[partIndex];
 		const key = MusicNotes[row];

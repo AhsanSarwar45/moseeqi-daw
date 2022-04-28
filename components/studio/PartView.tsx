@@ -1,6 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import { PlaybackContext } from '@Data/PlaybackContext';
-import useEffectDebugger from '@Debug/UseEffect';
+import useEffectDebugger from '@Debug/UseEffectDebugger';
 import { Part } from '@Interfaces/Part';
 import React, { useContext, useEffect, useState } from 'react'
 import { ResizeCallbackData } from 'react-resizable';
@@ -27,8 +27,7 @@ const PartView = ({ trackIndex, partIndex, setPartTime, ...props }: PartViewProp
     const [width, setWidth] = useState(secondWidth * (props.part.stopTime - props.part.startTime));
     const [position, setPosition] = useState({ x: props.part.startTime * secondWidth, y: 0 });
 
-    useEffectDebugger(() => {
-        console.log('tes')
+    useEffect(() => {
         const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60))
         setPartTime(trackIndex, partIndex, position.x / newSecondWidth, (position.x + width) / newSecondWidth);
         setSecondWidth(newSecondWidth);

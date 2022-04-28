@@ -20,7 +20,7 @@ const useEffectDebugger = (effectHook: any, dependencies: any, dependencyNames =
                 [keyName]: {
                     before: previousDeps[index],
                     after: dependency,
-                    diff: DeepDiff(previousDeps[index], dependency)
+                    // diff: DeepDiff(previousDeps[index], dependency)
                 }
             };
         }
