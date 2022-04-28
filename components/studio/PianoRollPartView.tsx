@@ -40,6 +40,7 @@ const FilledCell = (props: FilledCellProps) => {
 
     return (
         <Rnd
+            // pointerEvents="auto"
             size={{ width: activeWidth, height: props.cellHeight - 1 }}
             enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
             // bounds="parent"
@@ -81,11 +82,11 @@ const FilledCell = (props: FilledCellProps) => {
             }}
         >
             <Box
-                pointerEvents="auto"
+                // pointerEvents="auto"
                 ref={handleRef as any}
                 // className={`cellHandle${props.note.time}${props.note.noteIndex}`}
                 // cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
-                cursor="move"
+                // cursor="move"
                 height="full"
                 borderRadius="5px"
                 borderWidth="1px"
@@ -129,15 +130,19 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
     return (
         // <Box key={partIndex} >
         <Box
-            borderWidth={1}
-            zIndex={9998}
             key={partIndex}
             position="absolute"
-            pointerEvents="none"
             left={position}
-            width={width}
-            height={2000}
-            bgColor="rgba(255,0,0,0.1)">
+        >
+
+            <Box
+                borderWidth={1}
+                zIndex={9998}
+                position="absolute"
+                pointerEvents="none"
+                width={width}
+                height={2000}
+                bgColor="rgba(255,0,0,0.1)" />
 
             {part.notes.map((note: Note, noteIndex: number) => (
                 <FilledCell
