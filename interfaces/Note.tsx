@@ -1,5 +1,5 @@
 export interface Note {
-	time: number;
+	startColumn: number;
 	noteIndex: number;
 	key: string;
 	duration: number;

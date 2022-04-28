@@ -71,8 +71,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
 				max={600}
 				defaultValue={120}
 				borderRadius="sm"
-				onChange={(s, n) => {
-					props.setBPM(n);
+				onBlur={(event) => {
+					props.setBPM(parseInt(event.target.value));
 				}}
 			>
 				<NumberInputField />

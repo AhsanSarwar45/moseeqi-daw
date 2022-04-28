@@ -23,7 +23,8 @@
       "@Assets/*": ["assets/*"],
       "@Logos/*": ["assets/logos/*"],
       "@Data/*": ["data/*"],
-			// "@SoundFonts/*":  ["asoundFonts/*"],
+      "@Utility/*": ["utility/*"],
+      "@Debug/*": ["debug/*"],
 			"@Theme/*": ["theme/*"],
     }
   },

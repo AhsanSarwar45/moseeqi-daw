@@ -1,6 +1,8 @@
 import { Box } from '@chakra-ui/react';
+import { PlaybackContext } from '@Data/PlaybackContext';
+import useEffectDebugger from '@Debug/UseEffect';
 import { Part } from '@Interfaces/Part';
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { ResizeCallbackData } from 'react-resizable';
 import { Rnd } from 'react-rnd';
 
@@ -12,50 +14,50 @@ interface PartViewProps {
     setPartTime: (trackIndex: number, partIndex: number, startTime: number, stopTime: number) => void;
 }
 
-const PartView = (props: PartViewProps) => {
-    const [activeWidth, setActiveWidth] = useState(5 * 40);
-    const [position, setPosition] = useState({ x: props.part.startTime * 20, y: 0 });
+const PartView = ({ trackIndex, partIndex, setPartTime, ...props }: PartViewProps) => {
+    const { bpm } = useContext(PlaybackContext)
 
-    useEffect(() => {
-        console.log(
-            "Hello"
-        )
-    }, []);
+    const wholeNoteWidth = 40;
+    const [secondWidth, setSecondWidth] = useState(wholeNoteWidth / (4 / (bpm / 60)));
+    const snapDivisions = 8;
+    const noteDivisions = 8;
+    const snapWidth = wholeNoteWidth / snapDivisions;
+    const smallestNoteWidth = wholeNoteWidth / noteDivisions;
+
+    const [width, setWidth] = useState(secondWidth * (props.part.stopTime - props.part.startTime));
+    const [position, setPosition] = useState({ x: props.part.startTime * secondWidth, y: 0 });
+
+    useEffectDebugger(() => {
+        console.log('tes')
+        const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60))
+        setPartTime(trackIndex, partIndex, position.x / newSecondWidth, (position.x + width) / newSecondWidth);
+        setSecondWidth(newSecondWidth);
+    }, [position, width, bpm])
 
     return (
-        // <Box height="full" bgColor="red.500" width="100px">
-
-
-        // </Box>
         <Rnd
-            size={{ width: activeWidth, height: "full" }}
+            size={{ width: width, height: "full" }}
             enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
             dragAxis="x"
             bounds="parent"
-            resizeGrid={[5, 5]}
-            dragGrid={[5, 5]}
+            resizeGrid={[snapWidth, snapWidth]}
+            dragGrid={[snapWidth, snapWidth]}
             position={position}
             onDragStop={(e, d) => {
-
-                const positionX = Math.round(d.x / 5) * 5
+                const positionX = Math.round(d.x / snapWidth) * snapWidth
                 // console.log(position);
                 setPosition({ x: positionX, y: d.y });
-                props.setPartTime(props.trackIndex, props.partIndex, positionX / 20, (positionX + activeWidth) / 20);
+
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 const width = parseInt(ref.style.width)
-                setActiveWidth(width);
+                setWidth(width);
 
                 // console.log("width", width, "position", position);
-                const positionX = Math.round(position.x / 5) * 5
-                props.setPartTime(props.trackIndex, props.partIndex, positionX / 20, (positionX + width) / 20);
-
-
+                // const positionX = Math.round(position.x / snapWidth) * snapWidth
+                // setSecondWidth(wholeNoteWidth / (4 / (bpm / 60)));
             }}
         >
-            {/* <Box height="86px" width="full" bgColor="red.500" /> */}
-
-            {/* </Box> */}
             <Box height="86px" width="full" overflow="hidden" bgColor="primary.500" borderWidth={1}>
                 {props.part.notes.map((note, index) => (
                     <Box
@@ -63,8 +65,8 @@ const PartView = (props: PartViewProps) => {
                         bgColor="secondary.500"
                         position="absolute"
                         top={`${note.noteIndex}px`}
-                        left={`${5 * note.time}px`}
-                        width={`${5 * 8 / note.duration}px`}
+                        left={`${smallestNoteWidth * note.startColumn}px`}
+                        width={`${smallestNoteWidth * noteDivisions / note.duration}px`}
                         height="1px"
                     />
                 ))}
