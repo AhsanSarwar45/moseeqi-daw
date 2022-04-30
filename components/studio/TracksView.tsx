@@ -218,13 +218,13 @@ const TracksView = memo((props: TracksViewProps) => {
 				</VStack>
 
 				<VStack alignItems="flex-start" height="full" spacing={0} overflowX="scroll">
-					<Box height="30px" padding="0px" zIndex={200} width={2000} position="relative">
+					<Box height="30px" padding="0px" width={2000} position="relative">
 						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} height={30 + 88 * props.tracks.length} />
 						<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridTop} backgroundColor={theme.colors.primary[600]} segment={4} />
 
 
 					</Box>
-					<Box height={88 * props.tracks.length} zIndex={100} padding="0px" width={2000}>
+					<Box height={88 * props.tracks.length} padding="0px" width={2000}>
 						<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor={theme.colors.primary[400]} segment={4} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
 						{/* <Ruler style={{ marginTop: -(86 * props.tracks.length), marginLeft: -1 }} height={43 * props.tracks.length} type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor='rgba(0,0,0,0)' segment={1} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' /> */}
 

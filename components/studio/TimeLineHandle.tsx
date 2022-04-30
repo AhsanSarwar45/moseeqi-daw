@@ -20,14 +20,21 @@ const TimeLineHandle = (props: TimeHandleProps) => {
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
 
+    const wholeNoteWidth = 40;
+    const snapDivisions = 8;
+    const snapWidth = wholeNoteWidth / snapDivisions;
+
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
+        // data.lastX = Math.round(data.lastX / snapWidth) * snapWidth
         const newSeek = data.lastX / (5 * props.scale)
+        // console.log(newSeek, data.lastX)
         props.setSeek(newSeek);
-        Tone.Transport.ticks = newSeek * 100;
+        Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
         dragging.current = false;
     };
 
     useEffect(() => {
+        // console.log(props.seek)
         setSeek(props.seek);
     }, [props.seek])
 
@@ -64,7 +71,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
 
             defaultPosition={{ x: 0, y: 0 }}
             position={dragging.current ? null as any : { x: seek * 5 * props.scale, y: 0 }}
-            grid={[5 * props.scale, 5 * props.scale]}
+            grid={[snapWidth * props.scale, snapWidth * props.scale]}
             scale={1}
             bounds={{ left: 0, right: 10000 }}
             onStart={(props: any) => {
