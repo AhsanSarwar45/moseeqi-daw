@@ -14,7 +14,10 @@ import { PlaybackState } from "@Types/Types";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
 import { Note } from "@Interfaces/Note";
 import { gridDivisions } from "@Data/Constants";
-import { GetNewPartStartColumn } from "@Utility/PartUtils";
+import {
+    GetNewPartStartColumn,
+    GetNewPartStopColumn,
+} from "@Utility/PartUtils";
 import { PlaybackContext } from "@Data/PlaybackContext";
 import Splitter from "@Components/Splitter";
 
@@ -33,6 +36,19 @@ const Studio = () => {
     const setSelectedIndex = (index: number) => {
         selectedIndexRef.current = index;
         _setSelectedIndex(index);
+    };
+
+    const SaveToFile = () => {
+        const data = {
+            tracks: tracks,
+            bpm: bpm,
+            seek: seek,
+        };
+        const file = new File([JSON.stringify(data)], "saveData.json", {
+            type: "text/plain;charset=utf-8",
+        });
+
+        console.log(file);
     };
 
     const CreateTrack = (instrumentIndex: number) => {
@@ -226,20 +242,20 @@ const Studio = () => {
     };
 
     const AddNoteToTrack = (track: Track, note: Note) => {
-        const noteLength = (gridDivisions / 4) * (bpm / 60);
+        const wholeNoteDuration = (gridDivisions / 4) * (bpm / 60);
 
         // Check which part the note is in
         let currentPartIndex = track.parts.findIndex(
             (part) =>
-                part.startTime <= (note.startColumn + 1) / noteLength &&
-                part.stopTime >= (note.startColumn + 1) / noteLength
+                part.startTime <= (note.startColumn + 1) / wholeNoteDuration &&
+                part.stopTime >= (note.startColumn + 1) / wholeNoteDuration
         );
 
         // If the note lies in an existing part, add it to the part
         if (currentPartIndex !== -1) {
             const part = track.parts[currentPartIndex];
 
-            note.startColumn -= part.startTime * noteLength;
+            note.startColumn -= part.startTime * wholeNoteDuration;
             console.log(note.startColumn);
 
             part.notes.push(note);
@@ -249,13 +265,17 @@ const Studio = () => {
         }
         // If in not in any existing part, create a new part and add the note to it
         else {
+            const noteStopColumn = note.startColumn + 8 / note.duration;
+
             // TODO: Add snap settings
-            const startColumn = GetNewPartStartColumn(note.startColumn);
+            const partStartColumn = GetNewPartStartColumn(note.startColumn);
+            const partStopColumn = GetNewPartStopColumn(noteStopColumn);
 
             // Make the note time relative to the start of the part
-            note.startColumn -= startColumn;
+            note.startColumn -= partStartColumn;
 
-            const startTime = startColumn / noteLength;
+            const partStartTime = partStartColumn / wholeNoteDuration;
+            const partStopTime = partStopColumn / wholeNoteDuration;
 
             const tonePart = new Tone.Part((time, value: any) => {
                 track.sampler.triggerAttackRelease(
@@ -264,14 +284,14 @@ const Studio = () => {
                     time,
                     value.velocity
                 );
-            }, []).start(startTime);
+            }, []).start(partStartTime);
 
             tonePart.add(GetPartNote(note));
 
             track.parts.push({
                 tonePart: tonePart,
-                startTime: startTime,
-                stopTime: startTime + 8 / noteLength,
+                startTime: partStartTime,
+                stopTime: partStopTime,
                 notes: [note],
             });
         }
@@ -281,6 +301,7 @@ const Studio = () => {
     const AddNote = (column: number, row: number, divisor: number) => {
         // console.log("Note added", column, row, divisor);
 
+        // TODO: inconsistent naming
         const key = MusicNotes[row];
 
         // We need a copy as we cannot mutate the original
