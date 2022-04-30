@@ -1,4 +1,4 @@
-import { Flex, useDisclosure } from '@chakra-ui/react';
+import { Box, Flex, useDisclosure } from '@chakra-ui/react';
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { SplitDirection } from '@devbookhq/splitter';
 import * as Tone from 'tone';
@@ -446,7 +446,7 @@ const Studio = () => {
 												setSeek={setSeek}
 												track={tracks[selectedIndex]}
 												numCols={500}
-											/> : null}
+											/> : <Flex textColor="white" fontSize="lg" alignItems="center" justifyContent="center" bgColor="primary.500" height="full" width="full" > Add a Track to view the Piano Roll </Flex>}
 
 									</Splitter>
 									{/* </SeekContext.Provider> */}
