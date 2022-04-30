@@ -91,7 +91,6 @@ interface TracksViewProps {
 	setSelected: (trackIndex: number) => void;
 	activeWidth: number;
 	setActiveWidth: (width: number) => void;
-	setStopTime: (time: number) => void;
 	toggleMute: (trackIndex: number) => void;
 	setPartTime: (trackIndex: number, partIndex: number, startTime: number, stopTime: number) => void;
 
@@ -241,7 +240,6 @@ const TracksView = memo((props: TracksViewProps) => {
 									track={track}
 									trackIndex={trackIndex}
 									setSelected={props.setSelected}
-									setStopTime={props.setStopTime}
 									setPartTime={props.setPartTime} />
 							))}
 						</Box>

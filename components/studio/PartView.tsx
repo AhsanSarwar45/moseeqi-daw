@@ -10,7 +10,6 @@ interface PartViewProps {
     part: Part;
     partIndex: number;
     trackIndex: number;
-    setStopTime: (time: number) => void;
     setPartTime: (trackIndex: number, partIndex: number, startTime: number, stopTime: number) => void;
 }
 

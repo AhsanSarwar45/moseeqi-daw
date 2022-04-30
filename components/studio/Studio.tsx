@@ -1,6 +1,6 @@
 import { Flex, useDisclosure } from '@chakra-ui/react';
 import { useState, useEffect, useRef, Fragment } from 'react';
-import Splitter, { SplitDirection } from '@devbookhq/splitter';
+import { SplitDirection } from '@devbookhq/splitter';
 import * as Tone from 'tone';
 
 import { PlayBackController } from '@Components/studio/PlaybackController';
@@ -10,21 +10,18 @@ import { PropertiesPanel } from '@Components/studio/PropertiesPanel';
 import { WaitingModal } from '@Components/WaitingModal';
 import { Instruments, MusicNotes } from '@Instruments/Instruments';
 import { Track } from '@Interfaces/Track';
-import { SeekContext } from 'data/SeekContext';
-import { Part } from '@Interfaces/Part';
 import { PlaybackState } from '@Types/Types';
 import { NotesModifierContext } from '@Data/NotesModifierContext';
 import { Note } from '@Interfaces/Note';
 import { gridDivisions } from '@Data/Constants';
 import { GetNewPartStartColumn } from '@Utility/PartUtils';
 import { PlaybackContext } from '@Data/PlaybackContext';
-
+import Splitter from '@Components/Splitter';
 
 const Studio = () => {
 	//const [ numCols, setNumCols ] = useState(40);
 	const [playbackState, setPlaybackState] = useState<PlaybackState>(0);
 	const [activeWidth, setActiveWidth] = useState(5 * 40);
-	const [stopTime, setStopTime] = useState(10);
 	const [seek, setSeek] = useState(0)
 	const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
 	const [bpm, setBPM] = useState(120);
@@ -32,6 +29,7 @@ const Studio = () => {
 	const selectedIndexRef = useRef(0)
 	const [isContextStarted, setIsContextStarted] = useState(false);
 	const [indexToDelete, setIndexToDelete] = useState(-1)
+
 
 	const setSelectedIndex = (index: number) => {
 		selectedIndexRef.current = index;
@@ -81,7 +79,7 @@ const Studio = () => {
 
 	const [tracks, setTracks] = useState<Array<Track>>(() => [CreateTrack(0)]);
 
-	const { isOpen, onOpen, onClose } = useDisclosure();
+	const { isOpen: isWaitingModalOpen, onOpen: onWaitingModalOpen, onClose: onWaitingModalClose } = useDisclosure();
 
 	const StartAudioContext = async () => {
 		await Tone.start();
@@ -98,12 +96,12 @@ const Studio = () => {
 	useEffect(
 		() => {
 			if (isInstrumentLoading > 0) {
-				onOpen();
+				onWaitingModalOpen();
 			} else {
-				onClose();
+				onWaitingModalClose();
 			}
 		},
-		[isInstrumentLoading, onClose, onOpen]
+		[isInstrumentLoading, onWaitingModalClose, onWaitingModalOpen]
 	);
 
 	useEffect(() => {
@@ -197,6 +195,7 @@ const Studio = () => {
 
 
 	}
+
 
 	const GetPartNote = (note: Note) => {
 		const partNote = {
@@ -412,6 +411,8 @@ const Studio = () => {
 		// parts.current[index].mute = !parts.current[index].mute;
 	};
 
+
+
 	return (
 		<Fragment>
 			<NotesModifierContext.Provider value={{ onAddNote: AddNote, onMoveNote: MoveNote, onRemoveNote: RemoveNote, onResizeNote: ResizeNote, onClearNotes: ClearNotes }}>
@@ -434,7 +435,6 @@ const Studio = () => {
 											activeWidth={activeWidth}
 											setActiveWidth={setActiveWidth}
 											toggleMute={ToggleMuteAtIndex}
-											setStopTime={setStopTime}
 											setPartTime={SetPartTime}
 
 										/>
@@ -466,7 +466,7 @@ const Studio = () => {
 				</PlaybackContext.Provider>
 			</NotesModifierContext.Provider>
 
-			<WaitingModal onClose={onClose} isOpen={isOpen} />
+			<WaitingModal onClose={onWaitingModalClose} isOpen={isWaitingModalOpen} />
 		</Fragment>
 	);
 };
