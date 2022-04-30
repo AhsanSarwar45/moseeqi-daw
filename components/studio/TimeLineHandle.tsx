@@ -13,14 +13,16 @@ interface TimeHandleProps {
 }
 
 const TimeLineHandle = (props: TimeHandleProps) => {
+    const wholeNoteWidth = 40;
+    const snapDivisions = 8;
+
     const [seek, setSeek] = useState(0);
+    const [snapWidth, setSnapWidth] = useState(
+        (wholeNoteWidth / snapDivisions) * props.scale
+    );
     const seekAnimationRef = useRef(0);
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
-
-    const wholeNoteWidth = 40;
-    const snapDivisions = 8;
-    const snapWidth = wholeNoteWidth / snapDivisions;
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
@@ -67,7 +69,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
                     ? (null as any)
                     : { x: seek * 5 * props.scale, y: 0 }
             }
-            grid={[snapWidth * props.scale, snapWidth * props.scale]}
+            grid={[snapWidth, snapWidth]}
             scale={1}
             bounds={{ left: 0, right: 10000 }}
             onStart={(props: any) => {

@@ -152,7 +152,7 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
                 zIndex={9998}
                 position="absolute"
                 pointerEvents="none"
-                width={width}
+                width={width + 1}
                 height={gridHeight}
                 bgColor="rgba(255,0,0,0.1)"
             />
