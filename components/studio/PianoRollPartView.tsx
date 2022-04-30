@@ -1,15 +1,13 @@
-import { Box } from '@chakra-ui/react'
-import { NotesModifierContext } from '@Data/NotesModifierContext';
-import { PlaybackContext } from '@Data/PlaybackContext'
-import { Note } from '@Interfaces/Note';
-import { Part } from '@Interfaces/Part';
-import React, { useContext, useEffect, useRef, useState } from 'react'
-import { Rnd } from 'react-rnd';
+import { Box } from "@chakra-ui/react";
+import { NotesModifierContext } from "@Data/NotesModifierContext";
+import { PlaybackContext } from "@Data/PlaybackContext";
+import { Note } from "@Interfaces/Note";
+import { Part } from "@Interfaces/Part";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Rnd } from "react-rnd";
 
-import { GridContext } from '@Data/GridContext';
-import { gridDivisions } from '@Data/Constants';
-
-
+import { GridContext } from "@Data/GridContext";
+import { gridDivisions } from "@Data/Constants";
 
 interface FilledCellProps {
     note: Note;
@@ -22,14 +20,17 @@ interface FilledCellProps {
 }
 
 const FilledCell = (props: FilledCellProps) => {
-    const { onMoveNote, onRemoveNote, onResizeNote } = useContext(NotesModifierContext);
-    const [activeWidth, setActiveWidth] = useState(8 / props.note.duration * props.cellWidth - 1);
+    const { onMoveNote, onRemoveNote, onResizeNote } =
+        useContext(NotesModifierContext);
+    const [activeWidth, setActiveWidth] = useState(
+        (8 / props.note.duration) * props.cellWidth - 1
+    );
 
     const handleRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         handleRef.current?.addEventListener(
-            'contextmenu',
+            "contextmenu",
             function (event: any) {
                 event.preventDefault();
                 return false;
@@ -42,16 +43,31 @@ const FilledCell = (props: FilledCellProps) => {
         <Rnd
             // pointerEvents="auto"
             size={{ width: activeWidth, height: props.cellHeight - 1 }}
-            enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
+            enableResizing={{
+                top: false,
+                right: true,
+                bottom: false,
+                left: false,
+                topRight: false,
+                bottomRight: false,
+                bottomLeft: false,
+                topLeft: false,
+            }}
             // bounds="parent"
             resizeGrid={[props.cellWidth, props.cellHeight - 1]}
             dragGrid={[props.cellWidth, props.cellHeight]}
-            position={{ x: props.note.startColumn * props.cellWidth, y: props.note.noteIndex * props.cellHeight }}
+            position={{
+                x: props.note.startColumn * props.cellWidth,
+                y: props.note.noteIndex * props.cellHeight,
+            }}
             onDragStop={(event, data) => {
                 // Round off data.x to nearest cellWidth
-                data.lastX = Math.round(data.lastX / props.cellWidth) * props.cellWidth;
+                data.lastX =
+                    Math.round(data.lastX / props.cellWidth) * props.cellWidth;
                 // Round off data.y to nearest cellHeight
-                data.lastY = Math.round(data.lastY / props.cellHeight) * props.cellHeight;
+                data.lastY =
+                    Math.round(data.lastY / props.cellHeight) *
+                    props.cellHeight;
 
                 const localColumn = data.lastX / props.cellWidth;
                 let column = localColumn + props.part.startTime * 4;
@@ -67,18 +83,16 @@ const FilledCell = (props: FilledCellProps) => {
                 }
 
                 onMoveNote(props.partIndex, props.noteIndex, column, row);
-
             }}
             minWidth={props.cellWidth - 1}
             onResizeStop={(e, direction, ref, delta, position) => {
-                const width = parseInt(ref.style.width)
+                const width = parseInt(ref.style.width);
 
                 setActiveWidth(width - 1);
-                const duration = 8 / (width) * props.cellWidth
+                const duration = (8 / width) * props.cellWidth;
                 // console.log("width", width, "position", position);
                 onResizeNote(props.partIndex, props.noteIndex, duration);
                 // props.onClick(props.note.note, duration)
-
             }}
         >
             <Box
@@ -97,7 +111,7 @@ const FilledCell = (props: FilledCellProps) => {
                     return false;
                 }}
                 zIndex={9999}
-            // onClick={() => props.onClick(props.note.note, props.note.duration)}
+                // onClick={() => props.onClick(props.note.note, props.note.duration)}
             >
                 {/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
             </Box>
@@ -111,30 +125,28 @@ interface PianoRollProps {
 }
 
 const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
-    const { bpm } = useContext(PlaybackContext)
-    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight } = useContext(GridContext);
+    const { bpm } = useContext(PlaybackContext);
+    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight } =
+        useContext(GridContext);
     const wholeNoteWidth = columnWidth * gridDivisions;
-    const [secondWidth, setSecondWidth] = useState(wholeNoteWidth / (4 / (bpm / 60)));
+    const [secondWidth, setSecondWidth] = useState(
+        wholeNoteWidth / (4 / (bpm / 60))
+    );
     const [position, setPosition] = useState(part.startTime * secondWidth);
-    const [width, setWidth] = useState((part.stopTime - part.startTime) * secondWidth);
-
+    const [width, setWidth] = useState(
+        (part.stopTime - part.startTime) * secondWidth
+    );
 
     useEffect(() => {
-        const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60))
+        const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
         setPosition(part.startTime * newSecondWidth);
-        setWidth((part.stopTime - part.startTime) * newSecondWidth)
-        setSecondWidth(newSecondWidth)
-    }, [part.startTime, part.stopTime, bpm, wholeNoteWidth])
-
+        setWidth((part.stopTime - part.startTime) * newSecondWidth);
+        setSecondWidth(newSecondWidth);
+    }, [part.startTime, part.stopTime, bpm, wholeNoteWidth]);
 
     return (
         // <Box key={partIndex} >
-        <Box
-            key={partIndex}
-            position="absolute"
-            left={position}
-        >
-
+        <Box key={partIndex} position="absolute" left={position}>
             <Box
                 borderWidth={1}
                 zIndex={9998}
@@ -142,7 +154,8 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
                 pointerEvents="none"
                 width={width}
                 height={gridHeight}
-                bgColor="rgba(255,0,0,0.1)" />
+                bgColor="rgba(255,0,0,0.1)"
+            />
 
             {part.notes.map((note: Note, noteIndex: number) => (
                 <FilledCell
@@ -157,8 +170,7 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
                 />
             ))}
         </Box>
-    )
+    );
+};
 
-}
-
-export default PianoRollPartView
+export default PianoRollPartView;

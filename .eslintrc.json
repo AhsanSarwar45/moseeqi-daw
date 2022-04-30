@@ -3,6 +3,7 @@
 
   "rules": {
     "@next/next/no-document-import-in-page": "off"
+    // "max-len": ["error", { "code": 120 }]
   }
 }
 

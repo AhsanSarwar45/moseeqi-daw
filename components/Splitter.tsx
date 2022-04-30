@@ -1,5 +1,5 @@
-import React, { ReactNode, useCallback, useState } from 'react';
-import DevBookSplitter, { SplitDirection } from '@devbookhq/splitter';
+import React, { ReactNode, useCallback, useState } from "react";
+import DevBookSplitter, { SplitDirection } from "@devbookhq/splitter";
 
 interface SplitterProps {
     initialSizes: number[];
@@ -16,16 +16,19 @@ const Splitter = (props: SplitterProps) => {
 
     // Create a wrapper around devbookhq/splitter that manages persistent size changes
     return (
-        <DevBookSplitter initialSizes={sizes} onResizeFinished={HandleResizeFinished} direction={props.direction}>
+        <DevBookSplitter
+            initialSizes={sizes}
+            onResizeFinished={HandleResizeFinished}
+            direction={props.direction}
+        >
             {props.children}
         </DevBookSplitter>
-    )
-}
+    );
+};
 
 Splitter.defaultProps = {
     initialSizes: [50, 50],
-    direction: SplitDirection.Horizontal
+    direction: SplitDirection.Horizontal,
+};
 
-}
-
-export default Splitter
+export default Splitter;
