@@ -25,7 +25,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
     const snapWidth = wholeNoteWidth / snapDivisions;
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
-        // data.lastX = Math.round(data.lastX / snapWidth) * snapWidth
+        data.lastX = Math.round(data.lastX / snapWidth) * snapWidth
         const newSeek = data.lastX / (5 * props.scale)
         // console.log(newSeek, data.lastX)
         props.setSeek(newSeek);
