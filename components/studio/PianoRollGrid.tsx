@@ -179,7 +179,7 @@ interface StickHeaderProps {
 }
 
 const StickyHeader = (props: StickHeaderProps) => {
-
+	const { gridHeight } = useContext(GridContext);
 
 	return (
 		<Flex zIndex={9001} position="sticky" top={0} left={0} overflowY="visible">
@@ -195,7 +195,7 @@ const StickyHeader = (props: StickHeaderProps) => {
 				height={props.stickyHeight}
 			/>
 			<Box position="absolute" left={props.stickyWidth} height={props.stickyHeight} width={props.headerWidth} overflowY="visible">
-				<TimeLineHandle playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
+				<TimeLineHandle height={gridHeight} playbackState={props.playbackState} seek={props.seek} scale={12} setSeek={props.setSeek} />
 				<Ruler type="horizontal" unit={1} zoom={480} segment={4} backgroundColor={Theme.colors.primary[600]} />
 			</Box>
 		</Flex>

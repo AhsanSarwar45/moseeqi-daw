@@ -42,6 +42,8 @@ const Studio = () => {
 		// Causes the loading modal to show
 		setIsInstrumentLoading(1);
 		const instrument = Instruments[instrumentIndex];
+		const noteLength = ((gridDivisions / 4) * (bpm / 60));
+
 
 		const meter = new Tone.Meter();
 
@@ -67,7 +69,7 @@ const Studio = () => {
 			instrument: instrument,
 			// This will be populated in a tracks useEffect. We need to do this because we need to reference the sampler
 			// TODO: This might not be true. Need to test a simpler alternative.
-			parts: [{ tonePart: tonePart, startTime: 0, stopTime: 10, notes: [] }],
+			parts: [{ tonePart: tonePart, startTime: 0, stopTime: (32 / noteLength), notes: [] }],
 			sampler: sampler,
 			meter: meter,
 			muted: false
@@ -107,7 +109,14 @@ const Studio = () => {
 	useEffect(() => {
 		if (indexToDelete > -1) {
 			let tracksCopy = [...tracks]
-			tracksCopy.splice(selectedIndex, 1);
+
+			// Stop all the parts in the deleted track
+			tracksCopy[indexToDelete].parts.forEach(part => {
+				part.tonePart.stop();
+			})
+
+			tracksCopy.splice(indexToDelete, 1);
+
 			setTracks(tracksCopy);
 
 			setIndexToDelete(-1);
@@ -252,7 +261,7 @@ const Studio = () => {
 
 			tonePart.add(GetPartNote(note));
 
-			track.parts.push({ tonePart: tonePart, startTime: startTime, stopTime: startTime + 10, notes: [note] });
+			track.parts.push({ tonePart: tonePart, startTime: startTime, stopTime: startTime + (8 / noteLength), notes: [note] });
 		}
 
 	}

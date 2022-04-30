@@ -35,6 +35,7 @@ const PartView = ({ trackIndex, partIndex, setPartTime, ...props }: PartViewProp
 
     return (
         <Rnd
+
             size={{ width: width, height: "full" }}
             enableResizing={{ top: false, right: true, bottom: false, left: false, topRight: false, bottomRight: false, bottomLeft: false, topLeft: false }}
             dragAxis="x"
@@ -57,19 +58,19 @@ const PartView = ({ trackIndex, partIndex, setPartTime, ...props }: PartViewProp
                 // setSecondWidth(wholeNoteWidth / (4 / (bpm / 60)));
             }}
         >
-            <Box height="86px" width="full" overflow="hidden" bgColor="primary.500" borderWidth={1}>
-                {props.part.notes.map((note, index) => (
-                    <Box
-                        key={index}
-                        bgColor="secondary.500"
-                        position="absolute"
-                        top={`${note.noteIndex}px`}
-                        left={`${smallestNoteWidth * note.startColumn}px`}
-                        width={`${smallestNoteWidth * noteDivisions / note.duration}px`}
-                        height="1px"
-                    />
-                ))}
-            </Box>
+            <Box zIndex={-10} marginTop={"-1px"} height="89px" width="full" bgColor="primary.500" borderWidth={1} />
+            {props.part.notes.map((note, index) => (
+                <Box
+                    zIndex={900}
+                    key={index}
+                    bgColor="secondary.500"
+                    position="absolute"
+                    top={`${note.noteIndex}px`}
+                    left={`${smallestNoteWidth * note.startColumn}px`}
+                    width={`${smallestNoteWidth * noteDivisions / note.duration}px`}
+                    height="1px"
+                />
+            ))}
         </Rnd>
     )
 }

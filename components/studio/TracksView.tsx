@@ -100,15 +100,27 @@ interface TracksViewProps {
 const TracksView = memo((props: TracksViewProps) => {
 	const theme = useTheme();
 	const { isOpen, onOpen, onClose } = useDisclosure();
-	const timeScale = useRef<Ruler>(null);
+	const scaleGridTop = useRef<Ruler>(null);
+	const scaleGridMain = useRef<Ruler>(null);
+	const scaleGridMinor = useRef<Ruler>(null);
+	// const [scaleGridMinorHeight, setScaleGridMinorHeight] = useState(0)
+
+	// useEffect(() => {
+	// 	console.log("Grid height: ", scaleGridMinor?.current?.canvasElement.clientHeight as number);
+	// 	setScaleGridMinorHeight(scaleGridMinor?.current?.canvasElement.clientHeight as number)
+	// })
 
 	useEffect(() => {
 		window.addEventListener('resize', () => {
-			timeScale.current?.resize();
+			scaleGridTop.current?.resize();
+			scaleGridMain.current?.resize();
+			scaleGridMinor.current?.resize();
 		});
 		return () => {
 			window.removeEventListener('resize', () => {
-				timeScale.current?.resize();
+				scaleGridTop.current?.resize();
+				scaleGridMain.current?.resize();
+				scaleGridMinor.current?.resize();
 			});
 		};
 	}, []);
@@ -117,8 +129,8 @@ const TracksView = memo((props: TracksViewProps) => {
 
 	return (
 		<Fragment>
-			<HStack alignItems="flex-start" spacing={0} position="relative" width="full" height="100%" overflow="auto" bgColor="primary.600" flexShrink={0}>
-				<VStack width="30%" spacing={0} flexShrink={0}>
+			<HStack alignItems="flex-start" spacing={0} position="relative" width="full" height="100%" overflow="hidden" bgColor="primary.600">
+				<VStack width="30%" spacing={0}>
 					<HStack
 						paddingLeft={2}
 						paddingY={2}
@@ -205,21 +217,39 @@ const TracksView = memo((props: TracksViewProps) => {
 
 				</VStack>
 
-				<VStack alignItems="flex-start" width="full" spacing={0} flexShrink={1} overflowX="scroll">
-					<Box height="30px" padding="0px" width={2000}>
-						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} />
-						<Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} backgroundColor={theme.colors.primary[600]} segment={4} />
+				<VStack alignItems="flex-start" height="full" spacing={0} overflowX="scroll">
+					<Box height="30px" padding="0px" zIndex={200} width={2000} position="relative">
+						<TimeLineHandle playbackState={props.playbackState} seek={props.seek} setSeek={props.setSeek} height={30 + 88 * props.tracks.length} />
+						<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridTop} backgroundColor={theme.colors.primary[600]} segment={4} />
+
 
 					</Box>
-					{props.tracks.map((track: Track, trackIndex: number) => (
-						<TrackSequence
-							key={trackIndex}
-							track={track}
-							trackIndex={trackIndex}
-							setSelected={props.setSelected}
-							setStopTime={props.setStopTime}
-							setPartTime={props.setPartTime} />
-					))}
+					<Box height={88 * props.tracks.length} zIndex={100} padding="0px" width={2000}>
+						<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor={theme.colors.primary[400]} segment={4} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
+						{/* <Ruler style={{ marginTop: -(86 * props.tracks.length), marginLeft: -1 }} height={43 * props.tracks.length} type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor='rgba(0,0,0,0)' segment={1} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' /> */}
+
+						{/* <Box position="absolute" width={2000} p={0}>
+							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor={theme.colors.primary[400]} segment={4} height={86} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
+						</Box>
+						<Box position="absolute" width={2000} p={0}>
+							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
+						</Box> */}
+						<Box marginTop={-88 * props.tracks.length}>
+							{props.tracks.map((track: Track, trackIndex: number) => (
+								<TrackSequence
+									key={trackIndex}
+									track={track}
+									trackIndex={trackIndex}
+									setSelected={props.setSelected}
+									setStopTime={props.setStopTime}
+									setPartTime={props.setPartTime} />
+							))}
+						</Box>
+
+					</Box>
+
+
+
 				</VStack>
 
 			</HStack>

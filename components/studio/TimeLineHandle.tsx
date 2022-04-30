@@ -7,6 +7,7 @@ import * as Tone from 'tone';
 
 interface TimeHandleProps {
     playbackState: number;
+    height: number;
     seek: number;
     setSeek: (seek: number) => void;
     scale: number;
@@ -60,6 +61,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
         <Draggable
             axis="x"
             handle=".handle"
+
             defaultPosition={{ x: 0, y: 0 }}
             position={dragging.current ? null as any : { x: seek * 5 * props.scale, y: 0 }}
             grid={[5 * props.scale, 5 * props.scale]}
@@ -80,7 +82,7 @@ const TimeLineHandle = (props: TimeHandleProps) => {
                 position="absolute"
                 bgColor="white"
                 //left={`${300 + seek}px`}
-                height="full"
+                height={props.height}
                 width="1px"
             >
                 <Box

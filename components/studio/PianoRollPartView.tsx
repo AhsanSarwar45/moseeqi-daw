@@ -112,7 +112,7 @@ interface PianoRollProps {
 
 const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
     const { bpm } = useContext(PlaybackContext)
-    const { columnWidth, rowHeight, onFilledNoteClick } = useContext(GridContext);
+    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight } = useContext(GridContext);
     const wholeNoteWidth = columnWidth * gridDivisions;
     const [secondWidth, setSecondWidth] = useState(wholeNoteWidth / (4 / (bpm / 60)));
     const [position, setPosition] = useState(part.startTime * secondWidth);
@@ -141,7 +141,7 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
                 position="absolute"
                 pointerEvents="none"
                 width={width}
-                height={2000}
+                height={gridHeight}
                 bgColor="rgba(255,0,0,0.1)" />
 
             {part.notes.map((note: Note, noteIndex: number) => (

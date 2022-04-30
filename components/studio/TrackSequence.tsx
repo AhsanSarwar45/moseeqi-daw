@@ -45,18 +45,13 @@ const TrackSequence = (props: TrackProps) => {
             height="88px"
             // bgColor="white"
             width={2000}
-            padding="0px"
             position="relative"
+            padding="0px"
             onClick={() => props.setSelected(props.trackIndex)}
             // onDoubleClick={() => props.setStopTime(props.track.stopTime)}
             borderBottom="1px solid gray"
         >
-            <Box position="absolute" right={0} top={0} width={2000} p={0}>
-                <Ruler type="horizontal" unit={1} zoom={40} ref={timeScale} backgroundColor={theme.colors.primary[400]} segment={4} height={86} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
-            </Box>
-            <Box position="absolute" right={0} top={0} width={2000} p={0}>
-                <Ruler type="horizontal" unit={1} zoom={40} ref={timeScaleMain} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
-            </Box>
+
 
             {
                 props.track.parts.map((part, partIndex) => (
