@@ -193,21 +193,35 @@ const Studio = () => {
                     if (selectedPartIndices.length > 0) {
                         let tracksCopy = [...tracks];
 
+                        console.log(selectedPartIndices);
+                        console.log(tracksCopy);
+
                         // Stop all the parts to be deleted
+
                         selectedPartIndices.forEach(
                             ({ trackIndex, partIndex }) => {
+                                // console.log(
+                                //     trackIndex,
+                                //     partIndex
+                                // );
                                 tracksCopy[trackIndex].parts[
                                     partIndex
                                 ].tonePart.stop();
-                                tracksCopy[trackIndex].parts.splice(
-                                    partIndex,
-                                    1
-                                );
+
+                                // Hacky way to mark part to be deleted
+                                tracksCopy[trackIndex].parts[partIndex] =
+                                    null as any;
                             }
                         );
 
-                        setTracks(tracksCopy);
+                        // Delete all the null parts
+                        tracksCopy.forEach((track, trackIndex) => {
+                            tracksCopy[trackIndex].parts = track.parts.filter(
+                                (part) => part !== null
+                            );
+                        });
 
+                        setTracks(tracksCopy);
                         setSelectedPartIndices([]);
                     }
                 }

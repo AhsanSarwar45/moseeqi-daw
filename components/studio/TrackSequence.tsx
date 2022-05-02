@@ -31,7 +31,7 @@ const TrackSequence = (props: TrackProps) => {
         >
             {props.track.parts.map((part, partIndex) => (
                 <PartView
-                    key={partIndex}
+                    key={part.startTime}
                     part={part}
                     trackIndex={props.trackIndex}
                     partIndex={partIndex}
