@@ -1,5 +1,5 @@
-import Tone from 'tone';
-import { Note } from './Note';
+import Tone from "tone";
+import { Note } from "./Note";
 
 export interface Part {
     tonePart: Tone.Part;

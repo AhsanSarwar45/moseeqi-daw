@@ -2,6 +2,7 @@ import { Box } from "@chakra-ui/react";
 import { PlaybackContext } from "@Data/PlaybackContext";
 import useEffectDebugger from "@Debug/UseEffectDebugger";
 import { Part } from "@Interfaces/Part";
+import { PartSelectionIndex } from "@Interfaces/Selection";
 import React, { useContext, useEffect, useState } from "react";
 import { ResizeCallbackData } from "react-resizable";
 import { Rnd } from "react-rnd";
@@ -16,12 +17,15 @@ interface PartViewProps {
         startTime: number,
         stopTime: number
     ) => void;
+    selectedPartIndices: Array<PartSelectionIndex>;
+    onPartClick: (trackIndex: number, partIndex: number) => void;
 }
 
 const PartView = ({
     trackIndex,
     partIndex,
     setPartTime,
+    selectedPartIndices,
     ...props
 }: PartViewProps) => {
     const { bpm } = useContext(PlaybackContext);
@@ -42,6 +46,18 @@ const PartView = ({
         x: props.part.startTime * secondWidth,
         y: 0,
     });
+    const [isSelected, setIsSelected] = useState(false);
+
+    useEffect(() => {
+        setIsSelected(
+            selectedPartIndices.some((partSelectionIndex) => {
+                return (
+                    partSelectionIndex.partIndex === partIndex &&
+                    partSelectionIndex.trackIndex === trackIndex
+                );
+            })
+        );
+    }, [partIndex, selectedPartIndices, trackIndex]);
 
     useEffect(() => {
         const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
@@ -56,6 +72,7 @@ const PartView = ({
 
     return (
         <Rnd
+            onMouseDown={() => props.onPartClick(trackIndex, partIndex)}
             size={{ width: width + 1, height: "full" }}
             enableResizing={{
                 top: false,
@@ -93,6 +110,7 @@ const PartView = ({
                 width="full"
                 bgColor="primary.500"
                 borderWidth={1}
+                borderColor={isSelected ? "brand.secondary" : "white"}
             />
             {props.part.notes.map((note, index) => (
                 <Box

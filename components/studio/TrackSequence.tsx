@@ -1,4 +1,5 @@
 import { Box } from "@chakra-ui/react";
+import { PartSelectionIndex } from "@Interfaces/Selection";
 import { Track } from "@Interfaces/Track";
 import Ruler from "@scena/react-ruler";
 import React, { useEffect, useRef, useState } from "react";
@@ -14,6 +15,8 @@ interface TrackProps {
         startTime: number,
         stopTime: number
     ) => void;
+    selectedPartIndices: Array<PartSelectionIndex>;
+    onPartClick: (trackIndex: number, partIndex: number) => void;
 }
 
 const TrackSequence = (props: TrackProps) => {
@@ -33,6 +36,8 @@ const TrackSequence = (props: TrackProps) => {
                     trackIndex={props.trackIndex}
                     partIndex={partIndex}
                     setPartTime={props.setPartTime}
+                    selectedPartIndices={props.selectedPartIndices}
+                    onPartClick={props.onPartClick}
                 />
             ))}
         </Box>

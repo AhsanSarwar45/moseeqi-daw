@@ -25,6 +25,7 @@ import { NotesModifierContext } from "@Data/NotesModifierContext";
 import { GridContext } from "@Data/GridContext";
 import { PlaybackState } from "@Types/Types";
 import PianoRollGrid from "./PianoRollGrid";
+import { Panel } from "@Interfaces/Panel";
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) =>
@@ -69,6 +70,8 @@ interface PianoRollProps {
     setSeek: (seek: number) => void;
     playbackState: PlaybackState;
     numCols: number;
+    focusedPanel: Panel;
+    setFocusedPanel: (panel: Panel) => void;
 }
 
 const PianoRoll = memo((props: PianoRollProps) => {
@@ -131,7 +134,12 @@ const PianoRoll = memo((props: PianoRollProps) => {
     };
 
     return (
-        <Flex height="100%" flexDirection="column" width="full">
+        <Flex
+            height="100%"
+            flexDirection="column"
+            width="full"
+            onClick={() => props.setFocusedPanel(Panel.PianoRoll)}
+        >
             <HStack
                 w="full"
                 height="20px"

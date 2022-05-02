@@ -23,6 +23,8 @@ import { Instruments, MusicNotes } from "@Instruments/Instruments";
 import { Track } from "@Interfaces/Track";
 import TimeLineHandle from "./TimeLineHandle";
 import TrackSequence from "./TrackSequence";
+import { Panel } from "@Interfaces/Panel";
+import { PartSelectionIndex } from "@Interfaces/Selection";
 
 interface MeterProps {
     width: number | string;
@@ -113,6 +115,10 @@ interface TracksViewProps {
         startTime: number,
         stopTime: number
     ) => void;
+    focusedPanel: Panel;
+    setFocusedPanel: (panel: Panel) => void;
+    selectedPartIndices: Array<PartSelectionIndex>;
+    setSelectedPartIndices: (indices: Array<PartSelectionIndex>) => void;
 }
 
 const TracksView = memo((props: TracksViewProps) => {
@@ -122,6 +128,29 @@ const TracksView = memo((props: TracksViewProps) => {
     const scaleGridTop = useRef<Ruler>(null);
     const scaleGridMain = useRef<Ruler>(null);
     const scaleGridMinor = useRef<Ruler>(null);
+
+    const [isShiftHeld, setIsShiftHeld] = useState(false);
+
+    const OnKeyDown = ({ key }: { key: string }) => {
+        if (key === "Shift") {
+            setIsShiftHeld(true);
+        }
+    };
+
+    const OnKeyUp = ({ key }: { key: string }) => {
+        if (key === "Shift") {
+            setIsShiftHeld(false);
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener("keydown", OnKeyDown);
+        window.addEventListener("keyup", OnKeyUp);
+        return () => {
+            window.removeEventListener("keydown", OnKeyDown);
+            window.removeEventListener("keyup", OnKeyUp);
+        };
+    }, []);
 
     useEffect(() => {
         let timeScaleRefValue: Ruler | null = null;
@@ -146,6 +175,17 @@ const TracksView = memo((props: TracksViewProps) => {
         };
     }, []);
 
+    const SetSelectedParts = (trackIndex: number, partIndex: number) => {
+        if (isShiftHeld) {
+            props.setSelectedPartIndices([
+                ...props.selectedPartIndices,
+                { trackIndex, partIndex },
+            ]);
+        } else {
+            props.setSelectedPartIndices([{ trackIndex, partIndex }]);
+        }
+    };
+
     return (
         <Fragment>
             <HStack
@@ -157,7 +197,11 @@ const TracksView = memo((props: TracksViewProps) => {
                 overflow="hidden"
                 bgColor="primary.600"
             >
-                <VStack width="30%" spacing={0}>
+                <VStack
+                    width="30%"
+                    spacing={0}
+                    onClick={() => props.setFocusedPanel(Panel.TrackView)}
+                >
                     <HStack
                         paddingLeft={2}
                         paddingY={2}
@@ -255,6 +299,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     height="full"
                     spacing={0}
                     overflowX="scroll"
+                    onClick={() => props.setFocusedPanel(Panel.TrackSequencer)}
                 >
                     <Box
                         height="30px"
@@ -312,6 +357,10 @@ const TracksView = memo((props: TracksViewProps) => {
                                         trackIndex={trackIndex}
                                         setSelected={props.setSelected}
                                         setPartTime={props.setPartTime}
+                                        selectedPartIndices={
+                                            props.selectedPartIndices
+                                        }
+                                        onPartClick={SetSelectedParts}
                                     />
                                 )
                             )}

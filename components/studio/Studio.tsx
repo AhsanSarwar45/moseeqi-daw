@@ -20,6 +20,8 @@ import {
 } from "@Utility/PartUtils";
 import { PlaybackContext } from "@Data/PlaybackContext";
 import Splitter from "@Components/Splitter";
+import { Panel } from "@Interfaces/Panel";
+import { PartSelectionIndex } from "@Interfaces/Selection";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
@@ -28,15 +30,22 @@ const Studio = () => {
     const [seek, setSeek] = useState(0);
     const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
     const [bpm, setBPM] = useState(120);
-    const [selectedIndex, _setSelectedIndex] = useState(0);
-    const selectedIndexRef = useRef(0);
-    const [isContextStarted, setIsContextStarted] = useState(false);
-    const [indexToDelete, setIndexToDelete] = useState(-1);
 
-    const setSelectedIndex = (index: number) => {
-        selectedIndexRef.current = index;
-        _setSelectedIndex(index);
-    };
+    const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
+
+    const [selectedPartIndices, setSelectedPartIndices] = useState<
+        Array<PartSelectionIndex>
+    >([]);
+
+    const [isContextStarted, setIsContextStarted] = useState(false);
+
+    const [focusedPanel, setFocusedPanel] = useState(Panel.None);
+    // const focusedPanelRef = useRef(Panel.None);
+
+    // const setFocusedPanel = (panel: Panel) => {
+    //     focusedPanelRef.current = panel;
+    //     _setFocusedPanel(panel);
+    // };
 
     const SaveToFile = () => {
         const data = {
@@ -100,6 +109,12 @@ const Studio = () => {
     };
 
     const [tracks, setTracks] = useState<Array<Track>>(() => [CreateTrack(0)]);
+    // const tracksRef = useRef(tracks);
+
+    // const setTracks = (tracks: Array<Track>) => {
+    //     _setTracks(tracks);
+    //     tracksRef.current = tracks;
+    // };
 
     const {
         isOpen: isWaitingModalOpen,
@@ -125,42 +140,14 @@ const Studio = () => {
         }
     }, [isInstrumentLoading, onWaitingModalClose, onWaitingModalOpen]);
 
-    useEffect(() => {
-        if (indexToDelete > -1) {
-            let tracksCopy = [...tracks];
+    // useEffect(() => {
 
-            // Stop all the parts in the deleted track
-            tracksCopy[indexToDelete].parts.forEach((part) => {
-                part.tonePart.stop();
-            });
+    // }, [partIndicesToDelete]);
 
-            tracksCopy.splice(indexToDelete, 1);
-
-            setTracks(tracksCopy);
-
-            setIndexToDelete(-1);
-        }
-    }, [indexToDelete]);
-
-    // Use effect hook that prints selected index whenever it changes
-    useEffect(() => {
-        console.log("Selected index: " + selectedIndex);
-    }, [selectedIndex]);
-
-    const HandleKeyboardEvent = (event: KeyboardEvent) => {
-        if (event.keyCode === 32) {
-            if (playbackState === 0) setPlaybackState(1);
-            else if (playbackState === 2) setPlaybackState(1);
-            else if (playbackState === 1) setPlaybackState(2);
-        } else if (event.keyCode === 46) {
-            // Delete selected track
-
-            setIndexToDelete(selectedIndexRef.current);
-            setSelectedIndex(
-                selectedIndexRef.current > 0 ? selectedIndexRef.current - 1 : 0
-            );
-        }
-    };
+    // // Use effect hook that prints selected index whenever it changes
+    // useEffect(() => {
+    //     console.log("Selected index: " + selectedTrackIndex);
+    // }, [selectedTrackIndex]);
 
     useEffect(() => {
         if (!isContextStarted) StartAudioContext();
@@ -175,20 +162,70 @@ const Studio = () => {
                 //Pause
                 Tone.Transport.pause();
             }
-
-            window.addEventListener("keydown", HandleKeyboardEvent);
-            return () => {
-                window.removeEventListener("keydown", HandleKeyboardEvent);
-            };
         }
     }, [playbackState, isContextStarted]);
 
+    useEffect(() => {
+        console.log("event listener update");
+        const HandleKeyboardEvent = (event: KeyboardEvent) => {
+            if (event.keyCode === 32) {
+                // Space key
+                if (playbackState === 0) setPlaybackState(1);
+                else if (playbackState === 2) setPlaybackState(1);
+                else if (playbackState === 1) setPlaybackState(2);
+            } else if (event.keyCode === 46) {
+                // Delete key
+                if (focusedPanel === Panel.TrackView) {
+                    let tracksCopy = [...tracks];
+
+                    // Stop all the parts in the deleted track
+                    tracksCopy[selectedTrackIndex].parts.forEach((part) => {
+                        part.tonePart.stop();
+                    });
+
+                    tracksCopy.splice(selectedTrackIndex, 1);
+
+                    setSelectedTrackIndex(
+                        selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0
+                    );
+                    setTracks(tracksCopy);
+                } else if (focusedPanel === Panel.TrackSequencer) {
+                    if (selectedPartIndices.length > 0) {
+                        let tracksCopy = [...tracks];
+
+                        // Stop all the parts to be deleted
+                        selectedPartIndices.forEach(
+                            ({ trackIndex, partIndex }) => {
+                                tracksCopy[trackIndex].parts[
+                                    partIndex
+                                ].tonePart.stop();
+                                tracksCopy[trackIndex].parts.splice(
+                                    partIndex,
+                                    1
+                                );
+                            }
+                        );
+
+                        setTracks(tracksCopy);
+
+                        setSelectedPartIndices([]);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("keydown", HandleKeyboardEvent);
+        return () => {
+            window.removeEventListener("keydown", HandleKeyboardEvent);
+        };
+    }, [tracks, selectedTrackIndex, playbackState, focusedPanel]);
+
     const SetRelease = (value: number) => {
-        tracks[selectedIndex].sampler.release = value;
+        tracks[selectedTrackIndex].sampler.release = value;
     };
 
     const SetAttack = (value: number) => {
-        tracks[selectedIndex].sampler.attack = value;
+        tracks[selectedTrackIndex].sampler.attack = value;
     };
 
     const SetPartTime = (
@@ -243,6 +280,7 @@ const Studio = () => {
 
     const AddNoteToTrack = (track: Track, note: Note) => {
         const wholeNoteDuration = (gridDivisions / 4) * (bpm / 60);
+        const noteStopColumn = note.startColumn + 8 / note.duration;
 
         // Check which part the note is in
         let currentPartIndex = track.parts.findIndex(
@@ -265,8 +303,6 @@ const Studio = () => {
         }
         // If in not in any existing part, create a new part and add the note to it
         else {
-            const noteStopColumn = note.startColumn + 8 / note.duration;
-
             // TODO: Add snap settings
             const partStartColumn = GetNewPartStartColumn(note.startColumn);
             const partStopColumn = GetNewPartStopColumn(noteStopColumn);
@@ -315,19 +351,19 @@ const Studio = () => {
             velocity: 1.0,
         };
 
-        AddNoteToTrack(tracksCopy[selectedIndex], note);
+        AddNoteToTrack(tracksCopy[selectedTrackIndex], note);
 
         setTracks(tracksCopy);
 
         // Play the note to give the user feedback
-        tracksCopy[selectedIndex].sampler.triggerAttackRelease(
+        tracksCopy[selectedTrackIndex].sampler.triggerAttackRelease(
             key,
             `${divisor}n`
         );
     };
 
     const RemoveNote = (partIndex: number, noteIndex: number) => {
-        let part = tracks[selectedIndex].parts[partIndex];
+        let part = tracks[selectedTrackIndex].parts[partIndex];
 
         // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
         part.tonePart.clear();
@@ -343,7 +379,7 @@ const Studio = () => {
         // We need a copy as we cannot mutate the original
         let tracksCopy = [...tracks];
 
-        tracksCopy[selectedIndex].parts[partIndex] = part;
+        tracksCopy[selectedTrackIndex].parts[partIndex] = part;
 
         setTracks(tracksCopy);
     };
@@ -358,7 +394,7 @@ const Studio = () => {
 
         // console.log("Note moved", partIndex, noteIndex, column, row);
 
-        let part = tracks[selectedIndex].parts[partIndex];
+        let part = tracks[selectedTrackIndex].parts[partIndex];
         const key = MusicNotes[row];
 
         let tracksCopy = [...tracks];
@@ -384,7 +420,7 @@ const Studio = () => {
             // Remove the note from the current part
             part.notes.splice(noteIndex, 1);
 
-            AddNoteToTrack(tracksCopy[selectedIndex], note);
+            AddNoteToTrack(tracksCopy[selectedTrackIndex], note);
         }
 
         // Add back all the notes to the part
@@ -392,12 +428,12 @@ const Studio = () => {
             part.tonePart.add(GetPartNote(note));
         });
 
-        tracksCopy[selectedIndex].parts[partIndex] = part;
+        tracksCopy[selectedTrackIndex].parts[partIndex] = part;
 
         setTracks(tracksCopy);
 
         // Play the changed note to give the user feedback
-        tracks[selectedIndex].sampler.triggerAttackRelease(
+        tracks[selectedTrackIndex].sampler.triggerAttackRelease(
             key,
             `${note.duration}n`
         );
@@ -408,7 +444,7 @@ const Studio = () => {
         noteIndex: number,
         duration: number
     ) => {
-        let part = tracks[selectedIndex].parts[partIndex];
+        let part = tracks[selectedTrackIndex].parts[partIndex];
 
         // Tone doesn't allow us to remove or modify single notes, so we need to clear the part and then re-add all the notes except the removed one
         part.tonePart.clear();
@@ -423,10 +459,10 @@ const Studio = () => {
             part.tonePart.add(GetPartNote(note));
         });
 
-        tracksCopy[selectedIndex].parts[partIndex] = part;
+        tracksCopy[selectedTrackIndex].parts[partIndex] = part;
         setTracks(tracksCopy);
 
-        tracks[selectedIndex].sampler.triggerAttackRelease(
+        tracks[selectedTrackIndex].sampler.triggerAttackRelease(
             newNote.key,
             `${duration}n`
         );
@@ -435,7 +471,7 @@ const Studio = () => {
 
     const ClearNotes = () => {
         // Clear all the parts
-        tracks[selectedIndex].parts.forEach((part) => {
+        tracks[selectedTrackIndex].parts.forEach((part) => {
             part.tonePart.clear();
             part.notes = [];
         });
@@ -503,12 +539,20 @@ const Studio = () => {
                                             setSeek={setSeek}
                                             tracks={tracks}
                                             onAddTrack={AddTrack}
-                                            selected={selectedIndex}
-                                            setSelected={setSelectedIndex}
+                                            selected={selectedTrackIndex}
+                                            setSelected={setSelectedTrackIndex}
                                             activeWidth={activeWidth}
                                             setActiveWidth={setActiveWidth}
                                             toggleMute={ToggleMuteAtIndex}
                                             setPartTime={SetPartTime}
+                                            focusedPanel={focusedPanel}
+                                            setFocusedPanel={setFocusedPanel}
+                                            selectedPartIndices={
+                                                selectedPartIndices
+                                            }
+                                            setSelectedPartIndices={
+                                                setSelectedPartIndices
+                                            }
                                         />
 
                                         {tracks.length > 0 ? (
@@ -516,8 +560,14 @@ const Studio = () => {
                                                 playbackState={playbackState}
                                                 seek={seek}
                                                 setSeek={setSeek}
-                                                track={tracks[selectedIndex]}
+                                                track={
+                                                    tracks[selectedTrackIndex]
+                                                }
                                                 numCols={500}
+                                                focusedPanel={focusedPanel}
+                                                setFocusedPanel={
+                                                    setFocusedPanel
+                                                }
                                             />
                                         ) : (
                                             <Flex
@@ -538,7 +588,7 @@ const Studio = () => {
                                     {/* </SeekContext.Provider> */}
                                 </Flex>
                                 <PropertiesPanel
-                                    selectedTrack={tracks[selectedIndex]}
+                                    selectedTrack={tracks[selectedTrackIndex]}
                                     numTracks={tracks.length}
                                     setRelease={SetRelease}
                                     setAttack={SetAttack}
