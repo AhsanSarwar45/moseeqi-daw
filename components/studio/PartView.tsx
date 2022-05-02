@@ -105,7 +105,7 @@ const PartView = ({
         >
             <Box
                 zIndex={-10}
-                marginTop={"-1px"}
+                // marginTop={"-1px"}
                 height="89px"
                 width="full"
                 bgColor="primary.500"
@@ -118,7 +118,7 @@ const PartView = ({
                     key={index}
                     bgColor="secondary.500"
                     position="absolute"
-                    top={`${note.noteIndex}px`}
+                    top={`${note.noteIndex + 1}px`}
                     left={`${smallestNoteWidth * note.startColumn}px`}
                     width={`${
                         (smallestNoteWidth * noteDivisions) / note.duration

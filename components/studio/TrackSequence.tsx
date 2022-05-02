@@ -22,7 +22,7 @@ interface TrackProps {
 const TrackSequence = (props: TrackProps) => {
     return (
         <Box
-            height="88px"
+            height="90px"
             width={2000}
             position="relative"
             padding="0px"
