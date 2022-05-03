@@ -202,6 +202,7 @@ const TracksView = memo((props: TracksViewProps) => {
                 <VStack
                     spacing={0}
                     position="sticky"
+                    // height={90 * props.tracks.length}
                     left={0}
                     zIndex={9200}
                     onClick={() => props.setFocusedPanel(Panel.TrackView)}
@@ -209,7 +210,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     <HStack
                         paddingLeft={2}
                         paddingY={2}
-                        height="30px"
+                        height={30}
                         // width="full"
                         spacing={1}
                         justifyContent="flex-start"
@@ -243,16 +244,17 @@ const TracksView = memo((props: TracksViewProps) => {
                         <HStack
                             key={index}
                             color="white"
-                            padding={1}
-                            paddingLeft={2}
+                            paddingY={2}
+                            paddingX={2}
                             width={200}
+                            height={90}
                             bgColor={
                                 props.selected === index
                                     ? "secondary.500"
                                     : "primary.500"
                             }
                             onClick={() => props.setSelected(index)}
-                            height="90px"
+                            // height={200}
                             position="relative"
                             borderBottom="1px solid gray"
                             alignItems="flex-start"
@@ -337,6 +339,7 @@ const TracksView = memo((props: TracksViewProps) => {
                         padding="0px"
                         width={2000}
                         marginTop="30px"
+                        position="relative"
                     >
                         <Ruler
                             type="horizontal"
@@ -348,7 +351,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             mainLineSize={0}
                             shortLineSize={90 * props.tracks.length}
                             longLineSize={90 * props.tracks.length}
-                            // height={88 * props.tracks.length}
+                            height={90 * props.tracks.length}
                             lineColor="rgba(255,255,255,0.1)"
                             textColor="rgba(0,0,0,0)"
                         />
@@ -360,7 +363,7 @@ const TracksView = memo((props: TracksViewProps) => {
 						<Box position="absolute" width={2000} p={0}>
 							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
 						</Box> */}
-                        <Box marginTop={-90 * props.tracks.length}>
+                        <Box position="absolute" top={0} left={0}>
                             {props.tracks.map(
                                 (track: Track, trackIndex: number) => (
                                     <TrackSequence
