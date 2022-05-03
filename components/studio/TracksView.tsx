@@ -204,7 +204,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     position="sticky"
                     // height={90 * props.tracks.length}
                     left={0}
-                    zIndex={9200}
+                    zIndex={500}
                     onClick={() => props.setFocusedPanel(Panel.TrackView)}
                 >
                     <HStack
@@ -317,7 +317,7 @@ const TracksView = memo((props: TracksViewProps) => {
                         width={2000}
                         position="sticky"
                         top={0}
-                        zIndex={9100}
+                        zIndex={400}
                     >
                         <TimeLineHandle
                             playbackState={props.playbackState}
