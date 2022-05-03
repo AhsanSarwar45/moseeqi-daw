@@ -28,7 +28,7 @@ const SeekHandle = (props: TimeHandleProps) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
         const newSeek = data.lastX / (5 * props.scale);
         // console.log(newSeek, data.lastX)
-        // setSeek(newSeek);
+        setSeek(newSeek);
         props.setSeek(newSeek);
 
         Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
