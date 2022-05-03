@@ -13,7 +13,7 @@ import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { MusicNotes } from "@Instruments/Instruments";
 import { CellCoordinates } from "@Interfaces/CellProps";
 import { Note } from "@Interfaces/Note";
-import TimeLineHandle from "./TimeLineHandle";
+import SeekHandle from "./SeekHandle";
 import { Rnd } from "react-rnd";
 import Ruler from "@scena/react-ruler";
 import { useTheme } from "@emotion/react";
@@ -221,7 +221,7 @@ const StickyHeader = (props: StickHeaderProps) => {
                 width={props.headerWidth}
                 overflowY="visible"
             >
-                <TimeLineHandle
+                <SeekHandle
                     height={gridHeight}
                     playbackState={props.playbackState}
                     seek={props.seek}

@@ -12,7 +12,7 @@ interface TimeHandleProps {
     scale: number;
 }
 
-const TimeLineHandle = (props: TimeHandleProps) => {
+const SeekHandle = (props: TimeHandleProps) => {
     const wholeNoteWidth = 40;
     const snapDivisions = 8;
 
@@ -28,7 +28,9 @@ const TimeLineHandle = (props: TimeHandleProps) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
         const newSeek = data.lastX / (5 * props.scale);
         // console.log(newSeek, data.lastX)
+        // setSeek(newSeek);
         props.setSeek(newSeek);
+
         Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
         dragging.current = false;
     };
@@ -102,8 +104,8 @@ const TimeLineHandle = (props: TimeHandleProps) => {
     );
 };
 
-TimeLineHandle.defaultProps = {
+SeekHandle.defaultProps = {
     scale: 1,
 };
 
-export default TimeLineHandle;
+export default SeekHandle;

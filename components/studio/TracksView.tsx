@@ -21,7 +21,7 @@ import { useState } from "react";
 import { AddTrackModal } from "@Components/studio/AddTrackModal";
 import { Instruments, MusicNotes } from "@Instruments/Instruments";
 import { Track } from "@Interfaces/Track";
-import TimeLineHandle from "./TimeLineHandle";
+import SeekHandle from "./SeekHandle";
 import TrackSequence from "./TrackSequence";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
@@ -319,7 +319,7 @@ const TracksView = memo((props: TracksViewProps) => {
                         top={0}
                         zIndex={400}
                     >
-                        <TimeLineHandle
+                        <SeekHandle
                             playbackState={props.playbackState}
                             seek={props.seek}
                             setSeek={props.setSeek}
