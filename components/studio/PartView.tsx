@@ -56,7 +56,6 @@ const PartView = ({
     }, [partIndex, selectedPartIndices, trackIndex]);
 
     useEffect(() => {
-        console.log("bpm changed");
         const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
         setSecondWidth(newSecondWidth);
         // setPartTime(
@@ -101,7 +100,7 @@ const PartView = ({
             onResizeStart={(event, data) => {
                 SelectPart();
             }}
-            onDragStop={(e, data) => {
+            onDrag={(e, data) => {
                 const prevPositionX = part.startTime * secondWidth;
 
                 const positionX = Math.round(data.x / snapWidth) * snapWidth;

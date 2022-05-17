@@ -262,12 +262,6 @@ const Studio = () => {
     };
 
     const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
-        console.log(
-            "MoveSelectedParts",
-            selectedPartIndices,
-            startDelta,
-            stopDelta
-        );
         Tone.Transport.bpm.value = bpm;
 
         let tracksCopy = [...tracks];
@@ -280,11 +274,8 @@ const Studio = () => {
 
             part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 
-            console.log(part);
             tracksCopy[trackIndex].parts[partIndex] = part;
         });
-
-        console.log(tracksCopy);
 
         setTracks(tracksCopy);
     };
