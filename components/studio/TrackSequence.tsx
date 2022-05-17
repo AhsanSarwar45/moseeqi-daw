@@ -17,6 +17,7 @@ interface TrackProps {
     ) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
     onPartClick: (trackIndex: number, partIndex: number) => void;
+    onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
 }
 
 const TrackSequence = (props: TrackProps) => {
@@ -31,13 +32,14 @@ const TrackSequence = (props: TrackProps) => {
         >
             {props.track.parts.map((part, partIndex) => (
                 <PartView
-                    key={part.startTime}
+                    key={part.id}
                     part={part}
                     trackIndex={props.trackIndex}
                     partIndex={partIndex}
                     setPartTime={props.setPartTime}
                     selectedPartIndices={props.selectedPartIndices}
                     onPartClick={props.onPartClick}
+                    onMoveSelectedParts={props.onMoveSelectedParts}
                 />
             ))}
         </Box>

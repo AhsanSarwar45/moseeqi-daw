@@ -3,7 +3,8 @@ import { PlaybackContext } from "@Data/PlaybackContext";
 import useEffectDebugger from "@Debug/UseEffectDebugger";
 import { Part } from "@Interfaces/Part";
 import { PartSelectionIndex } from "@Interfaces/Selection";
-import React, { useContext, useEffect, useState } from "react";
+import { BpmToBps } from "@Utility/TimeUtils";
+import React, { memo, useContext, useEffect, useState } from "react";
 import { ResizeCallbackData } from "react-resizable";
 import { Rnd } from "react-rnd";
 
@@ -19,9 +20,11 @@ interface PartViewProps {
     ) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
     onPartClick: (trackIndex: number, partIndex: number) => void;
+    onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
 }
 
 const PartView = ({
+    part,
     trackIndex,
     partIndex,
     setPartTime,
@@ -32,20 +35,13 @@ const PartView = ({
 
     const wholeNoteWidth = 40;
     const [secondWidth, setSecondWidth] = useState(
-        wholeNoteWidth / (4 / (bpm / 60))
+        wholeNoteWidth / (4 / BpmToBps(bpm))
     );
     const snapDivisions = 8;
     const noteDivisions = 8;
     const snapWidth = wholeNoteWidth / snapDivisions;
     const smallestNoteWidth = wholeNoteWidth / noteDivisions;
 
-    const [width, setWidth] = useState(
-        secondWidth * (props.part.stopTime - props.part.startTime)
-    );
-    const [position, setPosition] = useState({
-        x: props.part.startTime * secondWidth,
-        y: 0,
-    });
     const [isSelected, setIsSelected] = useState(false);
 
     useEffect(() => {
@@ -60,20 +56,27 @@ const PartView = ({
     }, [partIndex, selectedPartIndices, trackIndex]);
 
     useEffect(() => {
+        console.log("bpm changed");
         const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
-        setPartTime(
-            trackIndex,
-            partIndex,
-            position.x / newSecondWidth,
-            (position.x + width) / newSecondWidth
-        );
         setSecondWidth(newSecondWidth);
-    }, [position, width, bpm]);
+        // setPartTime(
+        //     trackIndex,
+        //     partIndex,
+        //     part.startTime / newSecondWidth,
+        //     (part.startTime + width) / newSecondWidth
+        // );
+    }, [bpm]);
+
+    const SelectPart = () => {
+        props.onPartClick(trackIndex, partIndex);
+    };
 
     return (
         <Rnd
-            onMouseDown={() => props.onPartClick(trackIndex, partIndex)}
-            size={{ width: width + 1, height: "full" }}
+            size={{
+                width: secondWidth * (part.stopTime - part.startTime) + 1,
+                height: "full",
+            }}
             enableResizing={{
                 top: false,
                 right: true,
@@ -88,19 +91,25 @@ const PartView = ({
             bounds="parent"
             resizeGrid={[snapWidth, snapWidth]}
             dragGrid={[snapWidth, snapWidth]}
-            position={position}
-            onDragStop={(e, d) => {
-                const positionX = Math.round(d.x / snapWidth) * snapWidth;
-                // console.log(position);
-                setPosition({ x: positionX, y: d.y });
+            position={{
+                x: part.startTime * secondWidth,
+                y: 0,
+            }}
+            onDragStart={(event, data) => {
+                SelectPart();
+            }}
+            onResizeStart={(event, data) => {
+                SelectPart();
+            }}
+            onDragStop={(e, data) => {
+                const prevPositionX = part.startTime * secondWidth;
+
+                const positionX = Math.round(data.x / snapWidth) * snapWidth;
+                const delta = (positionX - prevPositionX) / secondWidth;
+                props.onMoveSelectedParts(delta, delta);
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
-                const width = parseInt(ref.style.width);
-                setWidth(width);
-
-                // console.log("width", width, "position", position);
-                // const positionX = Math.round(position.x / snapWidth) * snapWidth
-                // setSecondWidth(wholeNoteWidth / (4 / (bpm / 60)));
+                props.onMoveSelectedParts(0, (delta.width + 1) / secondWidth);
             }}
         >
             <Box
@@ -112,7 +121,7 @@ const PartView = ({
                 borderWidth={1}
                 borderColor={isSelected ? "brand.secondary" : "white"}
             />
-            {props.part.notes.map((note, index) => (
+            {part.notes.map((note, index) => (
                 <Box
                     zIndex={900}
                     key={index}
@@ -130,4 +139,4 @@ const PartView = ({
     );
 };
 
-export default PartView;
+export default memo(PartView);

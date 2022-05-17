@@ -119,6 +119,7 @@ interface TracksViewProps {
     setFocusedPanel: (panel: Panel) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
     setSelectedPartIndices: (indices: Array<PartSelectionIndex>) => void;
+    onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
 }
 
 const TracksView = memo((props: TracksViewProps) => {
@@ -182,7 +183,9 @@ const TracksView = memo((props: TracksViewProps) => {
                 { trackIndex, partIndex },
             ]);
         } else {
-            props.setSelectedPartIndices([{ trackIndex, partIndex }]);
+            if (props.selectedPartIndices.length < 2) {
+                props.setSelectedPartIndices([{ trackIndex, partIndex }]);
+            }
         }
     };
 
@@ -198,6 +201,12 @@ const TracksView = memo((props: TracksViewProps) => {
                 overflowY="scroll"
                 // overflowY="scroll"
                 bgColor="primary.600"
+                onClick={(event) => {
+                    if (event.currentTarget === event.target) {
+                        console.log("reset");
+                        props.setSelectedPartIndices([]);
+                    }
+                }}
             >
                 <VStack
                     spacing={0}
@@ -307,7 +316,6 @@ const TracksView = memo((props: TracksViewProps) => {
 
                 <VStack
                     alignItems="flex-start"
-                    height="full"
                     spacing={0}
                     onClick={() => props.setFocusedPanel(Panel.TrackSequencer)}
                 >
@@ -376,6 +384,9 @@ const TracksView = memo((props: TracksViewProps) => {
                                             props.selectedPartIndices
                                         }
                                         onPartClick={SetSelectedParts}
+                                        onMoveSelectedParts={
+                                            props.onMoveSelectedParts
+                                        }
                                     />
                                 )
                             )}

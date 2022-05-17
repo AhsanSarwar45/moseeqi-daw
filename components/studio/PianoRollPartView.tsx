@@ -8,6 +8,7 @@ import { Rnd } from "react-rnd";
 
 import { GridContext } from "@Data/GridContext";
 import { gridDivisions } from "@Data/Constants";
+import { BpmToBps } from "@Utility/TimeUtils";
 
 interface FilledCellProps {
     note: Note;
@@ -130,31 +131,28 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
         useContext(GridContext);
     const wholeNoteWidth = columnWidth * gridDivisions;
     const [secondWidth, setSecondWidth] = useState(
-        wholeNoteWidth / (4 / (bpm / 60))
-    );
-    const [position, setPosition] = useState(part.startTime * secondWidth);
-    const [width, setWidth] = useState(
-        (part.stopTime - part.startTime) * secondWidth
+        wholeNoteWidth / (4 / BpmToBps(bpm))
     );
 
     useEffect(() => {
-        const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
-        setPosition(part.startTime * newSecondWidth);
-        setWidth((part.stopTime - part.startTime) * newSecondWidth);
-        setSecondWidth(newSecondWidth);
+        setSecondWidth(wholeNoteWidth / (4 / BpmToBps(bpm)));
     }, [part.startTime, part.stopTime, bpm, wholeNoteWidth]);
 
     return (
         // <Box key={partIndex} >
-        <Box key={partIndex} position="absolute" left={position}>
+        <Box
+            key={partIndex}
+            position="absolute"
+            left={part.startTime * secondWidth}
+        >
             <Box
                 borderWidth={1}
                 zIndex={9998}
                 position="absolute"
                 pointerEvents="none"
-                width={width + 1}
+                width={(part.stopTime - part.startTime) * secondWidth + 1}
                 height={gridHeight}
-                bgColor="rgba(255,0,0,0.1)"
+                bgColor="rgba(255,0,0,0.05)"
             />
 
             {part.notes.map((note: Note, noteIndex: number) => (

@@ -1,5 +1,5 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
-import { useState, useEffect, useRef, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment, useMemo } from "react";
 import { SplitDirection } from "@devbookhq/splitter";
 import * as Tone from "tone";
 
@@ -31,6 +31,14 @@ const Studio = () => {
     const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
     const [bpm, setBPM] = useState(120);
 
+    const playbackContextValue = useMemo(
+        () => ({
+            playbackState,
+            bpm,
+        }),
+        [bpm, playbackState]
+    );
+
     const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
 
     const [selectedPartIndices, setSelectedPartIndices] = useState<
@@ -40,12 +48,8 @@ const Studio = () => {
     const [isContextStarted, setIsContextStarted] = useState(false);
 
     const [focusedPanel, setFocusedPanel] = useState(Panel.None);
-    // const focusedPanelRef = useRef(Panel.None);
 
-    // const setFocusedPanel = (panel: Panel) => {
-    //     focusedPanelRef.current = panel;
-    //     _setFocusedPanel(panel);
-    // };
+    const currentPartId = useRef(0);
 
     const SaveToFile = () => {
         const data = {
@@ -96,6 +100,7 @@ const Studio = () => {
             // TODO: This might not be true. Need to test a simpler alternative.
             parts: [
                 {
+                    id: currentPartId.current++,
                     tonePart: tonePart,
                     startTime: 0,
                     stopTime: 32 / noteLength,
@@ -107,14 +112,7 @@ const Studio = () => {
             muted: false,
         };
     };
-
     const [tracks, setTracks] = useState<Array<Track>>(() => [CreateTrack(0)]);
-    // const tracksRef = useRef(tracks);
-
-    // const setTracks = (tracks: Array<Track>) => {
-    //     _setTracks(tracks);
-    //     tracksRef.current = tracks;
-    // };
 
     const {
         isOpen: isWaitingModalOpen,
@@ -140,15 +138,6 @@ const Studio = () => {
         }
     }, [isInstrumentLoading, onWaitingModalClose, onWaitingModalOpen]);
 
-    // useEffect(() => {
-
-    // }, [partIndicesToDelete]);
-
-    // // Use effect hook that prints selected index whenever it changes
-    // useEffect(() => {
-    //     console.log("Selected index: " + selectedTrackIndex);
-    // }, [selectedTrackIndex]);
-
     useEffect(() => {
         if (!isContextStarted) StartAudioContext();
         else {
@@ -166,7 +155,7 @@ const Studio = () => {
     }, [playbackState, isContextStarted]);
 
     useEffect(() => {
-        console.log("event listener update");
+        // console.log("event listener update");
         const HandleKeyboardEvent = (event: KeyboardEvent) => {
             if (event.keyCode === 32) {
                 // Space key
@@ -232,7 +221,13 @@ const Studio = () => {
         return () => {
             window.removeEventListener("keydown", HandleKeyboardEvent);
         };
-    }, [tracks, selectedTrackIndex, playbackState, focusedPanel]);
+    }, [
+        tracks,
+        selectedTrackIndex,
+        playbackState,
+        focusedPanel,
+        selectedPartIndices,
+    ]);
 
     const SetRelease = (value: number) => {
         tracks[selectedTrackIndex].sampler.release = value;
@@ -262,6 +257,34 @@ const Studio = () => {
             .stop(endTime);
         tracksCopy[trackIndex].parts[partIndex].startTime = startTime;
         tracksCopy[trackIndex].parts[partIndex].stopTime = endTime;
+
+        setTracks(tracksCopy);
+    };
+
+    const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
+        console.log(
+            "MoveSelectedParts",
+            selectedPartIndices,
+            startDelta,
+            stopDelta
+        );
+        Tone.Transport.bpm.value = bpm;
+
+        let tracksCopy = [...tracks];
+
+        selectedPartIndices.forEach(({ trackIndex, partIndex }) => {
+            let part = tracksCopy[trackIndex].parts[partIndex];
+
+            part.startTime += startDelta;
+            part.stopTime += stopDelta;
+
+            part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+
+            console.log(part);
+            tracksCopy[trackIndex].parts[partIndex] = part;
+        });
+
+        console.log(tracksCopy);
 
         setTracks(tracksCopy);
     };
@@ -296,11 +319,14 @@ const Studio = () => {
         const wholeNoteDuration = (gridDivisions / 4) * (bpm / 60);
         const noteStopColumn = note.startColumn + 8 / note.duration;
 
+        const noteStartTime = note.startColumn / wholeNoteDuration;
+        const noteStopTime = noteStopColumn / wholeNoteDuration;
+
         // Check which part the note is in
         let currentPartIndex = track.parts.findIndex(
             (part) =>
-                part.startTime <= (note.startColumn + 1) / wholeNoteDuration &&
-                part.stopTime >= (note.startColumn + 1) / wholeNoteDuration
+                part.startTime <= noteStartTime &&
+                part.stopTime >= noteStartTime
         );
 
         // If the note lies in an existing part, add it to the part
@@ -312,6 +338,15 @@ const Studio = () => {
 
             part.notes.push(note);
             part.tonePart.add(GetPartNote(note));
+
+            // if the end of the note lies beyond the end of the part, extend the part
+            if (noteStopTime > part.stopTime) {
+                part.stopTime = noteStopTime;
+                part.tonePart
+                    .cancel(0)
+                    .start(part.startTime)
+                    .stop(part.stopTime);
+            }
 
             track.parts[currentPartIndex] = part;
         }
@@ -339,6 +374,7 @@ const Studio = () => {
             tonePart.add(GetPartNote(note));
 
             track.parts.push({
+                id: currentPartId.current++,
                 tonePart: tonePart,
                 startTime: partStartTime,
                 stopTime: partStopTime,
@@ -521,9 +557,7 @@ const Studio = () => {
                     onClearNotes: ClearNotes,
                 }}
             >
-                <PlaybackContext.Provider
-                    value={{ playbackState: playbackState, bpm: bpm }}
-                >
+                <PlaybackContext.Provider value={playbackContextValue}>
                     <Flex
                         height="100vh"
                         width="full"
@@ -566,6 +600,9 @@ const Studio = () => {
                                             }
                                             setSelectedPartIndices={
                                                 setSelectedPartIndices
+                                            }
+                                            onMoveSelectedParts={
+                                                MoveSelectedParts
                                             }
                                         />
 
