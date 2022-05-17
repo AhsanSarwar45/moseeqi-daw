@@ -183,7 +183,14 @@ const TracksView = memo((props: TracksViewProps) => {
                 { trackIndex, partIndex },
             ]);
         } else {
-            if (props.selectedPartIndices.length < 2) {
+            // If selected parts does not contain this part, then reset selected parts to only this part
+            if (
+                !props.selectedPartIndices.some(
+                    (index) =>
+                        index.trackIndex === trackIndex &&
+                        index.partIndex === partIndex
+                )
+            ) {
                 props.setSelectedPartIndices([{ trackIndex, partIndex }]);
             }
         }
