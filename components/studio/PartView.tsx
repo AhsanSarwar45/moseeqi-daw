@@ -21,6 +21,7 @@ interface PartViewProps {
     selectedPartIndices: Array<PartSelectionIndex>;
     onPartClick: (trackIndex: number, partIndex: number) => void;
     onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
+    onMoveSelectedPartsStop: () => void;
 }
 
 const PartView = ({
@@ -106,6 +107,9 @@ const PartView = ({
                 const positionX = Math.round(data.x / snapWidth) * snapWidth;
                 const delta = (positionX - prevPositionX) / secondWidth;
                 props.onMoveSelectedParts(delta, delta);
+            }}
+            onDragStop={(e, data) => {
+                props.onMoveSelectedPartsStop();
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 props.onMoveSelectedParts(0, (delta.width + 1) / secondWidth);

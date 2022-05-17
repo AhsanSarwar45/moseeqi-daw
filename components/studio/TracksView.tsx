@@ -25,6 +25,7 @@ import SeekHandle from "./SeekHandle";
 import TrackSequence from "./TrackSequence";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
+import PartView from "./PartView";
 
 interface MeterProps {
     width: number | string;
@@ -119,7 +120,8 @@ interface TracksViewProps {
     setFocusedPanel: (panel: Panel) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
     setSelectedPartIndices: (indices: Array<PartSelectionIndex>) => void;
-    onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
+    setTracks: (tracks: Array<Track>) => void;
+    bpm: number;
 }
 
 const TracksView = memo((props: TracksViewProps) => {
@@ -131,6 +133,8 @@ const TracksView = memo((props: TracksViewProps) => {
     const scaleGridMinor = useRef<Ruler>(null);
 
     const [isShiftHeld, setIsShiftHeld] = useState(false);
+
+    const [tracks, setTracks] = useState(props.tracks);
 
     const OnKeyDown = ({ key }: { key: string }) => {
         if (key === "Shift") {
@@ -196,6 +200,25 @@ const TracksView = memo((props: TracksViewProps) => {
         }
     };
 
+    const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
+        Tone.Transport.bpm.value = props.bpm;
+
+        let tracksCopy = [...tracks];
+
+        props.selectedPartIndices.forEach(({ trackIndex, partIndex }) => {
+            let part = tracksCopy[trackIndex].parts[partIndex];
+
+            part.startTime += startDelta;
+            part.stopTime += stopDelta;
+
+            part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+
+            tracksCopy[trackIndex].parts[partIndex] = part;
+        });
+
+        setTracks(tracksCopy);
+    };
+
     return (
         <Fragment>
             <HStack
@@ -256,7 +279,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             borderRadius="sm"
                         />
                     </HStack>
-                    {props.tracks.map((track: Track, index: number) => (
+                    {tracks.map((track: Track, index: number) => (
                         <HStack
                             key={index}
                             color="white"
@@ -379,24 +402,39 @@ const TracksView = memo((props: TracksViewProps) => {
 							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
 						</Box> */}
                         <Box position="absolute" top={0} left={0}>
-                            {props.tracks.map(
-                                (track: Track, trackIndex: number) => (
-                                    <TrackSequence
-                                        key={trackIndex}
-                                        track={track}
-                                        trackIndex={trackIndex}
-                                        setSelected={props.setSelected}
-                                        setPartTime={props.setPartTime}
-                                        selectedPartIndices={
-                                            props.selectedPartIndices
-                                        }
-                                        onPartClick={SetSelectedParts}
-                                        onMoveSelectedParts={
-                                            props.onMoveSelectedParts
-                                        }
-                                    />
-                                )
-                            )}
+                            {tracks.map((track: Track, trackIndex: number) => (
+                                <Box
+                                    key={trackIndex}
+                                    height="90px"
+                                    width={2000}
+                                    position="relative"
+                                    padding="0px"
+                                    onClick={() =>
+                                        props.setSelected(trackIndex)
+                                    }
+                                    borderBottom="1px solid gray"
+                                >
+                                    {track.parts.map((part, partIndex) => (
+                                        <PartView
+                                            key={part.id}
+                                            part={part}
+                                            trackIndex={trackIndex}
+                                            partIndex={partIndex}
+                                            setPartTime={props.setPartTime}
+                                            selectedPartIndices={
+                                                props.selectedPartIndices
+                                            }
+                                            onPartClick={SetSelectedParts}
+                                            onMoveSelectedParts={
+                                                MoveSelectedParts
+                                            }
+                                            onMoveSelectedPartsStop={() =>
+                                                props.setTracks(tracks)
+                                            }
+                                        />
+                                    ))}
+                                </Box>
+                            ))}
                         </Box>
                     </Box>
                 </VStack>

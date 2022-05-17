@@ -20,30 +20,6 @@ interface TrackProps {
     onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
 }
 
-const TrackSequence = (props: TrackProps) => {
-    return (
-        <Box
-            height="90px"
-            width={2000}
-            position="relative"
-            padding="0px"
-            onClick={() => props.setSelected(props.trackIndex)}
-            borderBottom="1px solid gray"
-        >
-            {props.track.parts.map((part, partIndex) => (
-                <PartView
-                    key={part.id}
-                    part={part}
-                    trackIndex={props.trackIndex}
-                    partIndex={partIndex}
-                    setPartTime={props.setPartTime}
-                    selectedPartIndices={props.selectedPartIndices}
-                    onPartClick={props.onPartClick}
-                    onMoveSelectedParts={props.onMoveSelectedParts}
-                />
-            ))}
-        </Box>
-    );
-};
+const TrackSequence = (props: TrackProps) => {};
 
 export default TrackSequence;

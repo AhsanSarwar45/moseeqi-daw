@@ -574,6 +574,7 @@ const Studio = () => {
                                     >
                                         <TracksView
                                             playbackState={playbackState}
+                                            bpm={bpm}
                                             seek={seek}
                                             setSeek={setSeek}
                                             tracks={tracks}
@@ -592,9 +593,7 @@ const Studio = () => {
                                             setSelectedPartIndices={
                                                 setSelectedPartIndices
                                             }
-                                            onMoveSelectedParts={
-                                                MoveSelectedParts
-                                            }
+                                            setTracks={setTracks}
                                         />
 
                                         {tracks.length > 0 ? (
