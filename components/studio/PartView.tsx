@@ -3,8 +3,9 @@ import { PlaybackContext } from "@Data/PlaybackContext";
 import useEffectDebugger from "@Debug/UseEffectDebugger";
 import { Part } from "@Interfaces/Part";
 import { PartSelectionIndex } from "@Interfaces/Selection";
+import { Track } from "@Interfaces/Track";
 import { BpmToBps } from "@Utility/TimeUtils";
-import React, { memo, useContext, useEffect, useState } from "react";
+import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { ResizeCallbackData } from "react-resizable";
 import { Rnd } from "react-rnd";
 
@@ -12,6 +13,7 @@ interface PartViewProps {
     part: Part;
     partIndex: number;
     trackIndex: number;
+    tracks: Array<Track>;
     setPartTime: (
         trackIndex: number,
         partIndex: number,
@@ -44,6 +46,7 @@ const PartView = ({
     const smallestNoteWidth = wholeNoteWidth / noteDivisions;
 
     const [isSelected, setIsSelected] = useState(false);
+    const selectionStartOffsetRef = useRef(0);
 
     useEffect(() => {
         setIsSelected(
@@ -97,6 +100,21 @@ const PartView = ({
             }}
             onDragStart={(event, data) => {
                 SelectPart();
+
+                let selectionStartTime = 2000;
+
+                selectedPartIndices.forEach((partSelectionIndex) => {
+                    selectionStartTime = Math.min(
+                        selectionStartTime,
+                        props.tracks[partSelectionIndex.trackIndex].parts[
+                            partSelectionIndex.partIndex
+                        ].startTime
+                    );
+                });
+
+                selectionStartOffsetRef.current =
+                    (part.startTime - selectionStartTime) * secondWidth;
+                console.log(selectionStartOffsetRef.current);
             }}
             onResizeStart={(event, data) => {
                 SelectPart();
@@ -104,8 +122,14 @@ const PartView = ({
             onDrag={(e, data) => {
                 const prevPositionX = part.startTime * secondWidth;
 
-                const positionX = Math.round(data.x / snapWidth) * snapWidth;
+                let positionX = Math.round(data.x / snapWidth) * snapWidth;
+
+                if (positionX - selectionStartOffsetRef.current < 0) {
+                    positionX = selectionStartOffsetRef.current;
+                }
+
                 const delta = (positionX - prevPositionX) / secondWidth;
+
                 props.onMoveSelectedParts(delta, delta);
             }}
             onDragStop={(e, data) => {
