@@ -136,6 +136,10 @@ const TracksView = memo((props: TracksViewProps) => {
 
     const [tracks, setTracks] = useState(props.tracks);
 
+    useEffect(() => {
+        setTracks(props.tracks);
+    }, [props.tracks]);
+
     const OnKeyDown = ({ key }: { key: string }) => {
         if (key === "Shift") {
             setIsShiftHeld(true);
@@ -288,7 +292,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             borderRadius="sm"
                         />
                     </HStack>
-                    {tracks.map((track: Track, index: number) => (
+                    {props.tracks.map((track: Track, index: number) => (
                         <HStack
                             key={index}
                             color="white"
@@ -301,7 +305,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                     ? "secondary.500"
                                     : "primary.500"
                             }
-                            onClick={() => props.setSelected(index)}
+                            onMouseDown={() => props.setSelected(index)}
                             // height={200}
                             position="relative"
                             borderBottom="1px solid gray"
@@ -418,7 +422,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                     width={2000}
                                     position="relative"
                                     padding="0px"
-                                    onClick={() =>
+                                    onMouseDown={() =>
                                         props.setSelected(trackIndex)
                                     }
                                     borderBottom="1px solid gray"
