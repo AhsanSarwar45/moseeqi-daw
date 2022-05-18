@@ -190,8 +190,6 @@ const TracksView = memo((props: TracksViewProps) => {
                 index.trackIndex === trackIndex && index.partIndex === partIndex
         );
 
-        console.log(selectedPartIndex);
-
         if (isShiftHeld) {
             // if this part is already selected, deselect it, otherwise select it
 

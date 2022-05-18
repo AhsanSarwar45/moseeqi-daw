@@ -47,6 +47,7 @@ const PartView = ({
 
     const [isSelected, setIsSelected] = useState(false);
     const selectionStartOffsetRef = useRef(0);
+    const prevResizeDeltaRef = useRef(0);
 
     useEffect(() => {
         setIsSelected(
@@ -77,7 +78,7 @@ const PartView = ({
     return (
         <Rnd
             size={{
-                width: secondWidth * (part.stopTime - part.startTime) + 1,
+                width: secondWidth * (part.stopTime - part.startTime),
                 height: "full",
             }}
             enableResizing={{
@@ -115,27 +116,32 @@ const PartView = ({
                 selectionStartOffsetRef.current =
                     (part.startTime - selectionStartTime) * secondWidth;
             }}
-            onResizeStart={(event, data) => {
-                SelectPart();
-            }}
-            onDrag={(e, data) => {
+            onDrag={(event, data) => {
                 const prevPositionX = part.startTime * secondWidth;
 
-                let positionX = Math.round(data.x / snapWidth) * snapWidth;
-
-                if (positionX - selectionStartOffsetRef.current < 0) {
-                    positionX = selectionStartOffsetRef.current;
+                if (data.x - selectionStartOffsetRef.current < 0) {
+                    data.x = selectionStartOffsetRef.current;
                 }
 
-                const delta = (positionX - prevPositionX) / secondWidth;
+                const delta = (data.x - prevPositionX) / secondWidth;
 
                 props.onMoveSelectedParts(delta, delta);
             }}
-            onDragStop={(e, data) => {
+            onDragStop={(event, data) => {
                 props.onMoveSelectedPartsStop();
             }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-                props.onMoveSelectedParts(0, (delta.width + 1) / secondWidth);
+            onResizeStart={(event, data) => {
+                SelectPart();
+                prevResizeDeltaRef.current = 0;
+            }}
+            onResize={(event, direction, ref, delta, position) => {
+                const newDelta = delta.width - prevResizeDeltaRef.current;
+                props.onMoveSelectedParts(0, (newDelta + 0.0) / secondWidth);
+
+                prevResizeDeltaRef.current = delta.width;
+            }}
+            onResizeStop={(event, direction, ref, delta, position) => {
+                props.onMoveSelectedPartsStop();
             }}
         >
             <Box

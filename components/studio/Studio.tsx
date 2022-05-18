@@ -261,25 +261,6 @@ const Studio = () => {
         setTracks(tracksCopy);
     };
 
-    const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
-        Tone.Transport.bpm.value = bpm;
-
-        let tracksCopy = [...tracks];
-
-        selectedPartIndices.forEach(({ trackIndex, partIndex }) => {
-            let part = tracksCopy[trackIndex].parts[partIndex];
-
-            part.startTime += startDelta;
-            part.stopTime += stopDelta;
-
-            part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
-
-            tracksCopy[trackIndex].parts[partIndex] = part;
-        });
-
-        setTracks(tracksCopy);
-    };
-
     const GetPartNote = (note: Note) => {
         const partNote = {
             time: note.startColumn / ((gridDivisions / 4) * (bpm / 60)),
