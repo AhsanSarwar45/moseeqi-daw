@@ -181,20 +181,29 @@ const TracksView = memo((props: TracksViewProps) => {
     }, []);
 
     const SetSelectedParts = (trackIndex: number, partIndex: number) => {
+        const selectedPartIndex = props.selectedPartIndices.findIndex(
+            (index) =>
+                index.trackIndex === trackIndex && index.partIndex === partIndex
+        );
+
+        console.log(selectedPartIndex);
+
         if (isShiftHeld) {
-            props.setSelectedPartIndices([
-                ...props.selectedPartIndices,
-                { trackIndex, partIndex },
-            ]);
+            // if this part is already selected, deselect it, otherwise select it
+
+            if (selectedPartIndex >= 0) {
+                let selectedPartIndicesCopy = [...props.selectedPartIndices];
+                selectedPartIndicesCopy.splice(selectedPartIndex, 1);
+                props.setSelectedPartIndices(selectedPartIndicesCopy);
+            } else {
+                props.setSelectedPartIndices([
+                    ...props.selectedPartIndices,
+                    { trackIndex, partIndex },
+                ]);
+            }
         } else {
             // If selected parts does not contain this part, then reset selected parts to only this part
-            if (
-                !props.selectedPartIndices.some(
-                    (index) =>
-                        index.trackIndex === trackIndex &&
-                        index.partIndex === partIndex
-                )
-            ) {
+            if (selectedPartIndex < 0) {
                 props.setSelectedPartIndices([{ trackIndex, partIndex }]);
             }
         }

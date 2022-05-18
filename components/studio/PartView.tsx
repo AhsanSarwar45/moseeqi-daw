@@ -114,7 +114,6 @@ const PartView = ({
 
                 selectionStartOffsetRef.current =
                     (part.startTime - selectionStartTime) * secondWidth;
-                console.log(selectionStartOffsetRef.current);
             }}
             onResizeStart={(event, data) => {
                 SelectPart();
