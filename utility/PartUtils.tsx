@@ -1,7 +1,11 @@
+import { wholeNoteDivisions } from "@Data/Constants";
+
 export const GetNewPartStartColumn = (noteStartColumn: number) => {
-    return Math.floor(noteStartColumn / 8) * 8;
+    return (
+        Math.floor(noteStartColumn / wholeNoteDivisions) * wholeNoteDivisions
+    );
 };
 
 export const GetNewPartStopColumn = (noteStopColumn: number) => {
-    return Math.ceil(noteStopColumn / 8) * 8;
+    return Math.ceil(noteStopColumn / wholeNoteDivisions) * wholeNoteDivisions;
 };

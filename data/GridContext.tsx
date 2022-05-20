@@ -2,7 +2,6 @@ import { Part } from "@Interfaces/Part";
 import { PlaybackState } from "@Types/Types";
 import { createContext } from "react";
 
-
 export const GridContext = createContext({
     stickyHeight: 0,
     stickyWidth: 0,
@@ -12,12 +11,12 @@ export const GridContext = createContext({
     rowHeight: 0,
     playbackState: 0 as PlaybackState,
     seek: 0,
-    setSeek: (seek: number) => { },
-    onKeyDown: (label: string) => { },
-    onKeyUp: (label: string) => { },
-    onFilledNoteClick: (key: string, duration: number) => { },
-    parts: [] as Array<Part>
+    setSeek: (seek: number) => {},
+    onKeyDown: (label: string) => {},
+    onKeyUp: (label: string) => {},
+    onFilledNoteClick: (key: string, duration: number) => {},
+    parts: [] as Array<Part>,
+    bpm: 0,
 });
 
-
-GridContext.displayName = 'GridContext';
+GridContext.displayName = "GridContext";

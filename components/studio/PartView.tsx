@@ -1,4 +1,9 @@
 import { Box } from "@chakra-ui/react";
+import {
+    divisionsPerSecond,
+    secondsPerWholeNote,
+    wholeNoteDivisions,
+} from "@Data/Constants";
 import { PlaybackContext } from "@Data/PlaybackContext";
 import useEffectDebugger from "@Debug/UseEffectDebugger";
 import { Part } from "@Interfaces/Part";
@@ -24,6 +29,7 @@ interface PartViewProps {
     onPartClick: (trackIndex: number, partIndex: number) => void;
     onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
     onMoveSelectedPartsStop: () => void;
+    bpm: number;
 }
 
 const PartView = ({
@@ -34,16 +40,15 @@ const PartView = ({
     selectedPartIndices,
     ...props
 }: PartViewProps) => {
-    const { bpm } = useContext(PlaybackContext);
-
     const wholeNoteWidth = 40;
-    const [secondWidth, setSecondWidth] = useState(
-        wholeNoteWidth / (4 / BpmToBps(bpm))
-    );
+    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
     const snapDivisions = 8;
-    const noteDivisions = 8;
     const snapWidth = wholeNoteWidth / snapDivisions;
-    const smallestNoteWidth = wholeNoteWidth / noteDivisions;
+    const smallestNoteWidth = wholeNoteWidth / wholeNoteDivisions;
+
+    const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
+        pixelsPerSecond * BpmToBps(props.bpm)
+    );
 
     const [isSelected, setIsSelected] = useState(false);
     const selectionStartOffsetRef = useRef(0);
@@ -61,15 +66,17 @@ const PartView = ({
     }, [partIndex, selectedPartIndices, trackIndex]);
 
     useEffect(() => {
-        const newSecondWidth = wholeNoteWidth / (4 / (bpm / 60));
-        setSecondWidth(newSecondWidth);
-        // setPartTime(
-        //     trackIndex,
-        //     partIndex,
-        //     part.startTime / newSecondWidth,
-        //     (part.startTime + width) / newSecondWidth
-        // );
-    }, [bpm]);
+        const oldPixelsPerSecond = currentPixelsPerSecond;
+        const newPixelsPerSecond = pixelsPerSecond * BpmToBps(props.bpm);
+        setCurrentPixelsPerSecond(newPixelsPerSecond);
+        console.log("bpm changed", newPixelsPerSecond);
+        setPartTime(
+            trackIndex,
+            partIndex,
+            part.startTime * (oldPixelsPerSecond / newPixelsPerSecond),
+            part.stopTime * (oldPixelsPerSecond / newPixelsPerSecond)
+        );
+    }, [pixelsPerSecond, props.bpm]);
 
     const SelectPart = () => {
         props.onPartClick(trackIndex, partIndex);
@@ -78,7 +85,8 @@ const PartView = ({
     return (
         <Rnd
             size={{
-                width: secondWidth * (part.stopTime - part.startTime),
+                width:
+                    currentPixelsPerSecond * (part.stopTime - part.startTime),
                 height: "full",
             }}
             enableResizing={{
@@ -96,7 +104,7 @@ const PartView = ({
             resizeGrid={[snapWidth, snapWidth]}
             dragGrid={[snapWidth, snapWidth]}
             position={{
-                x: part.startTime * secondWidth,
+                x: part.startTime * currentPixelsPerSecond,
                 y: 0,
             }}
             onDragStart={(event, data) => {
@@ -114,16 +122,17 @@ const PartView = ({
                 });
 
                 selectionStartOffsetRef.current =
-                    (part.startTime - selectionStartTime) * secondWidth;
+                    (part.startTime - selectionStartTime) *
+                    currentPixelsPerSecond;
             }}
             onDrag={(event, data) => {
-                const prevPositionX = part.startTime * secondWidth;
+                const prevPositionX = part.startTime * currentPixelsPerSecond;
 
                 if (data.x - selectionStartOffsetRef.current < 0) {
                     data.x = selectionStartOffsetRef.current;
                 }
 
-                const delta = (data.x - prevPositionX) / secondWidth;
+                const delta = (data.x - prevPositionX) / currentPixelsPerSecond;
 
                 props.onMoveSelectedParts(delta, delta);
             }}
@@ -136,7 +145,10 @@ const PartView = ({
             }}
             onResize={(event, direction, ref, delta, position) => {
                 const newDelta = delta.width - prevResizeDeltaRef.current;
-                props.onMoveSelectedParts(0, (newDelta + 0.0) / secondWidth);
+                props.onMoveSelectedParts(
+                    0,
+                    (newDelta + 0.0) / currentPixelsPerSecond
+                );
 
                 prevResizeDeltaRef.current = delta.width;
             }}
@@ -162,7 +174,7 @@ const PartView = ({
                     top={`${note.noteIndex + 1}px`}
                     left={`${smallestNoteWidth * note.startColumn}px`}
                     width={`${
-                        (smallestNoteWidth * noteDivisions) / note.duration
+                        (smallestNoteWidth * wholeNoteDivisions) / note.duration
                     }px`}
                     height="1px"
                 />

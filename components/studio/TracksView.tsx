@@ -430,6 +430,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                             key={part.id}
                                             part={part}
                                             tracks={props.tracks}
+                                            bpm={props.bpm}
                                             trackIndex={trackIndex}
                                             partIndex={partIndex}
                                             setPartTime={props.setPartTime}

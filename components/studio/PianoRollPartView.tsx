@@ -7,7 +7,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
 import { GridContext } from "@Data/GridContext";
-import { gridDivisions } from "@Data/Constants";
+import { secondsPerWholeNote, wholeNoteDivisions } from "@Data/Constants";
 import { BpmToBps } from "@Utility/TimeUtils";
 
 interface FilledCellProps {
@@ -126,31 +126,37 @@ interface PianoRollProps {
 }
 
 const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
-    const { bpm } = useContext(PlaybackContext);
-    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight } =
+    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight, bpm } =
         useContext(GridContext);
-    const wholeNoteWidth = columnWidth * gridDivisions;
-    const [secondWidth, setSecondWidth] = useState(
-        wholeNoteWidth / (4 / BpmToBps(bpm))
+
+    const wholeNoteWidth = columnWidth * wholeNoteDivisions;
+    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
+
+    const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
+        pixelsPerSecond * BpmToBps(bpm)
     );
 
     useEffect(() => {
-        setSecondWidth(wholeNoteWidth / (4 / BpmToBps(bpm)));
-    }, [part.startTime, part.stopTime, bpm, wholeNoteWidth]);
+        console.log("pinao bpm changedS", pixelsPerSecond * BpmToBps(bpm));
+        setCurrentPixelsPerSecond(pixelsPerSecond * BpmToBps(bpm));
+    }, [bpm, wholeNoteWidth]);
 
     return (
         // <Box key={partIndex} >
         <Box
             key={partIndex}
             position="absolute"
-            left={part.startTime * secondWidth}
+            left={part.startTime * currentPixelsPerSecond}
         >
             <Box
                 borderWidth={1}
                 zIndex={9998}
                 position="absolute"
                 pointerEvents="none"
-                width={(part.stopTime - part.startTime) * secondWidth + 1}
+                width={
+                    (part.stopTime - part.startTime) * currentPixelsPerSecond +
+                    1
+                }
                 height={gridHeight}
                 bgColor="rgba(255,0,0,0.05)"
             />

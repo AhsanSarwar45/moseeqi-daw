@@ -13,7 +13,12 @@ import { Track } from "@Interfaces/Track";
 import { PlaybackState } from "@Types/Types";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
 import { Note } from "@Interfaces/Note";
-import { gridDivisions } from "@Data/Constants";
+import {
+    defaultBPM,
+    divisionsPerSecond,
+    secondsPerDivision,
+    wholeNoteDivisions,
+} from "@Data/Constants";
 import {
     GetNewPartStartColumn,
     GetNewPartStopColumn,
@@ -22,6 +27,8 @@ import { PlaybackContext } from "@Data/PlaybackContext";
 import Splitter from "@Components/Splitter";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
+import { BpmToBps } from "@Utility/TimeUtils";
+import { Part } from "@Interfaces/Part";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
@@ -29,7 +36,11 @@ const Studio = () => {
     const [activeWidth, setActiveWidth] = useState(5 * 40);
     const [seek, setSeek] = useState(0);
     const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
-    const [bpm, setBPM] = useState(120);
+    const [bpm, setBPM] = useState(defaultBPM);
+    const [bps, setBPS] = useState(BpmToBps(defaultBPM));
+    const [currentSecondsPerDivision, setCurrentSecondsPerDivision] = useState(
+        secondsPerDivision / bps
+    );
 
     const playbackContextValue = useMemo(
         () => ({
@@ -68,7 +79,7 @@ const Studio = () => {
         // Causes the loading modal to show
         setIsInstrumentLoading(1);
         const instrument = Instruments[instrumentIndex];
-        const noteLength = (gridDivisions / 4) * (bpm / 60);
+        const noteLength = (wholeNoteDivisions / 4) * (bpm / 60);
 
         const meter = new Tone.Meter();
 
@@ -128,6 +139,8 @@ const Studio = () => {
     useEffect(() => {
         // console.log("BPM: " + bpm);
         Tone.Transport.bpm.value = bpm;
+        setBPS(BpmToBps(bpm));
+        setCurrentSecondsPerDivision(secondsPerDivision / BpmToBps(bpm));
     }, [bpm]);
 
     useEffect(() => {
@@ -263,13 +276,21 @@ const Studio = () => {
 
     const GetPartNote = (note: Note) => {
         const partNote = {
-            time: note.startColumn / ((gridDivisions / 4) * (bpm / 60)),
+            time: note.startColumn / ((wholeNoteDivisions / 4) * bps),
             note: note.key,
             duration: `${note.duration}n`,
             velocity: note.velocity,
         };
 
         return partNote;
+    };
+
+    const IsNoteInPart = (note: Note, part: Part) => {
+        const noteStartTime = note.startColumn * currentSecondsPerDivision;
+
+        console.log(noteStartTime, part.startTime, part.stopTime);
+
+        return part.startTime <= noteStartTime && part.stopTime > noteStartTime;
     };
 
     const AddTrack = (instrument: number) => {
@@ -288,25 +309,21 @@ const Studio = () => {
     };
 
     const AddNoteToTrack = (track: Track, note: Note) => {
-        const wholeNoteDuration = (gridDivisions / 4) * (bpm / 60);
-        const noteStopColumn = note.startColumn + 8 / note.duration;
+        const noteStopColumn =
+            note.startColumn + wholeNoteDivisions / note.duration;
 
-        const noteStartTime = note.startColumn / wholeNoteDuration;
-        const noteStopTime = noteStopColumn / wholeNoteDuration;
+        const noteStopTime = noteStopColumn * currentSecondsPerDivision;
 
         // Check which part the note is in
-        let currentPartIndex = track.parts.findIndex(
-            (part) =>
-                part.startTime <= noteStartTime &&
-                part.stopTime >= noteStartTime
+        let currentPartIndex = track.parts.findIndex((part) =>
+            IsNoteInPart(note, part)
         );
 
         // If the note lies in an existing part, add it to the part
         if (currentPartIndex !== -1) {
             const part = track.parts[currentPartIndex];
 
-            note.startColumn -= part.startTime * wholeNoteDuration;
-            console.log(note.startColumn);
+            note.startColumn -= part.startTime / currentSecondsPerDivision;
 
             part.notes.push(note);
             part.tonePart.add(GetPartNote(note));
@@ -331,8 +348,8 @@ const Studio = () => {
             // Make the note time relative to the start of the part
             note.startColumn -= partStartColumn;
 
-            const partStartTime = partStartColumn / wholeNoteDuration;
-            const partStopTime = partStopColumn / wholeNoteDuration;
+            const partStartTime = partStartColumn * currentSecondsPerDivision;
+            const partStopTime = partStopColumn * currentSecondsPerDivision;
 
             const tonePart = new Tone.Part((time, value: any) => {
                 track.sampler.triggerAttackRelease(
@@ -412,8 +429,6 @@ const Studio = () => {
         column: number,
         row: number
     ) => {
-        const noteLength = (gridDivisions / 4) * (bpm / 60);
-
         // console.log("Note moved", partIndex, noteIndex, column, row);
 
         let part = tracks[selectedTrackIndex].parts[partIndex];
@@ -430,11 +445,8 @@ const Studio = () => {
         part.tonePart.clear();
 
         // Check if moved position is within the current part
-        if (
-            part.startTime <= (note.startColumn + 1) / noteLength &&
-            part.stopTime >= (note.startColumn + 1) / noteLength
-        ) {
-            note.startColumn -= part.startTime * noteLength;
+        if (IsNoteInPart(note, part)) {
+            note.startColumn -= part.startTime / currentSecondsPerDivision;
             part.notes[noteIndex] = note;
         }
         // If not then check is there any existing part that the note can be moved to
@@ -579,6 +591,7 @@ const Studio = () => {
 
                                         {tracks.length > 0 ? (
                                             <PianoRoll
+                                                bpm={bpm}
                                                 playbackState={playbackState}
                                                 seek={seek}
                                                 setSeek={setSeek}

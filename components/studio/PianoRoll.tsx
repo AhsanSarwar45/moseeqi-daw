@@ -67,6 +67,7 @@ GridContext.displayName = "StickyGridContext";
 interface PianoRollProps {
     track: Track;
     seek: number;
+    bpm: number;
     setSeek: (seek: number) => void;
     playbackState: PlaybackState;
     numCols: number;
@@ -193,6 +194,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
                                 setSeek: props.setSeek,
                                 parts: props.track.parts,
                                 onFilledNoteClick: OnNoteClick,
+                                bpm: props.bpm,
                             }}
                         >
                             <Grid
