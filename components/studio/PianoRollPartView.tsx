@@ -137,7 +137,6 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
     );
 
     useEffect(() => {
-        console.log("pinao bpm changedS", pixelsPerSecond * BpmToBps(bpm));
         setCurrentPixelsPerSecond(pixelsPerSecond * BpmToBps(bpm));
     }, [bpm, wholeNoteWidth]);
 

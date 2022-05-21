@@ -12,17 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { TiPlus, TiVolumeMute } from "react-icons/ti";
 import { BiDuplicate } from "react-icons/bi";
-import { Resizable, ResizeCallbackData } from "react-resizable";
 import Ruler from "@scena/react-ruler";
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
 import { useState } from "react";
 
 import { AddTrackModal } from "@Components/studio/AddTrackModal";
-import { Instruments, MusicNotes } from "@Instruments/Instruments";
 import { Track } from "@Interfaces/Track";
 import SeekHandle from "./SeekHandle";
-import TrackSequence from "./TrackSequence";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
 import PartView from "./PartView";

@@ -2,6 +2,7 @@ import { Box, Flex, useDisclosure } from "@chakra-ui/react";
 import { useState, useEffect, useRef, Fragment, useMemo } from "react";
 import { SplitDirection } from "@devbookhq/splitter";
 import * as Tone from "tone";
+import { saveAs } from "file-saver";
 
 import { PlayBackController } from "@Components/studio/PlaybackController";
 import PianoRoll from "@Components/studio/PianoRoll";
@@ -29,6 +30,8 @@ import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
 import { BpmToBps } from "@Utility/TimeUtils";
 import { Part } from "@Interfaces/Part";
+import { TopBar } from "./TopBar";
+import { SaveData, TrackSaveData } from "@Interfaces/SaveData";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
@@ -63,16 +66,92 @@ const Studio = () => {
     const currentPartId = useRef(0);
 
     const SaveToFile = () => {
-        const data = {
-            tracks: tracks,
+        const tracksSaveData: Array<TrackSaveData> = [];
+
+        // the sampler property makes the save data circular so we remove it
+        // we also remove the meter property as it is not needed
+        tracks.forEach((track) => {
+            tracksSaveData.push({
+                name: track.name,
+                instrument: track.instrument,
+                parts: track.parts,
+                muted: track.muted,
+            });
+        });
+
+        const data: SaveData = {
+            tracks: tracksSaveData,
             bpm: bpm,
             seek: seek,
         };
-        const file = new File([JSON.stringify(data)], "saveData.json", {
+
+        const blob = new Blob([JSON.stringify(data)], {
             type: "text/plain;charset=utf-8",
         });
 
-        console.log(file);
+        saveAs(blob, "untitled.mq");
+    };
+
+    const OpenFile = async (file: File) => {
+        const saveData: SaveData = JSON.parse(await file.text());
+
+        // Stop all the parts
+        tracks.forEach((track, index) => {
+            track.parts.forEach((part) => {
+                part.tonePart.cancel(0);
+            });
+        });
+
+        console.log(saveData);
+
+        const newTracks: Array<Track> = [];
+
+        saveData.tracks.forEach((track) => {
+            const meter = new Tone.Meter();
+
+            const sampler = new Tone.Sampler({
+                urls: track.instrument.urls as any,
+                release: track.instrument.release,
+                attack: track.instrument.attack,
+                onload: () => {
+                    // Causes the loading modal to close
+                    setIsInstrumentLoading(0);
+                },
+            })
+                .toDestination()
+                .connect(meter);
+
+            const parts: Array<Part> = [];
+
+            track.parts.forEach((part) => {
+                part.tonePart = new Tone.Part((time, value: any) => {
+                    sampler.triggerAttackRelease(
+                        value.note,
+                        value.duration,
+                        time,
+                        value.velocity
+                    );
+                }, [])
+                    .start(part.startTime)
+                    .stop(part.stopTime);
+
+                part.notes.forEach((note) => {
+                    part.tonePart.add(GetPartNote(note));
+                });
+            });
+
+            newTracks.push({
+                name: track.name,
+                instrument: track.instrument,
+                sampler: sampler,
+                meter: meter,
+                parts: track.parts,
+                muted: track.muted,
+            });
+        });
+        setTracks(newTracks);
+        // setBPM(saveData.bpm);
+        setSeek(saveData.seek);
     };
 
     const CreateTrack = (instrumentIndex: number) => {
@@ -195,9 +274,6 @@ const Studio = () => {
                     if (selectedPartIndices.length > 0) {
                         let tracksCopy = [...tracks];
 
-                        console.log(selectedPartIndices);
-                        console.log(tracksCopy);
-
                         // Stop all the parts to be deleted
 
                         selectedPartIndices.forEach(
@@ -208,7 +284,7 @@ const Studio = () => {
                                 // );
                                 tracksCopy[trackIndex].parts[
                                     partIndex
-                                ].tonePart.stop();
+                                ].tonePart.cancel(0);
 
                                 // Hacky way to mark part to be deleted
                                 tracksCopy[trackIndex].parts[partIndex] =
@@ -257,12 +333,15 @@ const Studio = () => {
         endTime: number
     ) => {
         // console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
-        // console.log(tracks)
+        // console.log(tracks);
 
         Tone.Transport.bpm.value = bpm;
         // console.log("Start time set to: " + startTime);
         // console.log("Stop time set to: " + endTime);
         let tracksCopy = [...tracks];
+
+        // console.log(tracksCopy[trackIndex].parts[partIndex]);
+        // console.log(tracksCopy[trackIndex].parts[partIndex].tonePart);
 
         tracksCopy[trackIndex].parts[partIndex].tonePart
             .cancel(0)
@@ -548,6 +627,7 @@ const Studio = () => {
                         overflow="hidden"
                         flexDirection="column"
                     >
+                        <TopBar onSave={SaveToFile} onOpen={OpenFile} />
                         <Flex
                             width="100%"
                             height="100%"

@@ -69,7 +69,6 @@ const PartView = ({
         const oldPixelsPerSecond = currentPixelsPerSecond;
         const newPixelsPerSecond = pixelsPerSecond * BpmToBps(props.bpm);
         setCurrentPixelsPerSecond(newPixelsPerSecond);
-        console.log("bpm changed", newPixelsPerSecond);
         setPartTime(
             trackIndex,
             partIndex,
