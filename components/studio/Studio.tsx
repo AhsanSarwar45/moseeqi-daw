@@ -88,7 +88,7 @@ const Studio = () => {
         const data: SaveData = {
             tracks: tracksSaveData,
             bpm: bpm,
-            seek: seek,
+            name: fileName,
         };
 
         const blob = new Blob([JSON.stringify(data)], {
@@ -153,6 +153,7 @@ const Studio = () => {
             });
         });
 
+        setFileName(saveData.name);
         setTracks(newTracks);
         pendingBpmUpdateRef.current = saveData.bpm;
     };

@@ -12,5 +12,5 @@ export interface TrackSaveData {
 export interface SaveData {
     tracks: Array<TrackSaveData>;
     bpm: number;
-    seek: number;
+    name: string;
 }

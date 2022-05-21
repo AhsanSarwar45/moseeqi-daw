@@ -13,8 +13,10 @@ const FileUploader = (props: FileUploaderProps) => {
         hiddenFileInput.current.click();
     };
     const HandleChange = (event: any) => {
-        const file = event.target.files[0];
-        props.onFileUpload(file);
+        if (event.target.files.length > 0) {
+            const file = event.target.files[0];
+            props.onFileUpload(file);
+        }
     };
     return (
         <>
@@ -30,6 +32,7 @@ const FileUploader = (props: FileUploaderProps) => {
                 ref={hiddenFileInput}
                 onChange={HandleChange}
                 style={{ display: "none" }}
+                accept=".msq"
             />
         </>
     );
