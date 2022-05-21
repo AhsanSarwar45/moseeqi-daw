@@ -210,8 +210,6 @@ const TracksView = memo((props: TracksViewProps) => {
     const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
         Tone.Transport.bpm.value = props.bpm;
 
-        console.log(startDelta, stopDelta);
-
         let tracksCopy = [...tracks];
 
         props.selectedPartIndices.forEach(({ trackIndex, partIndex }) => {
@@ -242,7 +240,6 @@ const TracksView = memo((props: TracksViewProps) => {
                 bgColor="primary.600"
                 onClick={(event) => {
                     if (event.currentTarget === event.target) {
-                        console.log("reset");
                         props.setSelectedPartIndices([]);
                     }
                 }}
@@ -253,7 +250,9 @@ const TracksView = memo((props: TracksViewProps) => {
                     // height={90 * props.tracks.length}
                     left={0}
                     zIndex={500}
-                    onClick={() => props.setFocusedPanel(Panel.TrackView)}
+                    onClick={(event) => {
+                        props.setFocusedPanel(Panel.TrackView);
+                    }}
                 >
                     <HStack
                         paddingLeft={2}
@@ -301,7 +300,11 @@ const TracksView = memo((props: TracksViewProps) => {
                                     ? "secondary.500"
                                     : "primary.500"
                             }
-                            onMouseDown={() => props.setSelected(index)}
+                            onMouseDown={(event) => {
+                                if (event.currentTarget === event.target) {
+                                    props.setSelected(index);
+                                }
+                            }}
                             // height={200}
                             position="relative"
                             borderBottom="1px solid gray"
@@ -356,7 +359,11 @@ const TracksView = memo((props: TracksViewProps) => {
                 <VStack
                     alignItems="flex-start"
                     spacing={0}
-                    onClick={() => props.setFocusedPanel(Panel.TrackSequencer)}
+                    onClick={(event) => {
+                        if (event.currentTarget === event.target) {
+                            props.setFocusedPanel(Panel.TrackSequencer);
+                        }
+                    }}
                 >
                     <Box
                         height="30px"
@@ -370,7 +377,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             playbackState={props.playbackState}
                             seek={props.seek}
                             setSeek={props.setSeek}
-                            height={30 + 88 * props.tracks.length}
+                            height={30 + 90 * props.tracks.length}
                         />
                         <Ruler
                             type="horizontal"
@@ -402,6 +409,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             lineColor="rgba(255,255,255,0.1)"
                             textColor="rgba(0,0,0,0)"
                         />
+
                         {/* <Ruler style={{ marginTop: -(86 * props.tracks.length), marginLeft: -1 }} height={43 * props.tracks.length} type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor='rgba(0,0,0,0)' segment={1} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' /> */}
 
                         {/* <Box position="absolute" width={2000} p={0}>
@@ -418,9 +426,14 @@ const TracksView = memo((props: TracksViewProps) => {
                                     width={2000}
                                     position="relative"
                                     padding="0px"
-                                    onMouseDown={() =>
-                                        props.setSelected(trackIndex)
-                                    }
+                                    onMouseDown={(event) => {
+                                        if (
+                                            event.currentTarget === event.target
+                                        ) {
+                                            props.setSelectedPartIndices([]);
+                                            props.setSelected(trackIndex);
+                                        }
+                                    }}
                                     borderBottom="1px solid gray"
                                 >
                                     {track.parts.map((part, partIndex) => (

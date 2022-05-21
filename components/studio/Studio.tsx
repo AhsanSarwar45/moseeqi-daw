@@ -343,7 +343,6 @@ const Studio = () => {
         endTime: number
     ) => {
         // console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
-        console.log(tracks);
 
         Tone.Transport.bpm.value = bpm;
         // console.log("Start time set to: " + startTime);
@@ -376,8 +375,6 @@ const Studio = () => {
 
     const IsNoteInPart = (note: Note, part: Part) => {
         const noteStartTime = note.startColumn * currentSecondsPerDivision;
-
-        console.log(noteStartTime, part.startTime, part.stopTime);
 
         return part.startTime <= noteStartTime && part.stopTime > noteStartTime;
     };
