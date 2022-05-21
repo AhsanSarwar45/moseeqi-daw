@@ -1,6 +1,6 @@
 # Moseeqi DAW
 
-An online digital audio workstation that I have been developing as a hobby project. Currently, it is not in a usable state, as features like saving, loading, and exporting have not implemented yet.
+An online digital audio workstation that I have been developing as a hobby project. Currently, it is in a semi-usable state, as features like exporting have not been implemented yet.
 
 Try the [web app](https://moseeqi-daw.vercel.app) (Not supported on mobile devices yet).
 
