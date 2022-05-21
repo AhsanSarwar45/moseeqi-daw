@@ -255,8 +255,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     }}
                 >
                     <HStack
-                        paddingLeft={2}
-                        paddingY={2}
+                        paddingX={1}
                         height={30}
                         // width="full"
                         spacing={1}

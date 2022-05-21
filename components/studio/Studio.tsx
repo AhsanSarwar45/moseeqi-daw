@@ -35,6 +35,7 @@ import { SaveData, TrackSaveData } from "@Interfaces/SaveData";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
+    const [fileName, setFileName] = useState("Untitled");
     const [playbackState, setPlaybackState] = useState<PlaybackState>(0);
     const [activeWidth, setActiveWidth] = useState(5 * 40);
     const [seek, setSeek] = useState(0);
@@ -94,7 +95,7 @@ const Studio = () => {
             type: "text/plain;charset=utf-8",
         });
 
-        saveAs(blob, "untitled.mq");
+        saveAs(blob, fileName + ".msq");
     };
 
     const OpenFile = async (file: File) => {
@@ -634,7 +635,12 @@ const Studio = () => {
                         overflow="hidden"
                         flexDirection="column"
                     >
-                        <TopBar onSave={SaveToFile} onOpen={OpenFile} />
+                        <TopBar
+                            onSave={SaveToFile}
+                            onOpen={OpenFile}
+                            fileName={fileName}
+                            onSetFileName={setFileName}
+                        />
                         <Flex
                             width="100%"
                             height="100%"
