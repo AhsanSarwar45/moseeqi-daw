@@ -20,14 +20,22 @@ import {
     TiMediaStop,
 } from "react-icons/ti";
 import { PlaybackState } from "@Types/Types";
+import { useEffect, useState } from "react";
 
 interface PlayBackControllerProps {
     playbackState: PlaybackState;
     setPlaybackState: (playbackState: PlaybackState) => void;
+    bpm: number;
     setBPM: (bpm: number) => void;
 }
 
 export const PlayBackController = (props: PlayBackControllerProps) => {
+    const [bpm, setBpm] = useState(props.bpm);
+
+    useEffect(() => {
+        setBpm(props.bpm);
+    }, [props.bpm]);
+
     return (
         <HStack
             height="20px"
@@ -91,6 +99,10 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                 maxWidth={20}
                 min={30}
                 max={600}
+                value={bpm}
+                onChange={(valueString) => {
+                    setBpm(parseInt(valueString));
+                }}
                 defaultValue={120}
                 borderRadius="sm"
                 onBlur={(event) => {

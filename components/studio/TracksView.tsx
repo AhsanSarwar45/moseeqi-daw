@@ -210,6 +210,8 @@ const TracksView = memo((props: TracksViewProps) => {
     const MoveSelectedParts = (startDelta: number, stopDelta: number) => {
         Tone.Transport.bpm.value = props.bpm;
 
+        console.log(startDelta, stopDelta);
+
         let tracksCopy = [...tracks];
 
         props.selectedPartIndices.forEach(({ trackIndex, partIndex }) => {

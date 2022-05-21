@@ -64,6 +64,11 @@ const Studio = () => {
     const [focusedPanel, setFocusedPanel] = useState(Panel.None);
 
     const currentPartId = useRef(0);
+    const pendingBpmUpdateRef = useRef<number>(-1);
+
+    const CreatePartId = () => {
+        return currentPartId.current++;
+    };
 
     const SaveToFile = () => {
         const tracksSaveData: Array<TrackSaveData> = [];
@@ -95,18 +100,15 @@ const Studio = () => {
     const OpenFile = async (file: File) => {
         const saveData: SaveData = JSON.parse(await file.text());
 
-        // Stop all the parts
-        tracks.forEach((track, index) => {
+        tracks.forEach((track) => {
             track.parts.forEach((part) => {
-                part.tonePart.cancel(0);
+                part.tonePart.dispose();
             });
         });
-
-        console.log(saveData);
-
         const newTracks: Array<Track> = [];
 
         saveData.tracks.forEach((track) => {
+            setIsInstrumentLoading(isInstrumentLoading - 1);
             const meter = new Tone.Meter();
 
             const sampler = new Tone.Sampler({
@@ -115,13 +117,11 @@ const Studio = () => {
                 attack: track.instrument.attack,
                 onload: () => {
                     // Causes the loading modal to close
-                    setIsInstrumentLoading(0);
+                    setIsInstrumentLoading(isInstrumentLoading - 1);
                 },
             })
                 .toDestination()
                 .connect(meter);
-
-            const parts: Array<Part> = [];
 
             track.parts.forEach((part) => {
                 part.tonePart = new Tone.Part((time, value: any) => {
@@ -138,6 +138,8 @@ const Studio = () => {
                 part.notes.forEach((note) => {
                     part.tonePart.add(GetPartNote(note));
                 });
+
+                part.id = CreatePartId();
             });
 
             newTracks.push({
@@ -149,9 +151,9 @@ const Studio = () => {
                 muted: track.muted,
             });
         });
+
         setTracks(newTracks);
-        // setBPM(saveData.bpm);
-        setSeek(saveData.seek);
+        pendingBpmUpdateRef.current = saveData.bpm;
     };
 
     const CreateTrack = (instrumentIndex: number) => {
@@ -190,7 +192,7 @@ const Studio = () => {
             // TODO: This might not be true. Need to test a simpler alternative.
             parts: [
                 {
-                    id: currentPartId.current++,
+                    id: CreatePartId(),
                     tonePart: tonePart,
                     startTime: 0,
                     stopTime: 32 / noteLength,
@@ -221,6 +223,14 @@ const Studio = () => {
         setBPS(BpmToBps(bpm));
         setCurrentSecondsPerDivision(secondsPerDivision / BpmToBps(bpm));
     }, [bpm]);
+
+    useEffect(() => {
+        if (pendingBpmUpdateRef.current > -1) {
+            console.log("Updating bpm");
+            setBPM(pendingBpmUpdateRef.current);
+            pendingBpmUpdateRef.current = -1;
+        }
+    }, [tracks]);
 
     useEffect(() => {
         if (isInstrumentLoading > 0) {
@@ -333,7 +343,7 @@ const Studio = () => {
         endTime: number
     ) => {
         // console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
-        // console.log(tracks);
+        console.log(tracks);
 
         Tone.Transport.bpm.value = bpm;
         // console.log("Start time set to: " + startTime);
@@ -442,7 +452,7 @@ const Studio = () => {
             tonePart.add(GetPartNote(note));
 
             track.parts.push({
-                id: currentPartId.current++,
+                id: CreatePartId(),
                 tonePart: tonePart,
                 startTime: partStartTime,
                 stopTime: partStopTime,
@@ -714,6 +724,7 @@ const Studio = () => {
                             playbackState={playbackState}
                             setPlaybackState={setPlaybackState}
                             setBPM={setBPM}
+                            bpm={bpm}
                         />
                     </Flex>
                 </PlaybackContext.Provider>
