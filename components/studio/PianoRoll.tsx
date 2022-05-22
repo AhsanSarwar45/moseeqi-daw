@@ -106,7 +106,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
 
     const group = getRootProps();
 
-    const gridRef = useCallback((node) => {
+    const gridRef = useCallback((node: any) => {
         if (node !== null && !hasScrolledRef.current) {
             node.scrollToItem({
                 columnIndex: 0,
