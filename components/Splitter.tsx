@@ -10,7 +10,7 @@ interface SplitterProps {
 const Splitter = (props: SplitterProps) => {
     const [sizes, setSizes] = useState(props.initialSizes);
 
-    const HandleResizeFinished = useCallback((_, newSizes) => {
+    const HandleResizeFinished = useCallback((_: any, newSizes: any) => {
         setSizes(newSizes);
     }, []);
 
