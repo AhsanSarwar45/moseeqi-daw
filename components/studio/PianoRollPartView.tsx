@@ -161,7 +161,7 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
 
             {part.notes.map((note: Note, noteIndex: number) => (
                 <FilledCell
-                    key={noteIndex}
+                    key={note.id}
                     note={note}
                     noteIndex={noteIndex}
                     part={part}

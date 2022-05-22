@@ -463,6 +463,7 @@ const Studio = () => {
         let tracksCopy = [...tracks];
 
         const note = {
+            id: getNoteId(),
             startColumn: column,
             noteIndex: row,
             key: key,

@@ -166,7 +166,7 @@ const PartView = ({
             {part.notes.map((note, index) => (
                 <Box
                     zIndex={900}
-                    key={index}
+                    key={note.id}
                     bgColor="secondary.500"
                     position="absolute"
                     top={`${note.noteIndex + 1}px`}
