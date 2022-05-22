@@ -1,5 +1,5 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
-import { useState, useEffect, useRef, Fragment, useMemo } from "react";
+import { useState, useEffect, useRef, Fragment, useMemo, useId } from "react";
 import { SplitDirection } from "@devbookhq/splitter";
 import * as Tone from "tone";
 import { saveAs } from "file-saver";
@@ -24,7 +24,6 @@ import {
     GetNewPartStartColumn,
     GetNewPartStopColumn,
 } from "@Utility/PartUtils";
-import { PlaybackContext } from "@Data/PlaybackContext";
 import Splitter from "@Components/Splitter";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
@@ -32,6 +31,7 @@ import { BpmToBps } from "@Utility/TimeUtils";
 import { Part } from "@Interfaces/Part";
 import { TopBar } from "./TopBar";
 import { SaveData, TrackSaveData } from "@Interfaces/SaveData";
+import { useNumId } from "@Hooks/useNumId";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
@@ -46,14 +46,6 @@ const Studio = () => {
         secondsPerDivision / bps
     );
 
-    const playbackContextValue = useMemo(
-        () => ({
-            playbackState,
-            bpm,
-        }),
-        [bpm, playbackState]
-    );
-
     const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
 
     const [selectedPartIndices, setSelectedPartIndices] = useState<
@@ -64,12 +56,10 @@ const Studio = () => {
 
     const [focusedPanel, setFocusedPanel] = useState(Panel.None);
 
-    const currentPartId = useRef(0);
-    const pendingBpmUpdateRef = useRef<number>(-1);
+    const getPartId = useNumId();
+    const getNoteId = useNumId();
 
-    const CreatePartId = () => {
-        return currentPartId.current++;
-    };
+    const pendingBpmUpdateRef = useRef<number>(-1);
 
     const SaveToFile = () => {
         const tracksSaveData: Array<TrackSaveData> = [];
@@ -140,7 +130,7 @@ const Studio = () => {
                     part.tonePart.add(GetPartNote(note));
                 });
 
-                part.id = CreatePartId();
+                part.id = getPartId();
             });
 
             newTracks.push({
@@ -194,7 +184,7 @@ const Studio = () => {
             // TODO: This might not be true. Need to test a simpler alternative.
             parts: [
                 {
-                    id: CreatePartId(),
+                    id: getPartId(),
                     tonePart: tonePart,
                     startTime: 0,
                     stopTime: 32 / noteLength,
@@ -268,6 +258,7 @@ const Studio = () => {
                 else if (playbackState === 1) setPlaybackState(2);
             } else if (event.keyCode === 46) {
                 // Delete key
+                console.log(focusedPanel);
                 if (focusedPanel === Panel.TrackView) {
                     let tracksCopy = [...tracks];
 
@@ -281,6 +272,7 @@ const Studio = () => {
                     setSelectedTrackIndex(
                         selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0
                     );
+                    setSelectedPartIndices([]);
                     setTracks(tracksCopy);
                 } else if (focusedPanel === Panel.TrackSequencer) {
                     if (selectedPartIndices.length > 0) {
@@ -451,7 +443,7 @@ const Studio = () => {
             tonePart.add(GetPartNote(note));
 
             track.parts.push({
-                id: CreatePartId(),
+                id: getPartId(),
                 tonePart: tonePart,
                 startTime: partStartTime,
                 stopTime: partStopTime,
@@ -629,109 +621,100 @@ const Studio = () => {
                     onClearNotes: ClearNotes,
                 }}
             >
-                <PlaybackContext.Provider value={playbackContextValue}>
+                <Flex
+                    height="100vh"
+                    width="full"
+                    overflow="hidden"
+                    flexDirection="column"
+                >
+                    <TopBar
+                        onSave={SaveToFile}
+                        onOpen={OpenFile}
+                        fileName={fileName}
+                        onSetFileName={setFileName}
+                    />
                     <Flex
-                        height="100vh"
-                        width="full"
+                        width="100%"
+                        height="100%"
+                        flexDirection="row"
                         overflow="hidden"
-                        flexDirection="column"
                     >
-                        <TopBar
-                            onSave={SaveToFile}
-                            onOpen={OpenFile}
-                            fileName={fileName}
-                            onSetFileName={setFileName}
-                        />
-                        <Flex
-                            width="100%"
-                            height="100%"
-                            flexDirection="row"
-                            overflow="hidden"
-                        >
-                            <Splitter initialSizes={[80, 20]}>
-                                <Flex
-                                    height="100%"
-                                    overflow="hidden"
-                                    flexDirection="column"
-                                    flexGrow={3}
-                                >
-                                    {/* <SeekContext.Provider value={{ seek: seek, setSeek: setSeek }}> */}
-                                    <Splitter
-                                        direction={SplitDirection.Vertical}
-                                    >
-                                        <TracksView
-                                            playbackState={playbackState}
+                        <Splitter initialSizes={[80, 20]}>
+                            <Flex
+                                height="100%"
+                                overflow="hidden"
+                                flexDirection="column"
+                                flexGrow={3}
+                            >
+                                {/* <SeekContext.Provider value={{ seek: seek, setSeek: setSeek }}> */}
+                                <Splitter direction={SplitDirection.Vertical}>
+                                    <TracksView
+                                        playbackState={playbackState}
+                                        bpm={bpm}
+                                        seek={seek}
+                                        setSeek={setSeek}
+                                        tracks={tracks}
+                                        onAddTrack={AddTrack}
+                                        selected={selectedTrackIndex}
+                                        setSelected={setSelectedTrackIndex}
+                                        activeWidth={activeWidth}
+                                        setActiveWidth={setActiveWidth}
+                                        toggleMute={ToggleMuteAtIndex}
+                                        setPartTime={SetPartTime}
+                                        focusedPanel={focusedPanel}
+                                        setFocusedPanel={setFocusedPanel}
+                                        selectedPartIndices={
+                                            selectedPartIndices
+                                        }
+                                        setSelectedPartIndices={
+                                            setSelectedPartIndices
+                                        }
+                                        setTracks={setTracks}
+                                    />
+
+                                    {tracks.length > 0 ? (
+                                        <PianoRoll
                                             bpm={bpm}
+                                            playbackState={playbackState}
                                             seek={seek}
                                             setSeek={setSeek}
-                                            tracks={tracks}
-                                            onAddTrack={AddTrack}
-                                            selected={selectedTrackIndex}
-                                            setSelected={setSelectedTrackIndex}
-                                            activeWidth={activeWidth}
-                                            setActiveWidth={setActiveWidth}
-                                            toggleMute={ToggleMuteAtIndex}
-                                            setPartTime={SetPartTime}
+                                            track={tracks[selectedTrackIndex]}
+                                            numCols={500}
                                             focusedPanel={focusedPanel}
                                             setFocusedPanel={setFocusedPanel}
-                                            selectedPartIndices={
-                                                selectedPartIndices
-                                            }
-                                            setSelectedPartIndices={
-                                                setSelectedPartIndices
-                                            }
-                                            setTracks={setTracks}
                                         />
-
-                                        {tracks.length > 0 ? (
-                                            <PianoRoll
-                                                bpm={bpm}
-                                                playbackState={playbackState}
-                                                seek={seek}
-                                                setSeek={setSeek}
-                                                track={
-                                                    tracks[selectedTrackIndex]
-                                                }
-                                                numCols={500}
-                                                focusedPanel={focusedPanel}
-                                                setFocusedPanel={
-                                                    setFocusedPanel
-                                                }
-                                            />
-                                        ) : (
-                                            <Flex
-                                                textColor="white"
-                                                fontSize="lg"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                bgColor="primary.500"
-                                                height="full"
-                                                width="full"
-                                            >
-                                                {" "}
-                                                Add a Track to view the Piano
-                                                Roll{" "}
-                                            </Flex>
-                                        )}
-                                    </Splitter>
-                                    {/* </SeekContext.Provider> */}
-                                </Flex>
-                                <PropertiesPanel
-                                    selectedTrack={tracks[selectedTrackIndex]}
-                                    numTracks={tracks.length}
-                                    setRelease={SetRelease}
-                                    setAttack={SetAttack}
-                                />
-                            </Splitter>
-                        </Flex>
-                        <PlayBackController
-                            playbackState={playbackState}
-                            setPlaybackState={setPlaybackState}
-                            setBPM={setBPM}
-                            bpm={bpm}
-                        />
+                                    ) : (
+                                        <Flex
+                                            textColor="white"
+                                            fontSize="lg"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            bgColor="primary.500"
+                                            height="full"
+                                            width="full"
+                                        >
+                                            {" "}
+                                            Add a Track to view the Piano Roll{" "}
+                                        </Flex>
+                                    )}
+                                </Splitter>
+                                {/* </SeekContext.Provider> */}
+                            </Flex>
+                            <PropertiesPanel
+                                selectedTrack={tracks[selectedTrackIndex]}
+                                numTracks={tracks.length}
+                                setRelease={SetRelease}
+                                setAttack={SetAttack}
+                            />
+                        </Splitter>
                     </Flex>
-                </PlaybackContext.Provider>
+                    <PlayBackController
+                        playbackState={playbackState}
+                        setPlaybackState={setPlaybackState}
+                        setBPM={setBPM}
+                        bpm={bpm}
+                    />
+                </Flex>
             </NotesModifierContext.Provider>
 
             <WaitingModal

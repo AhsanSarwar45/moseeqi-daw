@@ -359,9 +359,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     alignItems="flex-start"
                     spacing={0}
                     onClick={(event) => {
-                        if (event.currentTarget === event.target) {
-                            props.setFocusedPanel(Panel.TrackSequencer);
-                        }
+                        props.setFocusedPanel(Panel.TrackSequencer);
                     }}
                 >
                     <Box

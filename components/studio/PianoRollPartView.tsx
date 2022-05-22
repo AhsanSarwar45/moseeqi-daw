@@ -1,6 +1,5 @@
 import { Box } from "@chakra-ui/react";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
-import { PlaybackContext } from "@Data/PlaybackContext";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import React, { useContext, useEffect, useRef, useState } from "react";
