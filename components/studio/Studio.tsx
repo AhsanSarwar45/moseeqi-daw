@@ -21,8 +21,9 @@ import {
     wholeNoteDivisions,
 } from "@Data/Constants";
 import {
-    GetNewPartStartColumn,
-    GetNewPartStopColumn,
+    GetNewPartStartTime,
+    GetNewPartStopTime,
+    GetExtendedPartStopTime,
 } from "@Utility/PartUtils";
 import Splitter from "@Components/Splitter";
 import { Panel } from "@Interfaces/Panel";
@@ -330,6 +331,13 @@ const Studio = () => {
         tracks[selectedTrackIndex].sampler.attack = value;
     };
 
+    const GetNoteStopTime = (note: Note): number => {
+        return (
+            note.startTime +
+            (wholeNoteDivisions * currentSecondsPerDivision) / note.duration
+        );
+    };
+
     const SetPartTime = (
         trackIndex: number,
         partIndex: number,
@@ -358,9 +366,9 @@ const Studio = () => {
 
     const GetPartNote = (note: Note) => {
         const partNote = {
-            time: note.startColumn / ((wholeNoteDivisions / 4) * bps),
+            time: note.startTime,
             note: note.key,
-            duration: `${note.duration}n`,
+            duration: note.duration,
             velocity: note.velocity,
         };
 
@@ -368,9 +376,16 @@ const Studio = () => {
     };
 
     const IsNoteInPart = (note: Note, part: Part) => {
-        const noteStartTime = note.startColumn * currentSecondsPerDivision;
-
-        return part.startTime <= noteStartTime && part.stopTime > noteStartTime;
+        // const noteStartTime = note.startColumn * currentSecondsPerDivision;
+        console.log(
+            note.startTime,
+            note.stopTime,
+            part.startTime,
+            part.stopTime
+        );
+        return (
+            part.startTime <= note.startTime && part.stopTime > note.startTime
+        );
     };
 
     const AddTrack = (instrument: number) => {
@@ -388,12 +403,22 @@ const Studio = () => {
         setTracks(tracksCopy);
     };
 
+    const ExtendPart = (note: Note, part: Part): Part => {
+        part.stopTime = GetExtendedPartStopTime(
+            note.stopTime,
+            currentSecondsPerDivision
+        );
+        part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+
+        return part;
+    };
+
+    const MakeNotePartRelative = (note: Note, part: Part) => {
+        note.startTime -= part.startTime;
+        note.stopTime -= part.startTime;
+    };
+
     const AddNoteToTrack = (track: Track, note: Note) => {
-        const noteStopColumn =
-            note.startColumn + wholeNoteDivisions / note.duration;
-
-        const noteStopTime = noteStopColumn * currentSecondsPerDivision;
-
         // Check which part the note is in
         let currentPartIndex = track.parts.findIndex((part) =>
             IsNoteInPart(note, part)
@@ -401,35 +426,34 @@ const Studio = () => {
 
         // If the note lies in an existing part, add it to the part
         if (currentPartIndex !== -1) {
-            const part = track.parts[currentPartIndex];
+            let part = track.parts[currentPartIndex];
 
-            note.startColumn -= part.startTime / currentSecondsPerDivision;
+            // if the end of the note lies beyond the end of the part, extend the part
+            if (note.stopTime > part.stopTime) {
+                ExtendPart(note, part);
+            }
+
+            MakeNotePartRelative(note, part);
 
             part.notes.push(note);
             part.tonePart.add(GetPartNote(note));
-
-            // if the end of the note lies beyond the end of the part, extend the part
-            if (noteStopTime > part.stopTime) {
-                part.stopTime = noteStopTime;
-                part.tonePart
-                    .cancel(0)
-                    .start(part.startTime)
-                    .stop(part.stopTime);
-            }
 
             track.parts[currentPartIndex] = part;
         }
         // If in not in any existing part, create a new part and add the note to it
         else {
             // TODO: Add snap settings
-            const partStartColumn = GetNewPartStartColumn(note.startColumn);
-            const partStopColumn = GetNewPartStopColumn(noteStopColumn);
+            const partStartTime = GetNewPartStartTime(
+                note.startTime,
+                currentSecondsPerDivision
+            );
+            const partStopTime = GetNewPartStopTime(
+                note.stopTime,
+                currentSecondsPerDivision
+            );
 
             // Make the note time relative to the start of the part
-            note.startColumn -= partStartColumn;
-
-            const partStartTime = partStartColumn * currentSecondsPerDivision;
-            const partStopTime = partStopColumn * currentSecondsPerDivision;
+            note.startTime -= partStartTime;
 
             const tonePart = new Tone.Part((time, value: any) => {
                 track.sampler.triggerAttackRelease(
@@ -453,7 +477,7 @@ const Studio = () => {
     };
 
     // Add a note to the selected track.
-    const AddNote = (column: number, row: number, divisor: number) => {
+    const AddNote = (startTime: number, row: number, divisor: number) => {
         // console.log("Note added", column, row, divisor);
 
         // TODO: inconsistent naming
@@ -462,12 +486,17 @@ const Studio = () => {
         // We need a copy as we cannot mutate the original
         let tracksCopy = [...tracks];
 
+        const duration =
+            (wholeNoteDivisions * currentSecondsPerDivision) / divisor;
+
         const note = {
             id: getNoteId(),
-            startColumn: column,
+            startTime: startTime,
+            stopTime: startTime + duration,
             noteIndex: row,
+            bps: bps,
             key: key,
-            duration: divisor,
+            duration: duration,
             velocity: 1.0,
         };
 
@@ -478,7 +507,7 @@ const Studio = () => {
         // Play the note to give the user feedback
         tracksCopy[selectedTrackIndex].sampler.triggerAttackRelease(
             key,
-            `${divisor}n`
+            duration
         );
     };
 
@@ -507,11 +536,11 @@ const Studio = () => {
     const MoveNote = (
         partIndex: number,
         noteIndex: number,
-        column: number,
+        startTime: number,
+        stopTime: number,
         row: number
     ) => {
-        // console.log("Note moved", partIndex, noteIndex, column, row);
-
+        // console.log("Note moved to", startTime);
         let part = tracks[selectedTrackIndex].parts[partIndex];
         const key = MusicNotes[row];
 
@@ -520,21 +549,26 @@ const Studio = () => {
         const note = part.notes[noteIndex];
         note.key = key;
         note.noteIndex = row;
-        note.startColumn = column;
+        note.startTime = startTime;
+        note.stopTime = stopTime;
+        note.duration = (stopTime - startTime) * (note.bps / bps);
+        note.bps = bps;
 
         // Tone doesn't allow us to remove or modify single notes, so we need to clear the part and then re-add all the notes except the removed one
         part.tonePart.clear();
 
         // Check if moved position is within the current part
         if (IsNoteInPart(note, part)) {
-            note.startColumn -= part.startTime / currentSecondsPerDivision;
+            // if the end of the note lies beyond the end of the part, extend the part
+            if (note.stopTime > part.stopTime) {
+                ExtendPart(note, part);
+            }
+            MakeNotePartRelative(note, part);
+
             part.notes[noteIndex] = note;
-        }
-        // If not then check is there any existing part that the note can be moved to
-        else {
+        } else {
             // Remove the note from the current part
             part.notes.splice(noteIndex, 1);
-
             AddNoteToTrack(tracksCopy[selectedTrackIndex], note);
         }
 
@@ -547,41 +581,13 @@ const Studio = () => {
 
         setTracks(tracksCopy);
 
+        console.log(note);
+
         // Play the changed note to give the user feedback
         tracks[selectedTrackIndex].sampler.triggerAttackRelease(
             key,
-            `${note.duration}n`
+            note.duration
         );
-    };
-
-    const ResizeNote = (
-        partIndex: number,
-        noteIndex: number,
-        duration: number
-    ) => {
-        let part = tracks[selectedTrackIndex].parts[partIndex];
-
-        // Tone doesn't allow us to remove or modify single notes, so we need to clear the part and then re-add all the notes except the removed one
-        part.tonePart.clear();
-
-        let tracksCopy = [...tracks];
-
-        const newNote = part.notes[noteIndex];
-        newNote.duration = duration;
-        part.notes[noteIndex] = newNote;
-
-        part.notes.forEach((note) => {
-            part.tonePart.add(GetPartNote(note));
-        });
-
-        tracksCopy[selectedTrackIndex].parts[partIndex] = part;
-        setTracks(tracksCopy);
-
-        tracks[selectedTrackIndex].sampler.triggerAttackRelease(
-            newNote.key,
-            `${duration}n`
-        );
-        //console.log(parts.current);
     };
 
     const ClearNotes = () => {
@@ -618,7 +624,6 @@ const Studio = () => {
                     onAddNote: AddNote,
                     onMoveNote: MoveNote,
                     onRemoveNote: RemoveNote,
-                    onResizeNote: ResizeNote,
                     onClearNotes: ClearNotes,
                 }}
             >

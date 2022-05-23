@@ -13,10 +13,14 @@ import {
     Box,
     Flex,
     useRadioGroup,
+    Button,
+    IconButton,
 } from "@chakra-ui/react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VscClearAll } from "react-icons/vsc";
 import { FixedSizeGrid as Grid } from "react-window";
+import { BiMagnet, BiTrash } from "react-icons/bi";
+import { TiDelete } from "react-icons/ti";
 
 import { ButtonRadio } from "@Components/ButtonRadio";
 import { MusicNotes } from "@Instruments/Instruments";
@@ -26,6 +30,9 @@ import { GridContext } from "@Data/GridContext";
 import { PlaybackState } from "@Types/Types";
 import PianoRollGrid from "./PianoRollGrid";
 import { Panel } from "@Interfaces/Panel";
+import ToggleButton from "@Components/ToggleButton";
+import { secondsPerWholeNote, wholeNoteDivisions } from "@Data/Constants";
+import { BpmToBps } from "@Utility/TimeUtils";
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) =>
@@ -41,9 +48,14 @@ interface GridCellProps {
 
 const GridCell = memo((props: GridCellProps) => {
     const { onAddNote } = useContext(NotesModifierContext);
+    const { currentPixelsPerSecond, columnWidth } = useContext(GridContext);
 
     const HandleOnClick = () => {
-        onAddNote(props.columnIndex, props.rowIndex, props.data.divisor);
+        onAddNote(
+            (props.columnIndex * columnWidth) / currentPixelsPerSecond,
+            props.rowIndex,
+            props.data.divisor
+        );
     };
     return (
         <Box
@@ -76,13 +88,23 @@ interface PianoRollProps {
 }
 
 const PianoRoll = memo((props: PianoRollProps) => {
+    const columnWidth = 60;
+    const rowHeight = 20;
     const cellWidth = 8;
     const noteWidth = cellWidth * 8;
     const cellHeight = 6;
     const options = ["Whole", "1/2", "1/4", "1/8"];
 
+    const wholeNoteWidth = columnWidth * wholeNoteDivisions;
+    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
+
+    const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
+        pixelsPerSecond * BpmToBps(props.bpm)
+    );
+
     const { onClearNotes } = useContext(NotesModifierContext);
 
+    const [isSnappingOn, setIsSnappingOn] = useState(true);
     const [noteDivisor, setNoteDivisor] = useState(4);
 
     const hasScrolledRef = useRef(false);
@@ -121,6 +143,10 @@ const PianoRoll = memo((props: PianoRollProps) => {
         });
     }, []);
 
+    useEffect(() => {
+        setCurrentPixelsPerSecond(pixelsPerSecond * BpmToBps(props.bpm));
+    }, [pixelsPerSecond, props.bpm, wholeNoteWidth]);
+
     const OnKeyDown = (key: string) => {
         props.track.sampler.triggerAttack([key]);
     };
@@ -143,10 +169,10 @@ const PianoRoll = memo((props: PianoRollProps) => {
         >
             <HStack
                 w="full"
-                height="20px"
+                // height="20px"
                 flexShrink={0}
-                padding={5}
-                spacing={10}
+                padding={2}
+                spacing={2}
                 bg="brand.primary"
                 position="sticky"
                 left={0}
@@ -161,12 +187,21 @@ const PianoRoll = memo((props: PianoRollProps) => {
                         );
                     })}
                 </HStack>
-                <Icon
-                    as={VscClearAll}
-                    color="White"
-                    h={30}
-                    w={30}
+                <Button
+                    aria-label="Clear notes"
+                    colorScheme={"secondary"}
                     onClick={onClearNotes}
+                    size="sm"
+                    fontWeight={400}
+                    fontSize="md"
+                    leftIcon={<Icon as={BiTrash} />}
+                >
+                    Clear
+                </Button>
+                <ToggleButton
+                    onClick={() => setIsSnappingOn(!isSnappingOn)}
+                    icon={<Icon as={BiMagnet} />}
+                    isToggled={isSnappingOn}
                 />
             </HStack>
             <Container
@@ -183,10 +218,11 @@ const PianoRoll = memo((props: PianoRollProps) => {
                             value={{
                                 stickyHeight: 30,
                                 stickyWidth: 150,
-                                columnWidth: 60,
-                                gridWidth: 60 * props.numCols,
-                                gridHeight: 20 * MusicNotes.length,
-                                rowHeight: 20,
+                                columnWidth: columnWidth,
+                                rowHeight: rowHeight,
+                                gridWidth: columnWidth * props.numCols,
+                                gridHeight: rowHeight * MusicNotes.length,
+                                isSnappingOn: isSnappingOn,
                                 onKeyDown: OnKeyDown,
                                 onKeyUp: OnKeyUp,
                                 playbackState: props.playbackState,
@@ -194,7 +230,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
                                 setSeek: props.setSeek,
                                 parts: props.track.parts,
                                 onFilledNoteClick: OnNoteClick,
-                                bpm: props.bpm,
+                                currentPixelsPerSecond: currentPixelsPerSecond,
+                                pixelsPerSecond: pixelsPerSecond,
                             }}
                         >
                             <Grid
@@ -203,8 +240,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
                                 rowCount={numRows}
                                 height={height}
                                 width={width}
-                                columnWidth={60}
-                                rowHeight={20}
+                                columnWidth={columnWidth}
+                                rowHeight={rowHeight}
                                 innerElementType={PianoRollGrid}
                                 itemData={{
                                     divisor: noteDivisor,

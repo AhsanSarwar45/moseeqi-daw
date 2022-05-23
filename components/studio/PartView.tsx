@@ -170,10 +170,8 @@ const PartView = ({
                     bgColor="secondary.500"
                     position="absolute"
                     top={`${note.noteIndex + 1}px`}
-                    left={`${smallestNoteWidth * note.startColumn}px`}
-                    width={`${
-                        (smallestNoteWidth * wholeNoteDivisions) / note.duration
-                    }px`}
+                    left={`${note.startTime * pixelsPerSecond * note.bps}px`}
+                    width={`${note.duration * pixelsPerSecond * note.bps}px`}
                     height="1px"
                 />
             ))}

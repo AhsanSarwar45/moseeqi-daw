@@ -1,6 +1,8 @@
 export interface Note {
     id: number;
-    startColumn: number;
+    startTime: number;
+    stopTime: number;
+    bps: number;
     noteIndex: number;
     key: string;
     duration: number;

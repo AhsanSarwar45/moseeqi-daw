@@ -9,6 +9,7 @@ export const GridContext = createContext({
     gridWidth: 0,
     gridHeight: 0,
     rowHeight: 0,
+    isSnappingOn: true,
     playbackState: 0 as PlaybackState,
     seek: 0,
     setSeek: (seek: number) => {},
@@ -16,7 +17,8 @@ export const GridContext = createContext({
     onKeyUp: (label: string) => {},
     onFilledNoteClick: (key: string, duration: number) => {},
     parts: [] as Array<Part>,
-    bpm: 0,
+    currentPixelsPerSecond: 0,
+    pixelsPerSecond: 0,
 });
 
 GridContext.displayName = "GridContext";

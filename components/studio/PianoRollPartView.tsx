@@ -1,13 +1,14 @@
 import { Box } from "@chakra-ui/react";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
 import { GridContext } from "@Data/GridContext";
 import { secondsPerWholeNote, wholeNoteDivisions } from "@Data/Constants";
 import { BpmToBps } from "@Utility/TimeUtils";
+import { Note } from "@Interfaces/Note";
+import { Part } from "@Interfaces/Part";
+import { Snap } from "@Utility/SnapUtils";
 
 interface FilledCellProps {
     note: Note;
@@ -16,15 +17,30 @@ interface FilledCellProps {
     noteIndex: number;
     cellHeight: number;
     cellWidth: number;
+    isSnappingOn: boolean;
     onClick: (key: string, duration: number) => void;
 }
 
 const FilledCell = (props: FilledCellProps) => {
-    const { onMoveNote, onRemoveNote, onResizeNote } =
-        useContext(NotesModifierContext);
-    const [activeWidth, setActiveWidth] = useState(
-        (8 / props.note.duration) * props.cellWidth - 1
+    const { onMoveNote, onRemoveNote } = useContext(NotesModifierContext);
+
+    const { currentPixelsPerSecond, pixelsPerSecond } = useContext(GridContext);
+
+    const [isDragging, setIsDragging] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+
+    const [snappedDraggingPosition, setSnappedDraggingPosition] = useState(
+        props.note.startTime * pixelsPerSecond * props.note.bps
     );
+    const [snappedResizingWidth, setSnappedResizingWidth] = useState(
+        props.note.duration * pixelsPerSecond * props.note.bps
+    );
+
+    useEffect(() => {
+        setSnappedDraggingPosition(
+            props.note.startTime * pixelsPerSecond * props.note.bps
+        );
+    }, [pixelsPerSecond, props.note.bps, props.note.startTime]);
 
     const handleRef = useRef<HTMLElement | null>(null);
 
@@ -42,7 +58,21 @@ const FilledCell = (props: FilledCellProps) => {
     return (
         <Rnd
             // pointerEvents="auto"
-            size={{ width: activeWidth, height: props.cellHeight - 1 }}
+            size={{
+                width:
+                    (isResizing
+                        ? snappedResizingWidth
+                        : props.note.duration *
+                          pixelsPerSecond *
+                          props.note.bps) - 1,
+                height: props.cellHeight - 1,
+            }}
+            position={{
+                x: isDragging
+                    ? snappedDraggingPosition
+                    : props.note.startTime * pixelsPerSecond * props.note.bps,
+                y: props.note.noteIndex * props.cellHeight,
+            }}
             enableResizing={{
                 top: false,
                 right: true,
@@ -54,46 +84,93 @@ const FilledCell = (props: FilledCellProps) => {
                 topLeft: false,
             }}
             // bounds="parent"
-            resizeGrid={[props.cellWidth, props.cellHeight - 1]}
-            dragGrid={[props.cellWidth, props.cellHeight]}
-            position={{
-                x: props.note.startColumn * props.cellWidth,
-                y: props.note.noteIndex * props.cellHeight,
+            resizeGrid={[
+                props.isSnappingOn ? props.cellWidth : 1,
+                props.cellHeight - 1,
+            ]}
+            dragGrid={[
+                props.isSnappingOn ? props.cellWidth : 1,
+                props.cellHeight,
+            ]}
+            onDrag={(event, data) => {
+                if (props.isSnappingOn) {
+                    if (isResizing) {
+                        setSnappedDraggingPosition(
+                            Snap(data.x, props.cellWidth)
+                        );
+                    }
+                }
+            }}
+            onDragStart={(event, data) => {
+                if (props.isSnappingOn) {
+                    if (data.x % props.cellWidth !== 0) {
+                        setIsDragging(true);
+                    }
+                }
             }}
             onDragStop={(event, data) => {
-                // Round off data.x to nearest cellWidth
-                data.lastX =
-                    Math.round(data.lastX / props.cellWidth) * props.cellWidth;
-                // Round off data.y to nearest cellHeight
-                data.lastY =
-                    Math.round(data.lastY / props.cellHeight) *
-                    props.cellHeight;
+                const localStartTime = data.lastX / currentPixelsPerSecond;
 
-                const localColumn = data.lastX / props.cellWidth;
-                let column = localColumn + props.part.startTime * 4;
+                let startTime = localStartTime + props.part.startTime;
+                // console.log(startTime);
+
                 const row = data.lastY / props.cellHeight;
 
-                console.log(column, props.part.startTime);
+                // console.log(column, props.part.startTime);
 
-                if (column < 0) {
-                    column = 0;
+                if (startTime < 0) {
+                    startTime = 0;
                 }
-                if (column < 0) {
-                    column = 0;
+                if (startTime < 0) {
+                    startTime = 0;
                 }
 
-                onMoveNote(props.partIndex, props.noteIndex, column, row);
+                onMoveNote(
+                    props.partIndex,
+                    props.noteIndex,
+                    startTime,
+                    startTime + props.note.duration,
+                    row
+                );
+                setIsDragging(false);
             }}
-            minWidth={props.cellWidth - 1}
+            onResize={(e, direction, ref, delta, position) => {
+                if (props.isSnappingOn) {
+                    const width = parseInt(ref.style.width);
+                    const stopPosition = position.x + width;
+                    const snappedStopPosition = Snap(
+                        stopPosition,
+                        props.cellWidth
+                    );
+                    setSnappedResizingWidth(snappedStopPosition - position.x);
+                }
+            }}
+            onResizeStart={(e, direction, ref) => {
+                if (props.isSnappingOn) {
+                    setIsResizing(true);
+                }
+            }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 const width = parseInt(ref.style.width);
 
-                setActiveWidth(width - 1);
-                const duration = (8 / width) * props.cellWidth;
+                const localStartTime = position.x / currentPixelsPerSecond;
+                let startTime = localStartTime + props.part.startTime;
+
+                const duration = width / (pixelsPerSecond * props.note.bps);
+
+                const row = position.y / props.cellHeight;
                 // console.log("width", width, "position", position);
-                onResizeNote(props.partIndex, props.noteIndex, duration);
+                onMoveNote(
+                    props.partIndex,
+                    props.noteIndex,
+                    startTime,
+                    startTime + duration,
+                    row
+                );
                 // props.onClick(props.note.note, duration)
+                setIsResizing(false);
             }}
+            minWidth={props.cellWidth / 2 - 1}
         >
             <Box
                 // pointerEvents="auto"
@@ -125,19 +202,14 @@ interface PianoRollProps {
 }
 
 const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
-    const { columnWidth, rowHeight, onFilledNoteClick, gridHeight, bpm } =
-        useContext(GridContext);
-
-    const wholeNoteWidth = columnWidth * wholeNoteDivisions;
-    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
-
-    const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
-        pixelsPerSecond * BpmToBps(bpm)
-    );
-
-    useEffect(() => {
-        setCurrentPixelsPerSecond(pixelsPerSecond * BpmToBps(bpm));
-    }, [bpm, wholeNoteWidth]);
+    const {
+        columnWidth,
+        rowHeight,
+        onFilledNoteClick,
+        gridHeight,
+        isSnappingOn,
+        currentPixelsPerSecond,
+    } = useContext(GridContext);
 
     return (
         // <Box key={partIndex} >
@@ -165,6 +237,7 @@ const PianoRollPartView = ({ partIndex, part }: PianoRollProps) => {
                     note={note}
                     noteIndex={noteIndex}
                     part={part}
+                    isSnappingOn={isSnappingOn}
                     partIndex={partIndex}
                     cellHeight={rowHeight}
                     cellWidth={columnWidth}
