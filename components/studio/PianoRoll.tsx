@@ -16,6 +16,7 @@ import {
     useRadioGroup,
     Button,
     IconButton,
+    Tooltip,
 } from "@chakra-ui/react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VscClearAll } from "react-icons/vsc";
@@ -107,10 +108,10 @@ const PianoRoll = memo((props: PianoRollProps) => {
     const noteWidth = cellWidth * 8;
     const cellHeight = 6;
     const options: Array<DrawLengthOption> = [
-        { name: "Whole", icon: <WholeNoteIcon />, divisor: 1 },
-        { name: "1/2", icon: <HalfNoteIcon />, divisor: 2 },
-        { name: "1/4", icon: <QuarterNoteIcon />, divisor: 4 },
-        { name: "1/8", icon: <EighthNoteIcon />, divisor: 8 },
+        { name: "Whole Note", icon: <WholeNoteIcon />, divisor: 1 },
+        { name: "Half Note", icon: <HalfNoteIcon />, divisor: 2 },
+        { name: "Quarter Note", icon: <QuarterNoteIcon />, divisor: 4 },
+        { name: "Eighth Note", icon: <EighthNoteIcon />, divisor: 8 },
     ];
 
     const wholeNoteWidth = columnWidth * wholeNoteDivisions;
@@ -180,6 +181,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
                         // const name = value;
                         return (
                             <ToggleButton
+                                tooltipLabel={option.name}
                                 key={option.name}
                                 onClick={() =>
                                     setSelectedDrawLengthIndex(index)
@@ -202,6 +204,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
                     Clear
                 </Button>
                 <ToggleButton
+                    tooltipLabel={"Snap to grid"}
                     onClick={() => setIsSnappingOn(!isSnappingOn)}
                     icon={<Icon as={BiMagnet} />}
                     isToggled={isSnappingOn}

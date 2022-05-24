@@ -231,12 +231,21 @@ const TracksView = memo((props: TracksViewProps) => {
             <HStack
                 alignItems="flex-start"
                 spacing={0}
-                // position="relative"
                 width="full"
                 height="100%"
                 overflowX="scroll"
                 overflowY="scroll"
-                // overflowY="scroll"
+                sx={{
+                    "&::-webkit-scrollbar": {
+                        width: "12px",
+                        height: "12px",
+                        backgroundColor: `primary.700`,
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                        borderRadius: "full",
+                        backgroundColor: `primary.400`,
+                    },
+                }}
                 bgColor="primary.600"
                 onClick={(event) => {
                     if (event.currentTarget === event.target) {
@@ -300,9 +309,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                     : "primary.500"
                             }
                             onMouseDown={(event) => {
-                                if (event.currentTarget === event.target) {
-                                    props.setSelected(index);
-                                }
+                                props.setSelected(index);
                             }}
                             // height={200}
                             position="relative"
