@@ -1,4 +1,4 @@
-import { Box, useRadio } from "@chakra-ui/react";
+import { Box, Button, Flex, useRadio } from "@chakra-ui/react";
 
 export const ButtonRadio = (props: any) => {
     const { getInputProps, getCheckboxProps } = useRadio(props);
@@ -7,9 +7,9 @@ export const ButtonRadio = (props: any) => {
     const checkbox = getCheckboxProps();
 
     return (
-        <Box as="label" height="full">
+        <Box as="label">
             <input {...input} />
-            <Box
+            <Flex
                 {...checkbox}
                 cursor="pointer"
                 borderWidth="1px"
@@ -22,10 +22,13 @@ export const ButtonRadio = (props: any) => {
                 padding={1}
                 textColor="white"
                 fontSize="sm"
-                height="full"
+                height="2rem"
+                width="2rem"
+                alignItems="center"
+                justifyContent="center"
             >
                 {props.children}
-            </Box>
+            </Flex>
         </Box>
     );
 };

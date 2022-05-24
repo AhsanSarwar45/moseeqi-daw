@@ -375,14 +375,14 @@ const Studio = () => {
         return partNote;
     };
 
-    const IsNoteInPart = (note: Note, part: Part) => {
-        // const noteStartTime = note.startColumn * currentSecondsPerDivision;
-        console.log(
-            note.startTime,
-            note.stopTime,
-            part.startTime,
-            part.stopTime
+    const PlayNote = (note: Note) => {
+        tracks[selectedTrackIndex].sampler.triggerAttackRelease(
+            note.key,
+            note.duration
         );
+    };
+
+    const IsNoteInPart = (note: Note, part: Part) => {
         return (
             part.startTime <= note.startTime && part.stopTime > note.startTime
         );
@@ -505,10 +505,7 @@ const Studio = () => {
         setTracks(tracksCopy);
 
         // Play the note to give the user feedback
-        tracksCopy[selectedTrackIndex].sampler.triggerAttackRelease(
-            key,
-            duration
-        );
+        PlayNote(note);
     };
 
     const RemoveNote = (partIndex: number, noteIndex: number) => {
@@ -581,13 +578,8 @@ const Studio = () => {
 
         setTracks(tracksCopy);
 
-        console.log(note);
-
         // Play the changed note to give the user feedback
-        tracks[selectedTrackIndex].sampler.triggerAttackRelease(
-            key,
-            note.duration
-        );
+        PlayNote(note);
     };
 
     const ClearNotes = () => {

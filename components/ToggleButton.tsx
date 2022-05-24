@@ -17,6 +17,12 @@ const ToggleButton = (props: ToggleButtonProps) => {
             borderColor="secondary.500"
             bgColor={props.isToggled ? "secondary.500" : "primary.500"}
             onClick={props.onClick}
+            _hover={{
+                bg: props.isToggled ? "secondary.500" : "primary.500",
+            }}
+            _focus={{
+                boxShadow: "none",
+            }}
             size="sm"
             icon={props.icon as any}
         />

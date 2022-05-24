@@ -5,6 +5,7 @@ import {
     memo,
     useCallback,
     useContext,
+    ReactNode,
 } from "react";
 import {
     HStack,
@@ -33,6 +34,12 @@ import { Panel } from "@Interfaces/Panel";
 import ToggleButton from "@Components/ToggleButton";
 import { secondsPerWholeNote, wholeNoteDivisions } from "@Data/Constants";
 import { BpmToBps } from "@Utility/TimeUtils";
+import {
+    EighthNoteIcon,
+    HalfNoteIcon,
+    QuarterNoteIcon,
+    WholeNoteIcon,
+} from "@Components/icons/Notes";
 
 const numRows = MusicNotes.length;
 const colors = MusicNotes.map((x) =>
@@ -87,46 +94,37 @@ interface PianoRollProps {
     setFocusedPanel: (panel: Panel) => void;
 }
 
+interface DrawLengthOption {
+    name: string;
+    divisor: number;
+    icon: ReactNode;
+}
+
 const PianoRoll = memo((props: PianoRollProps) => {
     const columnWidth = 60;
     const rowHeight = 20;
     const cellWidth = 8;
     const noteWidth = cellWidth * 8;
     const cellHeight = 6;
-    const options = ["Whole", "1/2", "1/4", "1/8"];
+    const options: Array<DrawLengthOption> = [
+        { name: "Whole", icon: <WholeNoteIcon />, divisor: 1 },
+        { name: "1/2", icon: <HalfNoteIcon />, divisor: 2 },
+        { name: "1/4", icon: <QuarterNoteIcon />, divisor: 4 },
+        { name: "1/8", icon: <EighthNoteIcon />, divisor: 8 },
+    ];
 
     const wholeNoteWidth = columnWidth * wholeNoteDivisions;
     const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
 
+    const [isSnappingOn, setIsSnappingOn] = useState(true);
+    const [selectedDrawLengthIndex, setSelectedDrawLengthIndex] = useState(2);
     const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
         pixelsPerSecond * BpmToBps(props.bpm)
     );
 
     const { onClearNotes } = useContext(NotesModifierContext);
 
-    const [isSnappingOn, setIsSnappingOn] = useState(true);
-    const [noteDivisor, setNoteDivisor] = useState(4);
-
     const hasScrolledRef = useRef(false);
-    // const gridRef = useRef<Grid<any>>(null);
-
-    const { getRootProps, getRadioProps } = useRadioGroup({
-        name: "Note Length",
-        defaultValue: "1/4",
-        onChange: (value) => {
-            if (value === "Whole") {
-                setNoteDivisor(1);
-            } else if (value === "1/2") {
-                setNoteDivisor(2);
-            } else if (value === "1/4") {
-                setNoteDivisor(4);
-            } else if (value === "1/8") {
-                setNoteDivisor(8);
-            }
-        },
-    });
-
-    const group = getRootProps();
 
     const gridRef = useCallback((node: any) => {
         if (node !== null && !hasScrolledRef.current) {
@@ -152,7 +150,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
     };
 
     const OnNoteClick = (key: string, duration: number) => {
-        props.track.sampler.triggerAttackRelease(key, `${duration}n`);
+        props.track.sampler.triggerAttackRelease(key, duration);
         console.log("Duration: " + duration);
     };
 
@@ -177,13 +175,18 @@ const PianoRoll = memo((props: PianoRollProps) => {
                 position="sticky"
                 left={0}
             >
-                <HStack {...group} spacing={0}>
-                    {options.map((value) => {
-                        const radio = getRadioProps({ value });
+                <HStack spacing={0}>
+                    {options.map((option, index) => {
+                        // const name = value;
                         return (
-                            <ButtonRadio key={value} {...radio}>
-                                {value}
-                            </ButtonRadio>
+                            <ToggleButton
+                                key={option.name}
+                                onClick={() =>
+                                    setSelectedDrawLengthIndex(index)
+                                }
+                                icon={option.icon}
+                                isToggled={index === selectedDrawLengthIndex}
+                            />
                         );
                     })}
                 </HStack>
@@ -244,7 +247,9 @@ const PianoRoll = memo((props: PianoRollProps) => {
                                 rowHeight={rowHeight}
                                 innerElementType={PianoRollGrid}
                                 itemData={{
-                                    divisor: noteDivisor,
+                                    divisor:
+                                        options[selectedDrawLengthIndex]
+                                            .divisor,
                                 }}
                             >
                                 {GridCell}

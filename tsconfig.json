@@ -40,6 +40,9 @@
       "@Assets/*": [
         "assets/*"
       ],
+      "@Icons/*": [
+        "assets/icons/*"
+      ],
       "@Logos/*": [
         "assets/logos/*"
       ],
