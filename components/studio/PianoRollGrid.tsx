@@ -1,351 +1,287 @@
-import {
-    createContext,
-    forwardRef,
-    useRef,
-    useEffect,
-    ReactNode,
-    useState,
-    useContext,
-} from "react";
-import { FixedSizeGrid as Grid } from "react-window";
-import { Box, Container, Flex, HStack } from "@chakra-ui/react";
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
+import { forwardRef, memo, useContext, useMemo, useRef, useState } from "react";
+import { Box, Flex, HStack } from "@chakra-ui/react";
 import { MusicNotes } from "@Instruments/Instruments";
 import { CellCoordinates } from "@Interfaces/CellProps";
-import { Note } from "@Interfaces/Note";
 import SeekHandle from "./SeekHandle";
-import { Rnd } from "react-rnd";
 import Ruler from "@scena/react-ruler";
-import { useTheme } from "@emotion/react";
 import Theme from "@Theme/index.ts";
-import { NotesModifierContext } from "@Data/NotesModifierContext";
 import { GridContext } from "@Data/GridContext";
-import { Part } from "@Interfaces/Part";
-import PianoRollPartView from "./PianoRollPartView";
+import { Dimension } from "@Interfaces/Dimensions";
+import { StrDimToNum } from "@Utility/DimensionUtils";
+import {
+    blackKeyHeightModifier,
+    blackKeyWidthModifier,
+    wholeNoteDivisions,
+} from "@Data/Constants";
 
-const blackKeyWidth = 0.6;
+// const PianoRollGrid = forwardRef(({ children, ...rest }: any, ref) => {
+//     const props = useContext(GridContext);
 
-const pianoOctaveStyles = [
-    {
-        background: "white",
-        color: "black",
-        topOffset: -0.5,
-        widthModifier: 1,
-        heightModifier: 2,
-        alignItems: "center",
-    },
-    {
-        background: "black",
-        color: "white",
-        topOffset: 0,
-        widthModifier: blackKeyWidth,
-        heightModifier: 1,
-        zIndex: 4,
-        alignItems: "center",
-    },
-    {
-        background: "white",
-        color: "black",
+//     const [minRow, maxRow, minColumn, maxColumn] = GetRenderedCursor(children); // TODO maybe there is more elegant way to get this
 
-        topOffset: -0.5,
-        widthModifier: 1,
-        heightModifier: 1.5,
-        alignItems: "flex-end",
-    },
-    {
-        background: "white",
-        color: "black",
-        topOffset: 0,
-        widthModifier: 1,
-        heightModifier: 1.5,
-    },
-    {
-        background: "black",
-        color: "white",
-        topOffset: 0,
-        widthModifier: blackKeyWidth,
-        heightModifier: 1,
-        zIndex: 4,
-        alignItems: "center",
-    },
-    {
-        background: "white",
-        color: "black",
-        topOffset: -0.5,
-        widthModifier: 1,
-        heightModifier: 2,
-        alignItems: "center",
-    },
-    {
-        background: "black",
-        color: "white",
-        topOffset: 0,
-        widthModifier: blackKeyWidth,
-        heightModifier: 1,
-        zIndex: 4,
-        alignItems: "center",
-    },
-    {
-        background: "white",
-        color: "black",
-        topOffset: -0.5,
-        widthModifier: 1,
-        heightModifier: 1.5,
-        alignItems: "flex-end",
-    },
-    {
-        background: "white",
-        color: "black",
-        topOffset: 0,
-        widthModifier: 1,
-        heightModifier: 1.5,
-    },
-    {
-        background: "black",
-        color: "white",
-        topOffset: 0,
-        widthModifier: blackKeyWidth,
-        heightModifier: 1,
-        zIndex: 4,
-        alignItems: "center",
-    },
-    {
-        background: "white",
-        color: "black",
-        topOffset: -0.5,
-        widthModifier: 1,
-        heightModifier: 2,
-        alignItems: "center",
-    },
-    {
-        background: "black",
-        color: "white",
-        topOffset: 0,
-        widthModifier: blackKeyWidth,
-        heightModifier: 1,
-        zIndex: 4,
-        alignItems: "center",
-    },
+//     const leftSideRows = ColumnsBuilder(
+//         minRow,
+//         maxRow,
+//         props.rowHeight,
+//         props.stickyWidth,
+//         MusicNotes
+//     );
+//     const containerStyle = {
+//         ...rest.style,
+//         width: `${parseFloat(rest.style.width) + props.stickyWidth}px`,
+//         height: `${parseFloat(rest.style.height) + props.stickyHeight}px`,
+//     };
+//     const containerProps = { ...rest, style: containerStyle };
+
+//     return (
+//         <Box
+//             ref={ref}
+//             {...containerProps}
+//             bgColor="primary.600"
+
+//             // sx={ScrollbarStyle}
+//         >
+//             <StickyHeader
+//                 headerWidth={props.gridWidth}
+//                 stickyHeight={props.stickyHeight}
+//                 stickyWidth={props.stickyWidth}
+//                 playbackState={props.playbackState}
+//                 seek={props.seek}
+//                 setSeek={props.setSeek}
+//             />
+//             <StickyColumns
+//                 rows={leftSideRows}
+//                 stickyHeight={props.stickyHeight}
+//                 stickyWidth={props.stickyWidth}
+//                 onKeyDown={props.onKeyDown}
+//                 onKeyUp={props.onKeyUp}
+//             />
+
+//             <Box
+//                 position="absolute"
+//                 top={props.stickyHeight}
+//                 left={props.stickyWidth}
+//             >
+//                 {children}
+//             </Box>
+
+//             <Box
+//                 position="absolute"
+//                 top={props.stickyHeight}
+//                 left={props.stickyWidth}
+//                 zIndex={600}
+//             >
+//                 {props.parts.map((part, partIndex) => (
+//                     <PianoRollPartView
+//                         key={partIndex}
+//                         part={part}
+//                         partIndex={partIndex}
+//                     />
+//                 ))}
+//             </Box>
+//         </Box>
+//     );
+// });
+
+// PianoRollGrid.displayName = "PianoRollGrid";
+
+interface KeyProps {
+    label: string;
+    index: number;
+    width: number;
+    height: number;
+    onKeyDown: (label: string) => void;
+    onKeyUp: (label: string) => void;
+}
+
+enum KeyType {
+    White,
+    Black,
+}
+
+const BlackKeyOffsets = [
+    { name: "A#", offset: 1 / 3 },
+    { name: "C#", offset: 2 / 3 },
+    { name: "D#", offset: 1 / 3 },
+    { name: "F#", offset: 2 / 3 },
+    { name: "G#", offset: 1 / 2 },
+
+    { name: "B", offset: 2 / 3 },
+    { name: "E", offset: 2 / 3 },
+    { name: "C", offset: 0 },
+    { name: "D", offset: 1 / 3 },
+    { name: "F", offset: 0 },
+    { name: "G", offset: 1 / 3 },
 ];
 
-const GetRenderedCursor = (children: any) =>
-    children.reduce(
-        (
-            [minRow, maxRow, minColumn, maxColumn]: Array<number>,
-            { props }: { props: CellCoordinates }
-        ) => {
-            if (props.rowIndex < minRow) {
-                minRow = props.rowIndex;
-            }
-            if (props.rowIndex > maxRow) {
-                maxRow = props.rowIndex;
-            }
-            if (props.columnIndex < minColumn) {
-                minColumn = props.columnIndex;
-            }
-            if (props.columnIndex > maxColumn) {
-                maxColumn = props.columnIndex;
-            }
-
-            return [minRow, maxRow, minColumn, maxColumn];
-        },
-        [
-            Number.POSITIVE_INFINITY,
-            Number.NEGATIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            Number.NEGATIVE_INFINITY,
-        ]
+const Key = (props: KeyProps) => {
+    const type = useRef<KeyType>(
+        props.label.includes("#") ? KeyType.Black : KeyType.White
     );
 
-const ColumnsBuilder = (
-    minRow: number,
-    maxRow: number,
-    rowHeight: number,
-    stickyWidth: number,
-    rowHeaderLabels: any
-) => {
-    const rows = [];
+    const offset = useMemo<KeyType>(() => {
+        const keyOffsetIndex = BlackKeyOffsets.findIndex((key) =>
+            props.label.includes(key.name)
+        );
 
-    for (let i = minRow; i <= maxRow; i++) {
-        const styles = pianoOctaveStyles[i % 12];
-        const keyHeight = rowHeight * styles.heightModifier;
-        const keyWidth = stickyWidth * styles.widthModifier;
-        rows.push({
-            height: keyHeight,
-            width: keyWidth,
-            top: rowHeight * i + styles.topOffset * rowHeight,
-            label: rowHeaderLabels[i],
-            zIndex: styles.zIndex,
-            ...styles,
-        });
-    }
+        if (keyOffsetIndex === -1) {
+            return blackKeyHeightModifier * 0.5 * props.height;
+        } else {
+            return (
+                blackKeyHeightModifier *
+                BlackKeyOffsets[keyOffsetIndex].offset *
+                props.height
+            );
+        }
+    }, [props.height, props.label]);
 
-    return rows;
+    return (
+        <Flex
+            position="relative"
+            paddingLeft="10px"
+            border="1px solid gray"
+            boxSizing="border-box"
+            cursor="pointer"
+            userSelect="none"
+            onMouseDown={() => props.onKeyDown(props.label)}
+            onMouseUp={() => props.onKeyUp(props.label)}
+            justifyContent="right"
+            alignItems="center"
+            paddingRight="5px"
+            borderRightRadius="md"
+            fontSize="xs"
+            bgColor={type.current === KeyType.White ? "white" : "black"}
+            textColor={type.current === KeyType.White ? "black" : "white"}
+            height={`${
+                type.current === KeyType.White
+                    ? props.height
+                    : props.height * blackKeyHeightModifier
+            }px`}
+            width={`${
+                type.current === KeyType.White
+                    ? props.width
+                    : props.width * blackKeyWidthModifier
+            }px`}
+            marginTop={`${-offset}px`}
+            zIndex={type.current === KeyType.White ? 1 : 2}
+            // sx={pianoOctaveStyles[index % 12]}
+        >
+            {props.label}
+        </Flex>
+    );
 };
 
-interface StickHeaderProps {
-    stickyHeight: number;
-    stickyWidth: number;
-    headerWidth: number;
+interface RowProps {
+    label: string;
+    height: number;
+}
+
+export const Row = (props: RowProps) => {
+    const type = useRef<KeyType>(
+        props.label.includes("#") ? KeyType.Black : KeyType.White
+    );
+
+    const isTopBorderVisible = useRef(
+        props.label.includes("C") || props.label.includes("F")
+    );
+
+    return (
+        <Box
+            bgColor={
+                type.current === KeyType.White ? "primary.500" : "primary.600"
+            }
+            height={props.height}
+            width={"full"}
+            borderColor={"primary.600"}
+            boxSizing="border-box"
+            borderTopWidth={isTopBorderVisible.current ? "1px" : "0px"}
+            // sx={pianoOctaveStyles[index % 12]}
+        />
+    );
+};
+
+interface KeysViewProps {
+    width: Dimension;
+    stickyHeight: Dimension;
+    rowHeight: Dimension;
+    onKeyDown: (label: string) => void;
+    onKeyUp: (label: string) => void;
+}
+
+export const KeysView = memo((props: KeysViewProps) => {
+    return (
+        <Box
+            position="sticky"
+            left={0}
+            justifyContent="start"
+            alignItems="start"
+            zIndex={9}
+        >
+            <HStack
+                height={props.stickyHeight}
+                // width="full"
+                bgColor="primary.500"
+                // borderRight="1px solid gray"
+                position="sticky"
+                top={0}
+                left={0}
+                width={props.width}
+                zIndex={9300}
+                marginBottom={`${0.3 * StrDimToNum(props.rowHeight) - 8}px`}
+            />
+            {MusicNotes.map((label, index) => (
+                <Key
+                    key={index}
+                    index={index}
+                    label={label}
+                    width={StrDimToNum(props.width)}
+                    height={StrDimToNum(props.rowHeight)}
+                    onKeyDown={props.onKeyDown}
+                    onKeyUp={props.onKeyUp}
+                />
+            ))}
+        </Box>
+    );
+});
+
+KeysView.displayName = "KeysView";
+
+interface TimelineProps {
+    gridHeight: Dimension;
+    height: Dimension;
+    stickyWidth: Dimension;
+    width: Dimension;
+    columnWidth: number;
     playbackState: number;
     seek: number;
     setSeek: (seek: number) => void;
 }
 
-const StickyHeader = (props: StickHeaderProps) => {
-    const { gridHeight } = useContext(GridContext);
-
-    return (
-        <Flex
-            zIndex={9001}
-            position="sticky"
-            top={0}
-            left={0}
-            overflowY="visible"
-        >
-            <Box
-                zIndex={1001}
-                position="sticky"
-                left={0}
-                bgColor="primary.600"
-                paddingLeft="10px"
-                borderBottom="1px solid gray"
-                borderRight="1px solid gray"
-                width={props.stickyWidth}
-                height={props.stickyHeight}
-            />
-            <Box
-                position="absolute"
-                left={props.stickyWidth}
-                height={props.stickyHeight}
-                width={props.headerWidth}
-                overflowY="visible"
-            >
-                <SeekHandle
-                    height={gridHeight}
-                    playbackState={props.playbackState}
-                    seek={props.seek}
-                    scale={12}
-                    setSeek={props.setSeek}
-                />
-                <Ruler
-                    type="horizontal"
-                    unit={1}
-                    zoom={480}
-                    segment={4}
-                    backgroundColor={Theme.colors.primary[600]}
-                />
-            </Box>
-        </Flex>
-    );
-};
-
-interface StickyColumnsProps {
-    stickyWidth: number;
-    stickyHeight: number;
-    rows: any; // TODO: remove any
-    onKeyDown: (label: string) => void;
-    onKeyUp: (label: string) => void;
-}
-
-const StickyColumns = (props: StickyColumnsProps) => {
+export const TimeLine = (props: TimelineProps) => {
     return (
         <Box
-            zIndex={1000}
-            left={0}
-            background="primary.600"
+            height={props.height}
+            padding="0px"
+            width={props.width}
             position="sticky"
-            top={props.stickyHeight}
-            width={props.stickyWidth}
-            height={`calc(100% - ${props.stickyHeight}px)`}
+            top={0}
+            zIndex={8}
         >
-            {props.rows.map(({ label, ...style }: any, index: number) => (
-                <Flex
-                    position="absolute"
-                    paddingLeft="10px"
-                    border="1px solid gray"
-                    cursor="pointer"
-                    userSelect="none"
-                    onMouseDown={() => props.onKeyDown(label)}
-                    onMouseUp={() => props.onKeyUp(label)}
-                    justifyContent="right"
-                    paddingRight="5px"
-                    borderRadius="5px"
-                    fontSize="xs"
-                    //boxShadow="lg"
-                    style={style}
-                    key={index}
-                >
-                    {label}
-                </Flex>
-            ))}
+            <SeekHandle
+                height={props.gridHeight}
+                playbackState={props.playbackState}
+                seek={props.seek}
+                scale={12}
+                setSeek={props.setSeek}
+            />
+            <Ruler
+                type="horizontal"
+                unit={1}
+                zoom={wholeNoteDivisions * props.columnWidth}
+                // ref={scaleGridTop}
+                backgroundColor={Theme.colors.primary[600]}
+                segment={wholeNoteDivisions}
+            />
         </Box>
     );
 };
-
-const PianoRollGrid = forwardRef(({ children, ...rest }: any, ref) => {
-    const props = useContext(GridContext);
-
-    const [minRow, maxRow, minColumn, maxColumn] = GetRenderedCursor(children); // TODO maybe there is more elegant way to get this
-
-    const leftSideRows = ColumnsBuilder(
-        minRow,
-        maxRow,
-        props.rowHeight,
-        props.stickyWidth,
-        MusicNotes
-    );
-    const containerStyle = {
-        ...rest.style,
-        width: `${parseFloat(rest.style.width) + props.stickyWidth}px`,
-        height: `${parseFloat(rest.style.height) + props.stickyHeight}px`,
-    };
-    const containerProps = { ...rest, style: containerStyle };
-
-    return (
-        <Box ref={ref} {...containerProps} bgColor="primary.600">
-            <StickyHeader
-                headerWidth={props.gridWidth}
-                stickyHeight={props.stickyHeight}
-                stickyWidth={props.stickyWidth}
-                playbackState={props.playbackState}
-                seek={props.seek}
-                setSeek={props.setSeek}
-            />
-            <StickyColumns
-                rows={leftSideRows}
-                stickyHeight={props.stickyHeight}
-                stickyWidth={props.stickyWidth}
-                onKeyDown={props.onKeyDown}
-                onKeyUp={props.onKeyUp}
-            />
-
-            <Box
-                position="absolute"
-                top={props.stickyHeight}
-                left={props.stickyWidth}
-            >
-                {children}
-            </Box>
-
-            <Box
-                position="absolute"
-                top={props.stickyHeight}
-                left={props.stickyWidth}
-                zIndex={600}
-            >
-                {props.parts.map((part, partIndex) => (
-                    <PianoRollPartView
-                        key={partIndex}
-                        part={part}
-                        partIndex={partIndex}
-                    />
-                ))}
-            </Box>
-        </Box>
-    );
-});
-
-PianoRollGrid.displayName = "PianoRollGrid";
-
-export default PianoRollGrid;

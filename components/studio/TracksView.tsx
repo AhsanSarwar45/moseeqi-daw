@@ -22,6 +22,8 @@ import SeekHandle from "./SeekHandle";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
 import PartView from "./PartView";
+import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
+import { secondsPerWholeNote } from "@Data/Constants";
 
 interface MeterProps {
     width: number | string;
@@ -118,9 +120,15 @@ interface TracksViewProps {
     setSelectedPartIndices: (indices: Array<PartSelectionIndex>) => void;
     setTracks: (tracks: Array<Track>) => void;
     bpm: number;
+    projectLength: number;
 }
 
 const TracksView = memo((props: TracksViewProps) => {
+    const wholeNoteWidth = 40;
+    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
+    const snapDivisions = 8;
+    const snapWidth = wholeNoteWidth / snapDivisions;
+
     const theme = useTheme();
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -235,17 +243,7 @@ const TracksView = memo((props: TracksViewProps) => {
                 height="100%"
                 overflowX="scroll"
                 overflowY="scroll"
-                sx={{
-                    "&::-webkit-scrollbar": {
-                        width: "12px",
-                        height: "12px",
-                        backgroundColor: `primary.700`,
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                        borderRadius: "full",
-                        backgroundColor: `primary.400`,
-                    },
-                }}
+                sx={ScrollbarStyle}
                 bgColor="primary.600"
                 onClick={(event) => {
                     if (event.currentTarget === event.target) {
@@ -372,7 +370,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     <Box
                         height="30px"
                         padding="0px"
-                        width={2000}
+                        width={props.projectLength * pixelsPerSecond}
                         position="sticky"
                         top={0}
                         zIndex={400}
@@ -395,7 +393,7 @@ const TracksView = memo((props: TracksViewProps) => {
                     <Box
                         height={90 * props.tracks.length}
                         padding="0px"
-                        width={2000}
+                        width={props.projectLength * pixelsPerSecond}
                         marginTop="30px"
                         position="relative"
                     >
@@ -416,10 +414,10 @@ const TracksView = memo((props: TracksViewProps) => {
 
                         {/* <Ruler style={{ marginTop: -(86 * props.tracks.length), marginLeft: -1 }} height={43 * props.tracks.length} type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor='rgba(0,0,0,0)' segment={1} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' /> */}
 
-                        {/* <Box position="absolute" width={2000} p={0}>
+                        {/* <Box position="absolute" width={props.projectLength * pixelsPerSecond} p={0}>
 							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMain} backgroundColor={theme.colors.primary[400]} segment={4} height={86} mainLineSize={0} shortLineSize={86} longLineSize={86} lineColor='rgba(255,255,255,0.1)' textColor='rgba(0,0,0,0)' />
 						</Box>
-						<Box position="absolute" width={2000} p={0}>
+						<Box position="absolute" width={props.projectLength * pixelsPerSecond} p={0}>
 							<Ruler type="horizontal" unit={1} zoom={40} ref={scaleGridMinor} backgroundColor='rgba(0,0,0,0)' segment={1} height={86} lineColor='rgba(255,255,255,0.3)' textColor='rgba(0,0,0,0)' />
 						</Box> */}
                         <Box position="absolute" top={0} left={0}>
@@ -427,7 +425,9 @@ const TracksView = memo((props: TracksViewProps) => {
                                 <Box
                                     key={trackIndex}
                                     height="90px"
-                                    width={2000}
+                                    width={
+                                        props.projectLength * pixelsPerSecond
+                                    }
                                     position="relative"
                                     padding="0px"
                                     onMouseDown={(event) => {
@@ -448,6 +448,8 @@ const TracksView = memo((props: TracksViewProps) => {
                                             bpm={props.bpm}
                                             trackIndex={trackIndex}
                                             partIndex={partIndex}
+                                            pixelsPerSecond={pixelsPerSecond}
+                                            snapWidth={snapWidth}
                                             setPartTime={props.setPartTime}
                                             selectedPartIndices={
                                                 props.selectedPartIndices

@@ -29,6 +29,8 @@ interface PartViewProps {
     onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
     onMoveSelectedPartsStop: () => void;
     bpm: number;
+    pixelsPerSecond: number;
+    snapWidth: number;
 }
 
 const PartView = ({
@@ -39,14 +41,8 @@ const PartView = ({
     selectedPartIndices,
     ...props
 }: PartViewProps) => {
-    const wholeNoteWidth = 40;
-    const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
-    const snapDivisions = 8;
-    const snapWidth = wholeNoteWidth / snapDivisions;
-    const smallestNoteWidth = wholeNoteWidth / wholeNoteDivisions;
-
     const [currentPixelsPerSecond, setCurrentPixelsPerSecond] = useState(
-        pixelsPerSecond * BpmToBps(props.bpm)
+        props.pixelsPerSecond * BpmToBps(props.bpm)
     );
 
     const [isSelected, setIsSelected] = useState(false);
@@ -66,7 +62,7 @@ const PartView = ({
 
     useEffect(() => {
         const oldPixelsPerSecond = currentPixelsPerSecond;
-        const newPixelsPerSecond = pixelsPerSecond * BpmToBps(props.bpm);
+        const newPixelsPerSecond = props.pixelsPerSecond * BpmToBps(props.bpm);
         setCurrentPixelsPerSecond(newPixelsPerSecond);
         setPartTime(
             trackIndex,
@@ -74,7 +70,7 @@ const PartView = ({
             part.startTime * (oldPixelsPerSecond / newPixelsPerSecond),
             part.stopTime * (oldPixelsPerSecond / newPixelsPerSecond)
         );
-    }, [pixelsPerSecond, props.bpm]);
+    }, [props.pixelsPerSecond, props.bpm]);
 
     const SelectPart = () => {
         props.onPartClick(trackIndex, partIndex);
@@ -99,8 +95,8 @@ const PartView = ({
             }}
             dragAxis="x"
             bounds="parent"
-            resizeGrid={[snapWidth, snapWidth]}
-            dragGrid={[snapWidth, snapWidth]}
+            resizeGrid={[props.snapWidth, 1]}
+            dragGrid={[props.snapWidth, 1]}
             position={{
                 x: part.startTime * currentPixelsPerSecond,
                 y: 0,
@@ -169,9 +165,13 @@ const PartView = ({
                     key={note.id}
                     bgColor="secondary.500"
                     position="absolute"
-                    top={`${note.noteIndex + 1}px`}
-                    left={`${note.startTime * pixelsPerSecond * note.bps}px`}
-                    width={`${note.duration * pixelsPerSecond * note.bps}px`}
+                    top={`${note.keyIndex + 1}px`}
+                    left={`${
+                        note.startTime * props.pixelsPerSecond * note.bps
+                    }px`}
+                    width={`${
+                        note.duration * props.pixelsPerSecond * note.bps
+                    }px`}
                     height="1px"
                 />
             ))}

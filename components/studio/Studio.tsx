@@ -43,6 +43,7 @@ const Studio = () => {
     const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
     const [bpm, setBPM] = useState(defaultBPM);
     const [bps, setBPS] = useState(BpmToBps(defaultBPM));
+    const [projectLength, setProjectLength] = useState(180);
     const [currentSecondsPerDivision, setCurrentSecondsPerDivision] = useState(
         secondsPerDivision / bps
     );
@@ -493,7 +494,7 @@ const Studio = () => {
             id: getNoteId(),
             startTime: startTime,
             stopTime: startTime + duration,
-            noteIndex: row,
+            keyIndex: row,
             bps: bps,
             key: key,
             duration: duration,
@@ -537,7 +538,7 @@ const Studio = () => {
         stopTime: number,
         row: number
     ) => {
-        // console.log("Note moved to", startTime);
+        console.log("Note moved to", startTime);
         let part = tracks[selectedTrackIndex].parts[partIndex];
         const key = MusicNotes[row];
 
@@ -545,7 +546,7 @@ const Studio = () => {
 
         const note = part.notes[noteIndex];
         note.key = key;
-        note.noteIndex = row;
+        note.keyIndex = row;
         note.startTime = startTime;
         note.stopTime = stopTime;
         note.duration = (stopTime - startTime) * (note.bps / bps);
@@ -575,6 +576,8 @@ const Studio = () => {
         });
 
         tracksCopy[selectedTrackIndex].parts[partIndex] = part;
+
+        console.log(tracksCopy);
 
         setTracks(tracksCopy);
 
@@ -650,6 +653,7 @@ const Studio = () => {
                                         playbackState={playbackState}
                                         bpm={bpm}
                                         seek={seek}
+                                        projectLength={projectLength}
                                         setSeek={setSeek}
                                         tracks={tracks}
                                         onAddTrack={AddTrack}
@@ -672,6 +676,7 @@ const Studio = () => {
 
                                     {tracks.length > 0 ? (
                                         <PianoRoll
+                                            projectLength={projectLength}
                                             bpm={bpm}
                                             playbackState={playbackState}
                                             seek={seek}
@@ -691,8 +696,7 @@ const Studio = () => {
                                             height="full"
                                             width="full"
                                         >
-                                            {" "}
-                                            Add a Track to view the Piano Roll{" "}
+                                            Add a Track to view the Piano Roll
                                         </Flex>
                                     )}
                                 </Splitter>

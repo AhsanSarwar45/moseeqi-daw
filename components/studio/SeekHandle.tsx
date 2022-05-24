@@ -1,12 +1,13 @@
 import { Box } from "@chakra-ui/react";
 import { SeekContext } from "@Data/SeekContext";
+import { Dimension } from "@Interfaces/Dimensions";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
 
 interface TimeHandleProps {
     playbackState: number;
-    height: number;
+    height: Dimension;
     seek: number;
     setSeek: (seek: number) => void;
     scale: number;

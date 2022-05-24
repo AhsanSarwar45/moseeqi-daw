@@ -3,7 +3,7 @@ export interface Note {
     startTime: number;
     stopTime: number;
     bps: number;
-    noteIndex: number;
+    keyIndex: number;
     key: string;
     duration: number;
     velocity: number;
