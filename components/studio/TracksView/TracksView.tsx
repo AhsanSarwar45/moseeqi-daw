@@ -26,6 +26,7 @@ import PartView from "./PartView";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
+import ToggleButton from "@Components/ToggleButton";
 
 interface MeterProps {
     width: number | string;
@@ -110,12 +111,7 @@ interface TracksViewProps {
     activeWidth: number;
     setActiveWidth: (width: number) => void;
     toggleMute: (trackIndex: number) => void;
-    setPartTime: (
-        trackIndex: number,
-        partIndex: number,
-        startTime: number,
-        stopTime: number
-    ) => void;
+    toggleSolo: (trackIndex: number) => void;
     focusedPanel: Panel;
     setFocusedPanel: (panel: Panel) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
@@ -306,22 +302,51 @@ const TracksView = memo((props: TracksViewProps) => {
                             height={90}
                             bgColor={
                                 props.selected === index
-                                    ? "secondary.500"
+                                    ? "primary.700"
                                     : "primary.500"
                             }
+                            boxSizing="border-box"
+                            borderBottomWidth={1}
+                            borderColor={"gray.500"}
                             onMouseDown={(event) => {
                                 props.setSelected(index);
                             }}
                             // height={200}
                             position="relative"
-                            borderBottom="1px solid gray"
                             alignItems="flex-start"
                         >
                             <VStack alignItems="flex-start">
                                 <Text color="white">{track.name}</Text>
 
                                 <HStack>
-                                    <Button
+                                    <ToggleButton
+                                        tooltipLabel={"Mute"}
+                                        onClick={() => props.toggleMute(index)}
+                                        isToggled={track.muted}
+                                        label="M"
+                                        borderWidth={1}
+                                        size="xs"
+                                        textColor={
+                                            track.soloMuted
+                                                ? "secondary.500"
+                                                : "white"
+                                        }
+                                        // borderColor="secondary.700"
+                                        // onColor="secondary.700"
+                                        // offColor="secondary.500"
+                                    />
+                                    <ToggleButton
+                                        tooltipLabel={"Solo"}
+                                        onClick={() => props.toggleSolo(index)}
+                                        isToggled={track.soloed}
+                                        label="S"
+                                        borderWidth={1}
+                                        size="xs"
+                                        // borderColor="secondary.700"
+                                        // onColor="secondary.700"
+                                        // offColor="secondary.500"
+                                    />
+                                    {/* <Button
                                         width="20px"
                                         borderColor="secondary.700"
                                         borderWidth="1px"
@@ -337,8 +362,8 @@ const TracksView = memo((props: TracksViewProps) => {
                                         onClick={() => props.toggleMute(index)}
                                     >
                                         M
-                                    </Button>
-                                    <Button
+                                    </Button> */}
+                                    {/* <Button
                                         width="20px"
                                         borderColor="secondary.700"
                                         borderWidth="1px"
@@ -348,7 +373,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                         borderRadius="sm"
                                     >
                                         S
-                                    </Button>
+                                    </Button> */}
                                 </HStack>
                             </VStack>
                             <Meter
@@ -453,7 +478,6 @@ const TracksView = memo((props: TracksViewProps) => {
                                             partIndex={partIndex}
                                             pixelsPerSecond={pixelsPerSecond}
                                             snapWidth={snapWidth}
-                                            setPartTime={props.setPartTime}
                                             selectedPartIndices={
                                                 props.selectedPartIndices
                                             }

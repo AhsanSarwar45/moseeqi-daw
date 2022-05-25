@@ -18,12 +18,6 @@ interface PartViewProps {
     partIndex: number;
     trackIndex: number;
     tracks: Array<Track>;
-    setPartTime: (
-        trackIndex: number,
-        partIndex: number,
-        startTime: number,
-        stopTime: number
-    ) => void;
     selectedPartIndices: Array<PartSelectionIndex>;
     onPartClick: (trackIndex: number, partIndex: number) => void;
     onMoveSelectedParts: (startDelta: number, stopDelta: number) => void;
@@ -37,7 +31,6 @@ const PartView = ({
     part,
     trackIndex,
     partIndex,
-    setPartTime,
     selectedPartIndices,
     ...props
 }: PartViewProps) => {

@@ -75,6 +75,8 @@ const Studio = () => {
                 instrument: track.instrument,
                 parts: track.parts,
                 muted: track.muted,
+                soloed: track.soloed,
+                soloMuted: track.soloMuted,
             });
         });
 
@@ -143,6 +145,8 @@ const Studio = () => {
                 meter: meter,
                 parts: track.parts,
                 muted: track.muted,
+                soloed: track.soloed,
+                soloMuted: track.soloMuted,
             });
         });
 
@@ -151,7 +155,7 @@ const Studio = () => {
         pendingBpmUpdateRef.current = saveData.bpm;
     };
 
-    const CreateTrack = (instrumentIndex: number) => {
+    const CreateTrack = (instrumentIndex: number): Track => {
         // Causes the loading modal to show
         setIsInstrumentLoading(1);
         const instrument = Instruments[instrumentIndex];
@@ -197,6 +201,8 @@ const Studio = () => {
             sampler: sampler,
             meter: meter,
             muted: false,
+            soloed: false,
+            soloMuted: false,
         };
     };
     const [tracks, setTracks] = useState<Array<Track>>(() => [CreateTrack(0)]);
@@ -358,39 +364,6 @@ const Studio = () => {
 
     const SetAttack = (value: number) => {
         tracks[selectedTrackIndex].sampler.attack = value;
-    };
-
-    const GetNoteStopTime = (note: Note): number => {
-        return (
-            note.startTime +
-            (wholeNoteDivisions * currentSecondsPerDivision) / note.duration
-        );
-    };
-
-    const SetPartTime = (
-        trackIndex: number,
-        partIndex: number,
-        startTime: number,
-        endTime: number
-    ) => {
-        // console.log("SetPartTime", trackIndex, partIndex, startTime, endTime);
-
-        Tone.Transport.bpm.value = bpm;
-        // console.log("Start time set to: " + startTime);
-        // console.log("Stop time set to: " + endTime);
-        let tracksCopy = [...tracks];
-
-        // console.log(tracksCopy[trackIndex].parts[partIndex]);
-        // console.log(tracksCopy[trackIndex].parts[partIndex].tonePart);
-
-        tracksCopy[trackIndex].parts[partIndex].tonePart
-            .cancel(0)
-            .start(startTime)
-            .stop(endTime);
-        tracksCopy[trackIndex].parts[partIndex].startTime = startTime;
-        tracksCopy[trackIndex].parts[partIndex].stopTime = endTime;
-
-        setTracks(tracksCopy);
     };
 
     const GetPartNote = (note: Note) => {
@@ -609,30 +582,73 @@ const Studio = () => {
     };
 
     const ClearNotes = () => {
+        let tracksCopy = [...tracks];
+
         // Clear all the parts
-        tracks[selectedTrackIndex].parts.forEach((part) => {
+        tracksCopy[selectedTrackIndex].parts.forEach((part) => {
             part.tonePart.clear();
             part.notes = [];
         });
 
-        let tracksCopy = [...tracks];
         setTracks(tracksCopy);
+    };
+
+    const SetTrackMute = (track: Track, muted: boolean) => {
+        track.parts.forEach((part) => {
+            part.tonePart.mute = muted;
+        });
+
+        track.muted = muted;
+    };
+
+    const SetTrackSoloMute = (track: Track, muted: boolean) => {
+        track.parts.forEach((part) => {
+            part.tonePart.mute = muted;
+        });
+
+        track.soloMuted = muted;
+        if (muted) {
+            track.muted = false;
+        }
     };
 
     const ToggleMuteAtIndex = (trackIndex: number) => {
-        // Toggle mute on all the parts in the track
-        tracks[trackIndex].parts.forEach((part) => {
-            part.tonePart.mute = !part.tonePart.mute;
-        });
-
         let tracksCopy = [...tracks];
-        tracksCopy[trackIndex].muted = !tracksCopy[trackIndex].muted;
+
+        SetTrackMute(tracksCopy[trackIndex], !tracksCopy[trackIndex].muted);
+
         setTracks(tracksCopy);
     };
 
-    const ToggleSoloAtIndex = (index: number) => {
-        // TODO
-        // parts.current[index].mute = !parts.current[index].mute;
+    const ToggleSoloAtIndex = (trackIndex: number) => {
+        console.log("Toggle solo at index", trackIndex);
+        let tracksCopy = [...tracks];
+
+        tracksCopy[trackIndex].soloed = !tracksCopy[trackIndex].soloed;
+
+        if (tracksCopy[trackIndex].soloed) {
+            SetTrackMute(tracksCopy[trackIndex], false);
+            SetTrackSoloMute(tracksCopy[trackIndex], false);
+        }
+
+        const numTracksSoloed = tracksCopy.filter(
+            (track) => track.soloed
+        ).length;
+
+        if (numTracksSoloed > 0) {
+            tracksCopy.forEach((track, index) => {
+                if (!track.soloed && !track.muted) {
+                    console.log("Muting track", index);
+                    SetTrackSoloMute(track, true);
+                }
+            });
+        } else {
+            tracksCopy.forEach((track, index) => {
+                SetTrackSoloMute(track, false);
+            });
+        }
+
+        setTracks(tracksCopy);
     };
 
     return (
@@ -685,7 +701,7 @@ const Studio = () => {
                                         activeWidth={activeWidth}
                                         setActiveWidth={setActiveWidth}
                                         toggleMute={ToggleMuteAtIndex}
-                                        setPartTime={SetPartTime}
+                                        toggleSolo={ToggleSoloAtIndex}
                                         focusedPanel={focusedPanel}
                                         setFocusedPanel={setFocusedPanel}
                                         selectedPartIndices={

@@ -5,10 +5,11 @@ interface ButtonProps {
     onClick: (event: any) => void;
     label: string;
     ariaLabel: string;
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     tooltip: string;
     fontSize?: string;
     size?: string;
+    textColor?: string;
 }
 
 const TooltipButton = (props: ButtonProps) => {
@@ -20,6 +21,7 @@ const TooltipButton = (props: ButtonProps) => {
                 onClick={props.onClick}
                 size={props.size}
                 fontWeight={400}
+                textColor={props.textColor}
                 fontSize={props.fontSize}
                 padding={props.label !== "" ? 2 : 0}
                 gap={1}
@@ -34,6 +36,8 @@ const TooltipButton = (props: ButtonProps) => {
 TooltipButton.defaultProps = {
     fontSize: "md",
     size: "sm",
+    icon: null,
+    textColor: "white",
 };
 
 export default TooltipButton;

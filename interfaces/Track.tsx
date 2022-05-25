@@ -9,4 +9,6 @@ export interface Track {
     sampler: Sampler;
     meter: Meter;
     muted: boolean;
+    soloed: boolean;
+    soloMuted: boolean;
 }

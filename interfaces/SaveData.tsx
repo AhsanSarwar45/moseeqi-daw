@@ -7,6 +7,8 @@ export interface TrackSaveData {
     instrument: Instrument;
     parts: Array<Part>;
     muted: boolean;
+    soloed: boolean;
+    soloMuted: boolean;
 }
 
 export interface SaveData {
