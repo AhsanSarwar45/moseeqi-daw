@@ -30,17 +30,17 @@ const FilledCell = (props: FilledCellProps) => {
     const [isResizing, setIsResizing] = useState(false);
 
     const [snappedDraggingPosition, setSnappedDraggingPosition] = useState(
-        props.note.startTime * props.pixelsPerSecond * props.note.bps
+        props.note.startTime * props.currentPixelsPerSecond
     );
     const [snappedResizingWidth, setSnappedResizingWidth] = useState(
-        props.note.duration * props.pixelsPerSecond * props.note.bps
+        props.note.duration * props.currentPixelsPerSecond
     );
 
     useEffect(() => {
         setSnappedDraggingPosition(
-            props.note.startTime * props.pixelsPerSecond * props.note.bps
+            props.note.startTime * props.currentPixelsPerSecond
         );
-    }, [props.pixelsPerSecond, props.note.bps, props.note.startTime]);
+    }, [props.currentPixelsPerSecond, props.note.startTime]);
 
     const handleRef = useRef<HTMLElement | null>(null);
 
@@ -61,17 +61,13 @@ const FilledCell = (props: FilledCellProps) => {
             size={{
                 width: isResizing
                     ? snappedResizingWidth
-                    : props.note.duration *
-                      props.pixelsPerSecond *
-                      props.note.bps,
+                    : props.note.duration * props.currentPixelsPerSecond,
                 height: props.cellHeight,
             }}
             position={{
                 x: isDragging
                     ? snappedDraggingPosition
-                    : props.note.startTime *
-                      props.pixelsPerSecond *
-                      props.note.bps,
+                    : props.note.startTime * props.currentPixelsPerSecond,
                 y: props.note.keyIndex * props.cellHeight,
             }}
             enableResizing={{
@@ -160,8 +156,7 @@ const FilledCell = (props: FilledCellProps) => {
                     position.x / props.currentPixelsPerSecond;
                 let startTime = localStartTime + props.part.startTime;
 
-                const duration =
-                    width / (props.pixelsPerSecond * props.note.bps);
+                const duration = width / props.currentPixelsPerSecond;
 
                 const row = position.y / props.cellHeight;
                 // console.log("width", width, "position", position);
@@ -184,7 +179,7 @@ const FilledCell = (props: FilledCellProps) => {
                 // cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
                 // cursor="move"
                 height="full"
-                borderRadius="5px"
+                borderRadius="sm"
                 borderWidth="1px"
                 borderColor="secondary.700"
                 bgColor="secondary.500"

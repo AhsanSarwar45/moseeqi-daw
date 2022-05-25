@@ -1,4 +1,5 @@
 import { Box, IconButton, Tooltip } from "@chakra-ui/react";
+import { Dimension } from "@Interfaces/Dimensions";
 import React, { forwardRef, HTMLAttributes, ReactNode } from "react";
 
 interface ToggleButtonProps extends HTMLAttributes<HTMLDivElement> {
@@ -7,6 +8,7 @@ interface ToggleButtonProps extends HTMLAttributes<HTMLDivElement> {
     // children: React.ReactNode;
     isToggled: boolean;
     icon: ReactNode;
+    borderWidth?: Dimension;
 }
 
 const ToggleButton = forwardRef(
@@ -17,6 +19,7 @@ const ToggleButton = forwardRef(
             onClick,
             isToggled,
             icon,
+            borderWidth,
             ...rest
         }: ToggleButtonProps,
         ref
@@ -27,7 +30,7 @@ const ToggleButton = forwardRef(
                     <IconButton
                         aria-label="Clear notes"
                         colorScheme={"secondary"}
-                        borderWidth="1px"
+                        borderWidth={borderWidth}
                         borderColor="secondary.500"
                         bgColor={isToggled ? "secondary.500" : "primary.500"}
                         onClick={onClick}
@@ -47,5 +50,9 @@ const ToggleButton = forwardRef(
 );
 
 ToggleButton.displayName = "ToggleButton";
+
+ToggleButton.defaultProps = {
+    borderWidth: 1,
+};
 
 export default ToggleButton;

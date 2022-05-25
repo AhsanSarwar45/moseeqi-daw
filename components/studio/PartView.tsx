@@ -61,15 +61,7 @@ const PartView = ({
     }, [partIndex, selectedPartIndices, trackIndex]);
 
     useEffect(() => {
-        const oldPixelsPerSecond = currentPixelsPerSecond;
-        const newPixelsPerSecond = props.pixelsPerSecond * BpmToBps(props.bpm);
-        setCurrentPixelsPerSecond(newPixelsPerSecond);
-        setPartTime(
-            trackIndex,
-            partIndex,
-            part.startTime * (oldPixelsPerSecond / newPixelsPerSecond),
-            part.stopTime * (oldPixelsPerSecond / newPixelsPerSecond)
-        );
+        setCurrentPixelsPerSecond(props.pixelsPerSecond * BpmToBps(props.bpm));
     }, [props.pixelsPerSecond, props.bpm]);
 
     const SelectPart = () => {
@@ -166,12 +158,8 @@ const PartView = ({
                     bgColor="secondary.500"
                     position="absolute"
                     top={`${note.keyIndex + 1}px`}
-                    left={`${
-                        note.startTime * props.pixelsPerSecond * note.bps
-                    }px`}
-                    width={`${
-                        note.duration * props.pixelsPerSecond * note.bps
-                    }px`}
+                    left={`${note.startTime * currentPixelsPerSecond}px`}
+                    width={`${note.duration * currentPixelsPerSecond}px`}
                     height="1px"
                 />
             ))}

@@ -38,11 +38,11 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
 
     return (
         <HStack
-            height="20px"
+            // height="20px"
             width="full"
             flexShrink={0}
-            padding={5}
-            spacing={5}
+            padding={2}
+            spacing={2}
             bg="brand.primary"
             justifyContent="center"
         >
@@ -95,7 +95,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                 size="sm"
                 textColor="white"
                 borderColor="secondary.500"
-                borderWidth="1px"
+                boxSizing="border-box"
+                borderWidth={0}
                 maxWidth={20}
                 min={30}
                 max={600}

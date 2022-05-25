@@ -214,6 +214,33 @@ const Studio = () => {
     useEffect(() => {
         // console.log("BPM: " + bpm);
         Tone.Transport.bpm.value = bpm;
+
+        let tracksCopy = [...tracks];
+
+        const newTimeMultiplier = bps / BpmToBps(bpm);
+
+        tracksCopy.forEach((track) => {
+            track.parts.forEach((part) => {
+                part.tonePart.clear();
+                part.startTime *= newTimeMultiplier;
+                part.stopTime *= newTimeMultiplier;
+                part.tonePart
+                    .cancel(0)
+                    .start(part.startTime)
+                    .stop(part.stopTime);
+
+                part.notes.forEach((note) => {
+                    note.startTime *= newTimeMultiplier;
+                    note.stopTime *= newTimeMultiplier;
+                    note.duration *= newTimeMultiplier;
+
+                    part.tonePart.add(GetPartNote(note));
+                });
+            });
+        });
+
+        setTracks(tracksCopy);
+
         setBPS(BpmToBps(bpm));
         setCurrentSecondsPerDivision(secondsPerDivision / BpmToBps(bpm));
     }, [bpm]);
@@ -495,7 +522,6 @@ const Studio = () => {
             startTime: startTime,
             stopTime: startTime + duration,
             keyIndex: row,
-            bps: bps,
             key: key,
             duration: duration,
             velocity: 1.0,
@@ -543,14 +569,16 @@ const Studio = () => {
         const key = MusicNotes[row];
 
         let tracksCopy = [...tracks];
+        // let tracksCopy2 = [...tracks];
+
+        // console.log(tracksCopy2);
 
         const note = part.notes[noteIndex];
         note.key = key;
         note.keyIndex = row;
         note.startTime = startTime;
         note.stopTime = stopTime;
-        note.duration = (stopTime - startTime) * (note.bps / bps);
-        note.bps = bps;
+        note.duration = stopTime - startTime;
 
         // Tone doesn't allow us to remove or modify single notes, so we need to clear the part and then re-add all the notes except the removed one
         part.tonePart.clear();
@@ -577,7 +605,7 @@ const Studio = () => {
 
         tracksCopy[selectedTrackIndex].parts[partIndex] = part;
 
-        console.log(tracksCopy);
+        // console.log(tracksCopy);
 
         setTracks(tracksCopy);
 

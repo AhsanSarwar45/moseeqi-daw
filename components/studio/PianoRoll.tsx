@@ -18,6 +18,7 @@ import {
     IconButton,
     Tooltip,
     VStack,
+    ButtonGroup,
 } from "@chakra-ui/react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeGrid as Grid } from "react-window";
@@ -221,7 +222,12 @@ const PianoRoll = memo((props: PianoRollProps) => {
                 boxShadow="md"
                 zIndex={10}
             >
-                <HStack spacing={0}>
+                <ButtonGroup
+                    size="sm"
+                    isAttached
+                    variant="solid"
+                    colorScheme="secondary"
+                >
                     {options.map((option, index) => {
                         // const name = value;
                         return (
@@ -233,10 +239,11 @@ const PianoRoll = memo((props: PianoRollProps) => {
                                 }
                                 icon={option.icon}
                                 isToggled={index === selectedDrawLengthIndex}
+                                // borderWidth={0}
                             />
                         );
                     })}
-                </HStack>
+                </ButtonGroup>
                 <Button
                     aria-label="Clear notes"
                     colorScheme={"secondary"}
