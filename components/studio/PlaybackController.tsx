@@ -1,9 +1,10 @@
 import {
     ButtonGroup,
-    Button,
+    Flex,
     HStack,
     Heading,
     IconButton,
+    Box,
 } from "@chakra-ui/react";
 import {
     NumberInput,
@@ -20,7 +21,8 @@ import {
     TiMediaStop,
 } from "react-icons/ti";
 import { PlaybackState } from "@Types/Types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import * as Tone from "tone";
 
 interface PlayBackControllerProps {
     playbackState: PlaybackState;
@@ -31,6 +33,43 @@ interface PlayBackControllerProps {
 
 export const PlayBackController = (props: PlayBackControllerProps) => {
     const [bpm, setBpm] = useState(props.bpm);
+    const [transportTime, setTransportTime] = useState("00:00.0");
+
+    const seekAnimationRef = useRef(0);
+
+    useEffect(() => {
+        if (props.playbackState === 1) {
+            seekAnimationRef.current = requestAnimationFrame(
+                function UpdateSeek() {
+                    const minutes = Math.floor(
+                        Tone.Transport.seconds / 60
+                    ).toLocaleString("en-US", {
+                        minimumIntegerDigits: 2,
+                        useGrouping: false,
+                    });
+                    const seconds = (
+                        Tone.Transport.seconds % 60
+                    ).toLocaleString("en-US", {
+                        minimumIntegerDigits: 2,
+                        maximumFractionDigits: 1,
+                        minimumFractionDigits: 1,
+                        useGrouping: false,
+                    });
+
+                    setTransportTime(minutes + ":" + seconds);
+                    seekAnimationRef.current =
+                        requestAnimationFrame(UpdateSeek);
+                }
+            );
+        } else if (props.playbackState === 0) {
+            // Stop
+            setTransportTime("00:00.0");
+            cancelAnimationFrame(seekAnimationRef.current);
+        } else if (props.playbackState === 2) {
+            //Pause
+            cancelAnimationFrame(seekAnimationRef.current);
+        }
+    }, [props.playbackState]);
 
     useEffect(() => {
         setBpm(props.bpm);
@@ -46,6 +85,18 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
             bg="brand.primary"
             justifyContent="center"
         >
+            <Flex
+                borderRadius="sm"
+                height="2rem"
+                width="6rem"
+                borderColor="secondary.500"
+                borderWidth={1}
+                justifyContent="center"
+                alignItems="center"
+                textColor="white"
+            >
+                {transportTime}
+            </Flex>
             <ButtonGroup
                 size="sm"
                 isAttached
