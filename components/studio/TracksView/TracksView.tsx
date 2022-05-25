@@ -9,6 +9,7 @@ import {
     HStack,
     useDisclosure,
     useTheme,
+    Icon,
 } from "@chakra-ui/react";
 import { TiPlus, TiVolumeMute } from "react-icons/ti";
 import { BiDuplicate } from "react-icons/bi";
@@ -24,6 +25,7 @@ import { PartSelectionIndex } from "@Interfaces/Selection";
 import PartView from "./PartView";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
+import TooltipButton from "@Components/TooltipButton";
 
 interface MeterProps {
     width: number | string;
@@ -275,22 +277,23 @@ const TracksView = memo((props: TracksViewProps) => {
                         width={200}
                         zIndex={9300}
                     >
-                        <IconButton
-                            colorScheme="secondary"
-                            size="xs"
-                            aria-label="add-track"
-                            icon={<TiPlus />}
+                        <TooltipButton
+                            ariaLabel="Add track"
                             onClick={onOpen}
-                            flexShrink={0}
-                            borderRadius="sm"
-                        />
-                        <IconButton
-                            colorScheme="secondary"
+                            label=""
+                            icon={<Icon as={TiPlus} />}
+                            tooltip="Add track"
+                            fontSize="xs"
                             size="xs"
-                            aria-label="duplicate-track"
-                            icon={<BiDuplicate />}
-                            flexShrink={0}
-                            borderRadius="sm"
+                        />
+                        <TooltipButton
+                            ariaLabel="Duplicate track"
+                            onClick={onOpen}
+                            label=""
+                            icon={<Icon as={BiDuplicate} />}
+                            tooltip="Duplicate selected track"
+                            fontSize="xs"
+                            size="xs"
                         />
                     </HStack>
                     {props.tracks.map((track: Track, index: number) => (

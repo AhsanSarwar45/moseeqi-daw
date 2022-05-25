@@ -2,7 +2,7 @@ import { Icon } from "@chakra-ui/react";
 
 import { useRef } from "react";
 import { TiFolderOpen } from "react-icons/ti";
-import TooltipButton from "./Button";
+import TooltipButton from "./TooltipButton";
 
 interface FileUploaderProps {
     onFileUpload: (file: any) => void;

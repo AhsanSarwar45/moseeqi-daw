@@ -1,5 +1,5 @@
 import React from "react";
-import { Button as ChakraButton, Tooltip } from "@chakra-ui/react";
+import { Button, Spacer, Tooltip } from "@chakra-ui/react";
 
 interface ButtonProps {
     onClick: (event: any) => void;
@@ -7,24 +7,33 @@ interface ButtonProps {
     ariaLabel: string;
     icon: React.ReactNode;
     tooltip: string;
+    fontSize?: string;
+    size?: string;
 }
 
 const TooltipButton = (props: ButtonProps) => {
     return (
         <Tooltip label={props.tooltip}>
-            <ChakraButton
+            <Button
                 aria-label="Save project"
                 colorScheme={"secondary"}
                 onClick={props.onClick}
-                size="sm"
+                size={props.size}
                 fontWeight={400}
-                fontSize="md"
-                leftIcon={props.icon as any}
+                fontSize={props.fontSize}
+                padding={props.label !== "" ? 2 : 0}
+                gap={1}
             >
+                {props.icon}
                 {props.label}
-            </ChakraButton>
+            </Button>
         </Tooltip>
     );
+};
+
+TooltipButton.defaultProps = {
+    fontSize: "md",
+    size: "sm",
 };
 
 export default TooltipButton;

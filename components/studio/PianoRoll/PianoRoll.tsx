@@ -35,7 +35,7 @@ import { SnapDown } from "@Utility/SnapUtils";
 import { KeysView } from "./KeysView";
 import { Row } from "./Row";
 import { Timeline } from "./Timeline";
-import TooltipButton from "@Components/Button";
+import TooltipButton from "@Components/TooltipButton";
 
 interface PianoRollProps {
     track: Track;

@@ -1,14 +1,5 @@
-import {
-    HStack,
-    Heading,
-    Icon,
-    IconButton,
-    Spacer,
-    Input,
-    InputGroup,
-    InputRightElement,
-} from "@chakra-ui/react";
-import TooltipButton from "@Components/Button";
+import { HStack, Icon, Spacer, Input } from "@chakra-ui/react";
+import TooltipButton from "@Components/TooltipButton";
 import FileUploader from "@Components/FIleUploader";
 import { useEffect, useState } from "react";
 import { IoMdSave } from "react-icons/io";
@@ -29,6 +20,7 @@ export const TopBar = (props: TopBarProps) => {
 
     return (
         <HStack
+            className="top-bar"
             width="full"
             flexShrink={0}
             padding={2}
