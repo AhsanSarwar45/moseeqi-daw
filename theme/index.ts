@@ -45,7 +45,7 @@ const Theme = extendTheme({
 	},
 	fonts: {
 		heading: 'Open Sans, ${base.fonts?.heading}',
-		body: 'Aileron, ${base.fonts?.body}'
+		body: 'Open Sans, ${base.fonts?.heading}'
 	},
 	components: {
 		Button: {

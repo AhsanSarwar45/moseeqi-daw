@@ -1,6 +1,8 @@
 import { Icon } from "@chakra-ui/react";
+
 import { useRef } from "react";
 import { TiFolderOpen } from "react-icons/ti";
+import TooltipButton from "./Button";
 
 interface FileUploaderProps {
     onFileUpload: (file: any) => void;
@@ -20,12 +22,12 @@ const FileUploader = (props: FileUploaderProps) => {
     };
     return (
         <>
-            <Icon
-                as={TiFolderOpen}
-                color="White"
-                h={30}
-                w={30}
+            <TooltipButton
+                ariaLabel="Open project"
                 onClick={HandleClick}
+                label="Open"
+                icon={<Icon as={TiFolderOpen} />}
+                tooltip="Open a project from your device"
             />
             <input
                 type="file"

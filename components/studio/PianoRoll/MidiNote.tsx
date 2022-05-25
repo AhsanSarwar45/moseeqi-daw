@@ -1,16 +1,12 @@
 import { Box } from "@chakra-ui/react";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { Rnd } from "react-rnd";
-
-import { GridContext } from "@Data/GridContext";
-import { secondsPerWholeNote, wholeNoteDivisions } from "@Data/Constants";
-import { BpmToBps } from "@Utility/TimeUtils";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { Snap } from "@Utility/SnapUtils";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Rnd } from "react-rnd";
 
-interface FilledCellProps {
+interface MidiNoteProps {
     note: Note;
     part: Part;
     partIndex: number;
@@ -23,7 +19,7 @@ interface FilledCellProps {
     onClick: (key: string, duration: number) => void;
 }
 
-const FilledCell = (props: FilledCellProps) => {
+export const MidiNote = (props: MidiNoteProps) => {
     const { onMoveNote, onRemoveNote } = useContext(NotesModifierContext);
 
     const [isDragging, setIsDragging] = useState(false);
@@ -32,15 +28,22 @@ const FilledCell = (props: FilledCellProps) => {
     const [snappedDraggingPosition, setSnappedDraggingPosition] = useState(
         props.note.startTime * props.currentPixelsPerSecond
     );
-    const [snappedResizingWidth, setSnappedResizingWidth] = useState(
-        props.note.duration * props.currentPixelsPerSecond
-    );
+    // const [snappedResizingWidth, setSnappedResizingWidth] = useState(
+    //     props.note.duration * props.currentPixelsPerSecond
+    // );
 
     useEffect(() => {
         setSnappedDraggingPosition(
             props.note.startTime * props.currentPixelsPerSecond
         );
-    }, [props.currentPixelsPerSecond, props.note.startTime]);
+        // setSnappedResizingWidth(
+        //     props.note.duration * props.currentPixelsPerSecond
+        // );
+    }, [
+        props.currentPixelsPerSecond,
+        // props.note.duration,
+        props.note.startTime,
+    ]);
 
     const handleRef = useRef<HTMLElement | null>(null);
 
@@ -59,9 +62,7 @@ const FilledCell = (props: FilledCellProps) => {
         <Rnd
             // pointerEvents="auto"
             size={{
-                width: isResizing
-                    ? snappedResizingWidth
-                    : props.note.duration * props.currentPixelsPerSecond,
+                width: props.note.duration * props.currentPixelsPerSecond,
                 height: props.cellHeight,
             }}
             position={{
@@ -81,10 +82,7 @@ const FilledCell = (props: FilledCellProps) => {
                 topLeft: false,
             }}
             // bounds="parent"
-            resizeGrid={[
-                props.isSnappingOn ? props.cellWidth : 1,
-                props.cellHeight,
-            ]}
+            resizeGrid={[props.isSnappingOn ? props.cellWidth : 1, 0]}
             dragGrid={[
                 props.isSnappingOn ? props.cellWidth : 1,
                 props.cellHeight,
@@ -102,7 +100,6 @@ const FilledCell = (props: FilledCellProps) => {
                 if (props.isSnappingOn) {
                     if (data.x % props.cellWidth !== 0) {
                         setIsDragging(true);
-                        console.log("drag");
                     }
                 }
             }}
@@ -133,21 +130,29 @@ const FilledCell = (props: FilledCellProps) => {
                 );
                 setIsDragging(false);
             }}
-            onResize={(e, direction, ref, delta, position) => {
-                if (props.isSnappingOn) {
-                    const width = parseInt(ref.style.width);
-                    const stopPosition = position.x + width;
-                    const snappedStopPosition = Snap(
-                        stopPosition,
-                        props.cellWidth
-                    );
-                    setSnappedResizingWidth(snappedStopPosition - position.x);
-                }
-            }}
+            // onResize={(e, direction, ref, delta, position) => {
+            //     if (props.isSnappingOn && isResizing) {
+            //         const width = parseInt(ref.style.width);
+            //         const startPosition = position.x;
+            //         const stopPosition = startPosition + width;
+
+            //         const snappedStopPosition = Snap(
+            //             stopPosition,
+            //             props.cellWidth
+            //         );
+
+            //         console.log(
+            //             startPosition,
+            //             stopPosition,
+            //             snappedStopPosition,
+            //             snappedStopPosition - startPosition
+            //         );
+            //         setSnappedResizingWidth(snappedStopPosition - position.x);
+            //         setIsResizing(false);
+            //     }
+            // }}
             onResizeStart={(e, direction, ref) => {
-                if (props.isSnappingOn) {
-                    setIsResizing(true);
-                }
+                setIsResizing(true);
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 const width = parseInt(ref.style.width);
@@ -173,11 +178,7 @@ const FilledCell = (props: FilledCellProps) => {
             minWidth={props.cellWidth / 2 - 1}
         >
             <Box
-                // pointerEvents="auto"
                 ref={handleRef as any}
-                // className={`cellHandle${props.note.time}${props.note.noteIndex}`}
-                // cursor="url(https://icons.iconarchive.com/icons/fatcow/farm-fresh/32/draw-eraser-icon.png) -80 40, auto"
-                // cursor="move"
                 height="full"
                 borderRadius="sm"
                 borderWidth="1px"
@@ -188,65 +189,7 @@ const FilledCell = (props: FilledCellProps) => {
                     return false;
                 }}
                 zIndex={9999}
-                // onClick={() => props.onClick(props.note.note, props.note.duration)}
-            >
-                {/* {`${index} ${note.time} ${MusicNotes[note.noteIndex]}`} */}
-            </Box>
+            />
         </Rnd>
     );
 };
-
-interface PianoRollProps {
-    partIndex: number;
-    part: Part;
-    rowHeight: number;
-    cellWidth: number;
-    gridHeight: number;
-    isSnappingOn: boolean;
-    pixelsPerSecond: number;
-    currentPixelsPerSecond: number;
-    onFilledNoteClick: (key: string, duration: number) => void;
-}
-
-const PianoRollPartView = (props: PianoRollProps) => {
-    return (
-        // <Box key={partIndex} >
-        <Box
-            key={props.partIndex}
-            position="absolute"
-            left={props.part.startTime * props.currentPixelsPerSecond}
-        >
-            <Box
-                borderWidth={1}
-                zIndex={9998}
-                position="absolute"
-                pointerEvents="none"
-                width={
-                    (props.part.stopTime - props.part.startTime) *
-                        props.currentPixelsPerSecond +
-                    1
-                }
-                height={props.gridHeight}
-                bgColor="rgba(255,0,0,0.05)"
-            />
-
-            {props.part.notes.map((note: Note, noteIndex: number) => (
-                <FilledCell
-                    key={note.id}
-                    note={note}
-                    noteIndex={noteIndex}
-                    part={props.part}
-                    isSnappingOn={props.isSnappingOn}
-                    partIndex={props.partIndex}
-                    cellHeight={props.rowHeight}
-                    cellWidth={props.cellWidth}
-                    onClick={props.onFilledNoteClick}
-                    pixelsPerSecond={props.pixelsPerSecond}
-                    currentPixelsPerSecond={props.currentPixelsPerSecond}
-                />
-            ))}
-        </Box>
-    );
-};
-
-export default PianoRollPartView;

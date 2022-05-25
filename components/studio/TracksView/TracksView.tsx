@@ -16,9 +16,9 @@ import Ruler from "@scena/react-ruler";
 import * as Tone from "tone";
 import { useState } from "react";
 
-import { AddTrackModal } from "@Components/studio/AddTrackModal";
+import { AddTrackModal } from "./AddTrackModal";
 import { Track } from "@Interfaces/Track";
-import SeekHandle from "./SeekHandle";
+import SeekHandle from "@Components/studio/SeekHandle";
 import { Panel } from "@Interfaces/Panel";
 import { PartSelectionIndex } from "@Interfaces/Selection";
 import PartView from "./PartView";

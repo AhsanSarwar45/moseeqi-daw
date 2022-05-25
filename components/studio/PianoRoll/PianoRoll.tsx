@@ -2,36 +2,19 @@ import {
     useState,
     useEffect,
     useRef,
-    memo,
     useCallback,
     useContext,
     ReactNode,
 } from "react";
-import {
-    HStack,
-    Icon,
-    Container,
-    Box,
-    Flex,
-    useRadioGroup,
-    Button,
-    IconButton,
-    Tooltip,
-    VStack,
-    ButtonGroup,
-} from "@chakra-ui/react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { FixedSizeGrid as Grid } from "react-window";
+import { HStack, Icon, Box, Flex, VStack, ButtonGroup } from "@chakra-ui/react";
 import Ruler from "@scena/react-ruler";
 
 import { BiMagnet, BiTrash } from "react-icons/bi";
 
-import { MusicNotes } from "@Instruments/Instruments";
+import { PianoKeys } from "@Data/Constants";
 import { Track } from "@Interfaces/Track";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
-import { GridContext } from "@Data/GridContext";
 import { PlaybackState } from "@Types/Types";
-import { KeysView, Row, TimeLine } from "./PianoRollGrid";
 import { Panel } from "@Interfaces/Panel";
 import ToggleButton from "@Components/ToggleButton";
 import {
@@ -47,51 +30,12 @@ import {
     WholeNoteIcon,
 } from "@Components/icons/Notes";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import Theme from "@Theme/index.ts";
 import PianoRollPartView from "./PianoRollPartView";
 import { SnapDown } from "@Utility/SnapUtils";
-
-const numRows = MusicNotes.length;
-const colors = MusicNotes.map((x) =>
-    x.includes("#") ? "primary.600" : "primary.500"
-);
-
-interface GridCellProps {
-    data: any; // TODO: Remove any
-    rowIndex: number;
-    columnIndex: number;
-    style: any; // TODO: Remove any
-}
-
-const GridCell = memo((props: GridCellProps) => {
-    const { onAddNote } = useContext(NotesModifierContext);
-    const { currentPixelsPerSecond, columnWidth } = useContext(GridContext);
-
-    const HandleOnClick = () => {
-        onAddNote(
-            (props.columnIndex * columnWidth) / currentPixelsPerSecond,
-            props.rowIndex,
-            props.data.divisor
-        );
-    };
-    return (
-        <Box
-            onClick={HandleOnClick}
-            bgColor={colors[props.rowIndex]}
-            zIndex={500 - props.columnIndex}
-            style={props.style}
-            // boxShadow={props.columnIndex % 8 === 7 ? "1px 0 0" : "0"}
-            borderColor="primary.700"
-            // borderBottomWidth="1px"
-            borderRightWidth="1px"
-            cursor="url(https://cur.cursors-4u.net/cursors/cur-11/cur1046.cur), auto"
-        />
-    );
-});
-
-GridCell.displayName = "GridCell";
-
-GridContext.displayName = "StickyGridContext";
+import { KeysView } from "./KeysView";
+import { Row } from "./Row";
+import { Timeline } from "./Timeline";
+import TooltipButton from "@Components/Button";
 
 interface PianoRollProps {
     track: Track;
@@ -111,13 +55,13 @@ interface DrawLengthOption {
     icon: ReactNode;
 }
 
-const PianoRoll = memo((props: PianoRollProps) => {
+const PianoRoll = (props: PianoRollProps) => {
     const columnWidth = 40;
     const whiteKeyHeight = 30;
     const stickyHeight = "30px";
     const stickyWidth = 120;
-    const numNotes = MusicNotes.length;
-    const numWhiteNotes = MusicNotes.filter(
+    const numNotes = PianoKeys.length;
+    const numWhiteNotes = PianoKeys.filter(
         (label) => !label.includes("#")
     ).length;
     const gridHeight = numWhiteNotes * whiteKeyHeight;
@@ -244,17 +188,14 @@ const PianoRoll = memo((props: PianoRollProps) => {
                         );
                     })}
                 </ButtonGroup>
-                <Button
-                    aria-label="Clear notes"
-                    colorScheme={"secondary"}
+                <TooltipButton
+                    ariaLabel="Clear project"
                     onClick={onClearNotes}
-                    size="sm"
-                    fontWeight={400}
-                    fontSize="md"
-                    leftIcon={<Icon as={BiTrash} />}
-                >
-                    Clear
-                </Button>
+                    label="Clear"
+                    icon={<Icon as={BiTrash} />}
+                    tooltip="Clear all the notes in the piano roll"
+                />
+
                 <ToggleButton
                     tooltipLabel={"Snap to grid"}
                     onClick={() => setIsSnappingOn(!isSnappingOn)}
@@ -285,7 +226,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
                 />
 
                 <VStack alignItems="flex-start" spacing={0}>
-                    <TimeLine
+                    <Timeline
                         gridHeight={gridHeight}
                         height={stickyHeight}
                         stickyWidth={stickyWidth}
@@ -333,7 +274,7 @@ const PianoRoll = memo((props: PianoRollProps) => {
                             height={gridHeight}
                             zIndex={0}
                         >
-                            {MusicNotes.map((label, index) => {
+                            {PianoKeys.map((label, index) => {
                                 return (
                                     <Row
                                         key={label}
@@ -396,63 +337,8 @@ const PianoRoll = memo((props: PianoRollProps) => {
                     </Box>
                 </VStack>
             </HStack>
-
-            {/* <Container
-                margin={0}
-                padding={0}
-                height="full"
-                width="full"
-                maxWidth="full"
-                overflow="hidden"
-            > */}
-
-            {/* <AutoSizer>
-                    {({ height, width }: { height: number; width: number }) => (
-                        <GridContext.Provider
-                            value={{
-                                stickyHeight: 30,
-                                stickyWidth: 150,
-                                columnWidth: columnWidth,
-                                rowHeight: rowHeight,
-                                gridWidth: columnWidth * props.numCols,
-                                gridHeight: rowHeight * MusicNotes.length,
-                                isSnappingOn: isSnappingOn,
-                                onKeyDown: OnKeyDown,
-                                onKeyUp: OnKeyUp,
-                                playbackState: props.playbackState,
-                                seek: props.seek,
-                                setSeek: props.setSeek,
-                                parts: props.track.parts,
-                                onFilledNoteClick: OnNoteClick,
-                                currentPixelsPerSecond: currentPixelsPerSecond,
-                                pixelsPerSecond: pixelsPerSecond,
-                            }}
-                        >
-                            <Grid
-                                ref={gridRef}
-                                columnCount={props.numCols}
-                                rowCount={numRows}
-                                height={height}
-                                width={width}
-                                columnWidth={columnWidth}
-                                rowHeight={rowHeight}
-                                innerElementType={PianoRollGrid}
-                                itemData={{
-                                    divisor:
-                                        options[selectedDrawLengthIndex]
-                                            .divisor,
-                                }}
-                            >
-                                {GridCell}
-                            </Grid>
-                        </GridContext.Provider>
-                    )}
-                </AutoSizer> */}
-            {/* </Container> */}
         </Flex>
     );
-});
-
-PianoRoll.displayName = "PianoRoll";
+};
 
 export default PianoRoll;

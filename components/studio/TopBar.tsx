@@ -1,6 +1,4 @@
 import {
-    ButtonGroup,
-    Button,
     HStack,
     Heading,
     Icon,
@@ -10,6 +8,7 @@ import {
     InputGroup,
     InputRightElement,
 } from "@chakra-ui/react";
+import TooltipButton from "@Components/Button";
 import FileUploader from "@Components/FIleUploader";
 import { useEffect, useState } from "react";
 import { IoMdSave } from "react-icons/io";
@@ -30,11 +29,10 @@ export const TopBar = (props: TopBarProps) => {
 
     return (
         <HStack
-            height="20px"
             width="full"
             flexShrink={0}
-            padding={5}
-            spacing={5}
+            padding={2}
+            spacing={2}
             bg="brand.primary"
             justifyContent="start"
             zIndex={9999}
@@ -55,13 +53,14 @@ export const TopBar = (props: TopBarProps) => {
             />
 
             <Spacer />
-            <Icon
-                as={IoMdSave}
-                color="White"
-                h={30}
-                w={30}
+            <TooltipButton
+                ariaLabel="Save project"
                 onClick={props.onSave}
+                label="Save"
+                icon={<Icon as={IoMdSave} />}
+                tooltip="Download the project to your device"
             />
+
             <FileUploader onFileUpload={props.onOpen} />
         </HStack>
     );

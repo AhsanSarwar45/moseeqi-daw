@@ -5,11 +5,11 @@ import * as Tone from "tone";
 import { saveAs } from "file-saver";
 
 import { PlayBackController } from "@Components/studio/PlaybackController";
-import PianoRoll from "@Components/studio/PianoRoll";
-import TracksView from "@Components/studio/TracksView";
+import PianoRoll from "@Components/studio/PianoRoll/PianoRoll";
+import TracksView from "@Components/studio/TracksView/TracksView";
 import { PropertiesPanel } from "@Components/studio/PropertiesPanel";
 import { WaitingModal } from "@Components/WaitingModal";
-import { Instruments, MusicNotes } from "@Instruments/Instruments";
+import { Instruments } from "@Instruments/Instruments";
 import { Track } from "@Interfaces/Track";
 import { PlaybackState } from "@Types/Types";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
@@ -17,6 +17,7 @@ import { Note } from "@Interfaces/Note";
 import {
     defaultBPM,
     divisionsPerSecond,
+    PianoKeys,
     secondsPerDivision,
     wholeNoteDivisions,
 } from "@Data/Constants";
@@ -509,7 +510,7 @@ const Studio = () => {
         // console.log("Note added", column, row, divisor);
 
         // TODO: inconsistent naming
-        const key = MusicNotes[row];
+        const key = PianoKeys[row];
 
         // We need a copy as we cannot mutate the original
         let tracksCopy = [...tracks];
@@ -564,14 +565,10 @@ const Studio = () => {
         stopTime: number,
         row: number
     ) => {
-        console.log("Note moved to", startTime);
         let part = tracks[selectedTrackIndex].parts[partIndex];
-        const key = MusicNotes[row];
+        const key = PianoKeys[row];
 
         let tracksCopy = [...tracks];
-        // let tracksCopy2 = [...tracks];
-
-        // console.log(tracksCopy2);
 
         const note = part.notes[noteIndex];
         note.key = key;
@@ -604,8 +601,6 @@ const Studio = () => {
         });
 
         tracksCopy[selectedTrackIndex].parts[partIndex] = part;
-
-        // console.log(tracksCopy);
 
         setTracks(tracksCopy);
 
