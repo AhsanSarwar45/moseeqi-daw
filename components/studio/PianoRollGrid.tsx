@@ -271,7 +271,7 @@ export const TimeLine = (props: TimelineProps) => {
                 height={props.gridHeight}
                 playbackState={props.playbackState}
                 seek={props.seek}
-                scale={12}
+                scale={props.columnWidth / 5}
                 setSeek={props.setSeek}
             />
             <Ruler

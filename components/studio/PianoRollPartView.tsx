@@ -95,7 +95,7 @@ const FilledCell = (props: FilledCellProps) => {
             ]}
             onDrag={(event, data) => {
                 if (props.isSnappingOn) {
-                    if (isResizing) {
+                    if (isDragging) {
                         setSnappedDraggingPosition(
                             Snap(data.x, props.cellWidth)
                         );
@@ -106,6 +106,7 @@ const FilledCell = (props: FilledCellProps) => {
                 if (props.isSnappingOn) {
                     if (data.x % props.cellWidth !== 0) {
                         setIsDragging(true);
+                        console.log("drag");
                     }
                 }
             }}
