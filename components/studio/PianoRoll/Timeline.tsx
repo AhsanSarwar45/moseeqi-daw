@@ -4,7 +4,7 @@ import { PianoKeys } from "@Data/Constants";
 import SeekHandle from "../SeekHandle";
 import Ruler from "@scena/react-ruler";
 import Theme from "@Theme/index.ts";
-import { Dimension } from "@Interfaces/Dimensions";
+import { Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
 import {
     blackKeyHeightModifier,

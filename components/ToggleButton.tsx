@@ -1,5 +1,5 @@
 import { Box, IconButton, Tooltip } from "@chakra-ui/react";
-import { Dimension } from "@Interfaces/Dimensions";
+import { Dimension } from "@Types/Types";
 import React, { forwardRef, HTMLAttributes, ReactNode } from "react";
 
 interface ToggleButtonProps extends HTMLAttributes<HTMLDivElement> {

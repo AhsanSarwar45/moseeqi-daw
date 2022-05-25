@@ -1,7 +1,7 @@
 import { Flex } from "@chakra-ui/react";
 import { blackKeyHeightModifier, blackKeyWidthModifier } from "@Data/Constants";
 import { KeyType } from "@Interfaces/KeyType";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 
 interface KeyProps {
     label: string;
@@ -58,6 +58,14 @@ export const Key = (props: KeyProps) => {
             userSelect="none"
             onMouseDown={() => props.onKeyDown(props.label)}
             onMouseUp={() => props.onKeyUp(props.label)}
+            onMouseLeave={(event) => {
+                if (event.buttons === 1) props.onKeyUp(props.label);
+            }}
+            onMouseEnter={(event) => {
+                if (event.buttons === 1) {
+                    props.onKeyDown(props.label);
+                }
+            }}
             justifyContent="right"
             alignItems="center"
             paddingRight="5px"
