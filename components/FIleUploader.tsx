@@ -23,7 +23,7 @@ const FileUploader = (props: FileUploaderProps) => {
     return (
         <>
             <TooltipButton
-                ariaLabel="Open project"
+                aria-label="Open project"
                 onClick={HandleClick}
                 label="Open"
                 icon={<Icon as={TiFolderOpen} />}

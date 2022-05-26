@@ -189,7 +189,7 @@ const PianoRoll = (props: PianoRollProps) => {
                     })}
                 </ButtonGroup>
                 <TooltipButton
-                    ariaLabel="Clear project"
+                    aria-label="Clear project"
                     onClick={onClearNotes}
                     label="Clear"
                     icon={<Icon as={BiTrash} />}

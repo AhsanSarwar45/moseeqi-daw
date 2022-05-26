@@ -274,7 +274,7 @@ const TracksView = memo((props: TracksViewProps) => {
                         zIndex={9300}
                     >
                         <TooltipButton
-                            ariaLabel="Add track"
+                            aria-label="Add track"
                             onClick={onOpen}
                             label=""
                             icon={<Icon as={TiPlus} />}
@@ -283,7 +283,7 @@ const TracksView = memo((props: TracksViewProps) => {
                             size="xs"
                         />
                         <TooltipButton
-                            ariaLabel="Duplicate track"
+                            aria-label="Duplicate track"
                             onClick={onOpen}
                             label=""
                             icon={<Icon as={BiDuplicate} />}

@@ -4,9 +4,9 @@ import { Button, Spacer, Tooltip } from "@chakra-ui/react";
 interface ButtonProps {
     onClick: (event: any) => void;
     label: string;
-    ariaLabel: string;
+    "aria-label"?: string;
     icon?: React.ReactNode;
-    tooltip: string;
+    tooltip?: string;
     fontSize?: string;
     size?: string;
     textColor?: string;
@@ -16,7 +16,7 @@ const TooltipButton = (props: ButtonProps) => {
     return (
         <Tooltip label={props.tooltip}>
             <Button
-                aria-label="Save project"
+                aria-label={props["aria-label"]}
                 colorScheme={"secondary"}
                 onClick={props.onClick}
                 size={props.size}
@@ -38,6 +38,8 @@ TooltipButton.defaultProps = {
     size: "sm",
     icon: null,
     textColor: "white",
+    tooltip: "",
+    "aria-label": "",
 };
 
 export default TooltipButton;
