@@ -1,6 +1,6 @@
-import { Icon } from "@chakra-ui/react";
+import { Icon, IconProps } from "@chakra-ui/react";
 
-export const WholeNoteIcon = (props: any) => {
+export const WholeNoteIcon = (props: IconProps) => {
     return (
         <Icon viewBox="0 0 60 37.8" {...props}>
             <path
@@ -11,7 +11,7 @@ export const WholeNoteIcon = (props: any) => {
     );
 };
 
-export const HalfNoteIcon = (props: any) => {
+export const HalfNoteIcon = (props: IconProps) => {
     return (
         <Icon viewBox="0 0 35.9 79.7" {...props}>
             <path
@@ -22,7 +22,7 @@ export const HalfNoteIcon = (props: any) => {
     );
 };
 
-export const QuarterNoteIcon = (props: any) => {
+export const QuarterNoteIcon = (props: IconProps) => {
     return (
         <Icon viewBox="0 0 35.9 79.7" {...props}>
             <path
@@ -33,7 +33,7 @@ export const QuarterNoteIcon = (props: any) => {
     );
 };
 
-export const EighthNoteIcon = (props: any) => {
+export const EighthNoteIcon = (props: IconProps) => {
     return (
         <Icon viewBox="0 0 56 78.8" {...props}>
             <path

@@ -19,6 +19,12 @@ const Theme = extendTheme({
 			accent2: '#53354A'
 		},
 
+		text: {
+			primary: "white",
+			secondary: "rgba(255,255,255,0.6)",
+			inactive: "rgba(255,255,255,0.3)",
+		},
+
 		primary: {
 			100: '#50568b',
 			200: '#474c7a',
@@ -64,6 +70,18 @@ const Theme = extendTheme({
 				}
 			},
 			defaultProps: {}
+		},
+
+		Text: {
+			baseStyle: {
+				textColor: 'text.primary',
+			}
+		},
+
+		MenuItem: {
+			defaultProps: {
+				textColor: 'text.primary',
+			}
 		}
 	}
 });

@@ -1,19 +1,15 @@
 import { Icon } from "@chakra-ui/react";
 
-import { useRef } from "react";
-import { TiFolderOpen } from "react-icons/ti";
+import { forwardRef, ReactNode, useRef } from "react";
+
 import TooltipButton from "./TooltipButton";
 
 interface FileUploaderProps {
+    display: ReactNode;
     onFileUpload: (file: any) => void;
 }
 
-const FileUploader = (props: FileUploaderProps) => {
-    const hiddenFileInput = useRef<any>(null);
-
-    const HandleClick = (event: any) => {
-        hiddenFileInput.current.click();
-    };
+const FileUploader = forwardRef((props: FileUploaderProps, ref) => {
     const HandleChange = (event: any) => {
         if (event.target.files.length > 0) {
             const file = event.target.files[0];
@@ -22,22 +18,18 @@ const FileUploader = (props: FileUploaderProps) => {
     };
     return (
         <>
-            <TooltipButton
-                aria-label="Open project"
-                onClick={HandleClick}
-                label="Open"
-                icon={<Icon as={TiFolderOpen} />}
-                tooltip="Open a project from your device"
-            />
+            {props.display}
             <input
                 type="file"
-                ref={hiddenFileInput}
+                ref={ref as any}
                 onChange={HandleChange}
                 style={{ display: "none" }}
                 accept=".msq"
             />
         </>
     );
-};
+});
+
+FileUploader.displayName = "FileUploader";
 
 export default FileUploader;

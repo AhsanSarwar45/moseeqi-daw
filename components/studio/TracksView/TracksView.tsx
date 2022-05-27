@@ -106,6 +106,7 @@ interface TracksViewProps {
     seek: number;
     setSeek: (seek: number) => void;
     onAddTrack: (instrument: number) => void;
+    onDuplicateSelectedTrack: () => void;
     selected: number;
     setSelected: (trackIndex: number) => void;
     activeWidth: number;
@@ -284,7 +285,7 @@ const TracksView = memo((props: TracksViewProps) => {
                         />
                         <TooltipButton
                             aria-label="Duplicate track"
-                            onClick={onOpen}
+                            onClick={props.onDuplicateSelectedTrack}
                             label=""
                             icon={<Icon as={BiDuplicate} />}
                             tooltip="Duplicate selected track"

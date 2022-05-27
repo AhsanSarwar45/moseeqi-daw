@@ -187,8 +187,6 @@ const Studio = () => {
         return {
             name: instrument.name,
             instrument: instrument,
-            // This will be populated in a tracks useEffect. We need to do this because we need to reference the sampler
-            // TODO: This might not be true. Need to test a simpler alternative.
             parts: [
                 {
                     id: getPartId(),
@@ -651,6 +649,65 @@ const Studio = () => {
         setTracks(tracksCopy);
     };
 
+    const DuplicateSelectedTrack = () => {
+        setIsInstrumentLoading(1);
+        let tracksCopy = [...tracks];
+        const selectedTrack = tracksCopy[selectedTrackIndex];
+
+        // Causes the loading modal to show
+
+        const instrument = selectedTrack.instrument;
+
+        const meter = new Tone.Meter();
+
+        const sampler = new Tone.Sampler({
+            urls: instrument.urls as any,
+            release: instrument.release,
+            attack: instrument.attack,
+            onload: () => {
+                // Causes the loading modal to close
+                setIsInstrumentLoading(0);
+            },
+        })
+            .toDestination()
+            .connect(meter);
+
+        const parts = selectedTrack.parts.map((part) => {
+            const tonePart = new Tone.Part((time, value: any) => {
+                sampler.triggerAttackRelease(
+                    value.note,
+                    value.duration,
+                    time,
+                    value.velocity
+                );
+            }, [])
+                .start(part.startTime)
+                .stop(part.stopTime);
+
+            return {
+                id: getPartId(),
+                tonePart: tonePart,
+                startTime: part.startTime,
+                stopTime: part.stopTime,
+                notes: part.notes,
+            };
+        });
+
+        const newTrack = {
+            name: instrument.name,
+            instrument: instrument,
+            parts: parts,
+            sampler: sampler,
+            meter: meter,
+            muted: false,
+            soloed: false,
+            soloMuted: false,
+        };
+
+        tracksCopy.push(newTrack);
+        setTracks(tracksCopy);
+    };
+
     return (
         <Fragment>
             <NotesModifierContext.Provider
@@ -702,6 +759,9 @@ const Studio = () => {
                                         setActiveWidth={setActiveWidth}
                                         toggleMute={ToggleMuteAtIndex}
                                         toggleSolo={ToggleSoloAtIndex}
+                                        onDuplicateSelectedTrack={
+                                            DuplicateSelectedTrack
+                                        }
                                         focusedPanel={focusedPanel}
                                         setFocusedPanel={setFocusedPanel}
                                         selectedPartIndices={
