@@ -4,6 +4,8 @@ import FileUploader from "@Components/FIleUploader";
 import { useEffect, useState } from "react";
 import { IoMdSave, IoMdHelpCircleOutline } from "react-icons/io";
 import HelpModal from "@Components/HelpModal";
+import MoseeqiLogo from "@Logos/MoseeqiLogo.svg";
+import { useTheme } from "@chakra-ui/react";
 
 interface TopBarProps {
     onSave: () => void;
@@ -15,6 +17,7 @@ interface TopBarProps {
 export const TopBar = (props: TopBarProps) => {
     const [fileName, setFileName] = useState(props.fileName);
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const theme = useTheme();
 
     useEffect(() => {
         setFileName(props.fileName);
@@ -33,6 +36,11 @@ export const TopBar = (props: TopBarProps) => {
                 zIndex={9999}
                 boxShadow="md"
             >
+                <MoseeqiLogo
+                    width="2rem"
+                    stroke={theme.colors.brand.secondary}
+                    fill="none"
+                />
                 <Spacer />
                 <Input
                     width="20%"
