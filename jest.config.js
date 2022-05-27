@@ -18,7 +18,16 @@ const customJestConfig = {
         '^@Theme/(.*)$': '<rootDir>/theme/$1',
         '^@Assets/(.*)$': '<rootDir>/assets/$1',
         '^@Tests/(.*)$': '<rootDir>/tests/$1',
-    }
+    },
+    collectCoverageFrom: [
+        '**/*.{js,jsx,ts,tsx}',
+        '!**/*.d.ts',
+        '!**/node_modules/**',
+        '!**/.next/**',
+        '!**/cypress/**',
+        '!**/tests/**',
+        '!**/coverage/**',
+    ],
 }
 
 
