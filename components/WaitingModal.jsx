@@ -25,7 +25,7 @@ export const WaitingModal = ({ isOpen, onClose }) => {
 							color="brand.secondary"
 							size="xl"
 						/>
-						<Text color="white">Loading Instrument...</Text>
+						<Text color="white">Loading Instruments...</Text>
 					</HStack>
 				</ModalBody>
 			</ModalContent>

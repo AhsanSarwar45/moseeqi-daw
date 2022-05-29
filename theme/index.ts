@@ -57,18 +57,12 @@ const Theme = extendTheme({
 		Button: {
 			baseStyle: {
 				borderRadius: 'sm',
-				fontWeight: 'bold'
+				fontWeight: 'bold',
+
 			}
 		},
 		Input: {
-			sizes: {
-				md: {
-					field: {
-						height: 12,
-						borderRadius: 'sm'
-					}
-				}
-			},
+			
 			defaultProps: {}
 		},
 
@@ -77,10 +71,19 @@ const Theme = extendTheme({
 				textColor: 'text.primary',
 			}
 		},
+		Menu: {
+			baseStyle: {
+				item: {
+					textColor: 'text.primary',
+					_focus: {
+						bgColor: "primary.700"
+					},
+					_active: {
+						bgColor: "primary.700"
+					}
 
-		MenuItem: {
-			defaultProps: {
-				textColor: 'text.primary',
+				}
+				
 			}
 		}
 	}

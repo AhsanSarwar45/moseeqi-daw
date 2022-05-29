@@ -1,11 +1,4 @@
-import {
-    ButtonGroup,
-    Flex,
-    HStack,
-    Heading,
-    IconButton,
-    Box,
-} from "@chakra-ui/react";
+import { ButtonGroup, Flex, HStack, IconButton } from "@chakra-ui/react";
 import {
     NumberInput,
     NumberIncrementStepper,
@@ -20,9 +13,11 @@ import {
     TiMediaPause,
     TiMediaStop,
 } from "react-icons/ti";
-import { PlaybackState } from "@Types/Types";
 import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
+import { useHotkeys } from "react-hotkeys-hook";
+
+import { PlaybackState } from "@Types/Types";
 
 interface PlayBackControllerProps {
     playbackState: PlaybackState;

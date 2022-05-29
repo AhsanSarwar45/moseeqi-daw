@@ -10,11 +10,13 @@ import {
     MenuList,
     MenuItem,
     MenuDivider,
+    Box,
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { IoMdSave, IoMdHelpCircleOutline } from "react-icons/io";
 import { useTheme } from "@chakra-ui/react";
 import { TiFolderOpen } from "react-icons/ti";
+import { RiFileAddLine } from "react-icons/ri";
 import { BiCopy, BiPaste, BiExit, BiUndo, BiRedo } from "react-icons/bi";
 
 import HelpModal from "@Components/HelpModal";
@@ -25,6 +27,7 @@ import FileUploader from "@Components/FIleUploader";
 interface TopBarProps {
     onSave: () => void;
     onOpen: (file: any) => void;
+    onNew: () => void;
     fileName: string;
     onSetFileName: (fileName: string) => void;
 }
@@ -59,107 +62,87 @@ export const TopBar = (props: TopBarProps) => {
                     stroke={"brand.secondary"}
                     strokeWidth="0.5rem"
                 />
-                <Menu colorScheme="primary">
-                    <MenuButton>
-                        <Text>File</Text>
-                    </MenuButton>
+                <Box>
+                    <Menu colorScheme="primary">
+                        <MenuButton>
+                            <Text>File</Text>
+                        </MenuButton>
 
-                    <MenuList bgColor="primary.500">
-                        <MenuItem
-                            icon={<IoMdSave />}
-                            command="⌘+S"
-                            onClick={props.onSave}
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Save</Text>
-                        </MenuItem>
+                        <MenuList bgColor="primary.500">
+                            <MenuItem
+                                icon={<RiFileAddLine />}
+                                command="⌘+N"
+                                onClick={props.onNew}
+                            >
+                                <Text>New</Text>
+                            </MenuItem>
+                            <MenuItem
+                                icon={<IoMdSave />}
+                                command="⌘+S"
+                                onClick={props.onSave}
+                            >
+                                <Text>Save</Text>
+                            </MenuItem>
 
-                        <MenuItem
-                            icon={<TiFolderOpen />}
-                            command="⌘+O"
-                            onClick={() => fileInputRef.current.click()}
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <FileUploader
-                                ref={fileInputRef}
-                                onFileUpload={props.onOpen}
-                                display={<Text>Open</Text>}
-                            />
-                        </MenuItem>
-                        <MenuDivider />
-                        <MenuItem
-                            icon={<BiExit />}
-                            command="⌘+Q"
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Exit</Text>
-                        </MenuItem>
-                    </MenuList>
-                </Menu>
-                <Menu colorScheme="primary">
-                    <MenuButton>
-                        <Text>Edit</Text>
-                    </MenuButton>
+                            <MenuItem
+                                icon={<TiFolderOpen />}
+                                command="⌘+O"
+                                onClick={() => fileInputRef.current.click()}
+                            >
+                                <FileUploader
+                                    ref={fileInputRef}
+                                    onFileUpload={props.onOpen}
+                                    display={<Text>Open</Text>}
+                                />
+                            </MenuItem>
+                            <MenuDivider />
+                            <MenuItem icon={<BiExit />} command="⌘+Q">
+                                <Text>Exit</Text>
+                            </MenuItem>
+                        </MenuList>
+                    </Menu>
+                </Box>
 
-                    <MenuList bgColor="primary.500">
-                        <MenuItem
-                            icon={<BiUndo />}
-                            command="⌘+Z"
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Undo</Text>
-                        </MenuItem>
-                        <MenuItem
-                            icon={<BiRedo />}
-                            command="⌘+Shift+Z"
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Redo</Text>
-                        </MenuItem>
-                        <MenuDivider />
-                        <MenuItem
-                            icon={<BiCopy />}
-                            command="⌘+C"
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Copy</Text>
-                        </MenuItem>
-                        <MenuItem
-                            icon={<BiPaste />}
-                            command="⌘+V"
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Paste</Text>
-                        </MenuItem>
-                    </MenuList>
-                </Menu>
-                <Menu colorScheme="primary">
-                    <MenuButton>
-                        <Text>Tutorials</Text>
-                    </MenuButton>
+                <Box>
+                    <Menu colorScheme="primary">
+                        <MenuButton>
+                            <Text>Edit</Text>
+                        </MenuButton>
 
-                    <MenuList bgColor="primary.500">
-                        <MenuItem
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Basics</Text>
-                        </MenuItem>
-                        <MenuItem
-                            textColor="text.primary"
-                            _focus={{ bgColor: "primary.700" }}
-                        >
-                            <Text>Piano Roll</Text>
-                        </MenuItem>
-                    </MenuList>
-                </Menu>
+                        <MenuList bgColor="primary.500">
+                            <MenuItem icon={<BiUndo />} command="⌘+Z">
+                                <Text>Undo</Text>
+                            </MenuItem>
+                            <MenuItem icon={<BiRedo />} command="⌘+Shift+Z">
+                                <Text>Redo</Text>
+                            </MenuItem>
+                            <MenuDivider />
+                            <MenuItem icon={<BiCopy />} command="⌘+C">
+                                <Text>Copy</Text>
+                            </MenuItem>
+                            <MenuItem icon={<BiPaste />} command="⌘+V">
+                                <Text>Paste</Text>
+                            </MenuItem>
+                        </MenuList>
+                    </Menu>
+                </Box>
+
+                <Box>
+                    <Menu colorScheme="primary">
+                        <MenuButton>
+                            <Text>Tutorials</Text>
+                        </MenuButton>
+
+                        <MenuList bgColor="primary.500">
+                            <MenuItem>
+                                <Text>Basics</Text>
+                            </MenuItem>
+                            <MenuItem>
+                                <Text>Piano Roll</Text>
+                            </MenuItem>
+                        </MenuList>
+                    </Menu>
+                </Box>
 
                 <Spacer />
                 <Input
@@ -170,6 +153,7 @@ export const TopBar = (props: TopBarProps) => {
                     onBlur={() => props.onSetFileName(fileName)}
                     textColor="white"
                     size="lg"
+                    borderRadius="sm"
                     paddingX={2}
                     _hover={{ bg: "primary.700" }}
                     textAlign="center"

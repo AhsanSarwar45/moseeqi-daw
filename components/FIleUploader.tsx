@@ -11,10 +11,15 @@ interface FileUploaderProps {
 
 const FileUploader = forwardRef((props: FileUploaderProps, ref) => {
     const HandleChange = (event: any) => {
-        if (event.target.files.length > 0) {
-            const file = event.target.files[0];
-            props.onFileUpload(file);
+        console.log("f");
+        const element = event.target as HTMLInputElement;
+        if (element.files) {
+            if (element.files.length > 0) {
+                const file = element.files[0];
+                props.onFileUpload(file);
+            }
         }
+        element.value = "";
     };
     return (
         <>

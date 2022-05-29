@@ -1,9 +1,13 @@
-import React, { Fragment, useRef, useEffect, memo } from "react";
+import React, {
+    Fragment,
+    useRef,
+    useEffect,
+    memo,
+    useCallback,
+    useMemo,
+} from "react";
 import {
-    Button,
-    Flex,
     Text,
-    IconButton,
     Box,
     VStack,
     HStack,
@@ -27,78 +31,9 @@ import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
 import ToggleButton from "@Components/ToggleButton";
-
-interface MeterProps {
-    width: number | string;
-    meter: Tone.Meter;
-    fillColor: string;
-    bgColor: string;
-    borderColor: string;
-    borderWidth: number | string;
-}
-
-const Meter = (props: MeterProps) => {
-    const meterAnimationRef = useRef(0);
-    const metersRef = useRef<Array<HTMLDivElement>>([]);
-    // const maxHeight =
-
-    useEffect(() => {
-        meterAnimationRef.current = requestAnimationFrame(function animate() {
-            const values = props.meter.getValue();
-
-            if (props.meter.channels > 1) {
-                const values_list = values as Array<number>;
-                for (let index = 0; index < values_list.length; index++) {
-                    metersRef.current[index].style.height = `${
-                        values_list[index] + 100
-                    }%`;
-                }
-            } else {
-                const value = values as number;
-                metersRef.current[0].style.height = `${value + 100}%`;
-            }
-
-            //	metersRef.current.style.height = `${meter.getValue() + 100}%`;
-
-            meterAnimationRef.current = requestAnimationFrame(animate);
-        });
-        return () => {
-            cancelAnimationFrame(meterAnimationRef.current);
-        };
-    }, [props.meter]);
-
-    useEffect(() => {
-        metersRef.current = metersRef.current.slice(0, props.meter.channels);
-    }, [props.meter]);
-
-    return (
-        <HStack top={1} spacing={1} position="absolute" bottom={1} right={1}>
-            {[...Array(props.meter.channels)].map((channel, i) => (
-                <Box
-                    height="100%"
-                    width={props.width}
-                    bgColor={props.bgColor}
-                    position="relative"
-                    borderColor={props.borderColor}
-                    borderWidth={props.borderWidth}
-                    key={i}
-                    //id={`meter${i}`}
-                >
-                    <Box
-                        ref={(el) =>
-                            (metersRef.current[i] = el as HTMLDivElement)
-                        }
-                        position="absolute"
-                        bottom={0}
-                        // height={`${meterHeight + 100}%`}
-                        width="100%"
-                        bgColor={props.fillColor}
-                    />
-                </Box>
-            ))}
-        </HStack>
-    );
-};
+import { useHotkeys } from "react-hotkeys-hook";
+import { HotKeys } from "react-hotkeys-ce";
+import Meter from "./Meter";
 
 interface TracksViewProps {
     tracks: Array<Track>;
@@ -120,9 +55,10 @@ interface TracksViewProps {
     setTracks: (tracks: Array<Track>) => void;
     bpm: number;
     projectLength: number;
+    onDeleteSelectedTrack: () => void;
 }
 
-const TracksView = memo((props: TracksViewProps) => {
+const TracksView = ({ onDeleteSelectedTrack, ...props }: TracksViewProps) => {
     const wholeNoteWidth = 40;
     const pixelsPerSecond = wholeNoteWidth / secondsPerWholeNote;
     const snapDivisions = 8;
@@ -138,6 +74,16 @@ const TracksView = memo((props: TracksViewProps) => {
     const [isShiftHeld, setIsShiftHeld] = useState(false);
 
     const [tracks, setTracks] = useState(props.tracks);
+
+    // useHotkeys(
+    //     "delete",
+    //     () => {
+    //         onDeleteSelectedTrack();
+    //         console.log("Delete");
+    //     },
+    //     {},
+    //     [props.tracks]
+    // );
 
     useEffect(() => {
         setTracks(props.tracks);
@@ -332,9 +278,6 @@ const TracksView = memo((props: TracksViewProps) => {
                                                 ? "secondary.500"
                                                 : "white"
                                         }
-                                        // borderColor="secondary.700"
-                                        // onColor="secondary.700"
-                                        // offColor="secondary.500"
                                     />
                                     <ToggleButton
                                         tooltipLabel={"Solo"}
@@ -343,38 +286,7 @@ const TracksView = memo((props: TracksViewProps) => {
                                         label="S"
                                         borderWidth={1}
                                         size="xs"
-                                        // borderColor="secondary.700"
-                                        // onColor="secondary.700"
-                                        // offColor="secondary.500"
                                     />
-                                    {/* <Button
-                                        width="20px"
-                                        borderColor="secondary.700"
-                                        borderWidth="1px"
-                                        bgColor={
-                                            track.muted
-                                                ? "secondary.700"
-                                                : "secondary.500"
-                                        }
-                                        colorScheme="secondary"
-                                        size="xs"
-                                        flexShrink={0}
-                                        borderRadius="sm"
-                                        onClick={() => props.toggleMute(index)}
-                                    >
-                                        M
-                                    </Button> */}
-                                    {/* <Button
-                                        width="20px"
-                                        borderColor="secondary.700"
-                                        borderWidth="1px"
-                                        colorScheme="secondary"
-                                        size="xs"
-                                        flexShrink={0}
-                                        borderRadius="sm"
-                                    >
-                                        S
-                                    </Button> */}
                                 </HStack>
                             </VStack>
                             <Meter
@@ -504,7 +416,7 @@ const TracksView = memo((props: TracksViewProps) => {
             />
         </Fragment>
     );
-});
+};
 
 TracksView.displayName = "TracksView";
 

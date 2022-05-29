@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import React from "react";
+import React, { useRef } from "react";
 
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
@@ -23,7 +23,7 @@ const PianoRollPartView = (props: PianoRollProps) => {
         <Box
             key={props.partIndex}
             position="absolute"
-            left={props.part.startTime * props.currentPixelsPerSecond}
+            left={`${props.part.startTime * props.currentPixelsPerSecond}px`}
         >
             <Box
                 borderWidth={1}

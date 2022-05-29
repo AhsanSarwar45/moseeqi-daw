@@ -12,19 +12,22 @@ import {
     ModalOverlay,
     ModalHeader,
     useDisclosure,
+    useTheme,
     Select,
 } from "@chakra-ui/react";
 
 import { Instruments } from "@Instruments/Instruments";
+import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 
 interface AddTrackModalProps {
     onClose: () => void;
     isOpen: boolean;
-    onSubmit: Function;
+    onSubmit: (option: number) => void;
 }
 
 export const AddTrackModal = (props: AddTrackModalProps) => {
-    const [selectedInstrument, setSelectedInstrument] = useState("");
+    const theme = useTheme();
+    const [selectedInstrument, setSelectedInstrument] = useState(0);
 
     return (
         <Modal
@@ -34,21 +37,32 @@ export const AddTrackModal = (props: AddTrackModalProps) => {
             motionPreset="slideInBottom"
         >
             <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>Add Track</ModalHeader>
-                <ModalCloseButton />
+            <ModalContent bgColor="primary.500">
+                <ModalHeader textColor="text.primary">Add Track</ModalHeader>
+                <ModalCloseButton color="text.primary" />
                 <ModalBody>
                     <Text>Select Instrument</Text>
                     <Select
-                        placeholder="Select Instrument"
+                        marginY={"0.5rem"}
+                        color="text.primary"
+                        // placeholder="Select Instrument"
+                        defaultValue={0}
                         onChange={(event) => {
                             setSelectedInstrument(
-                                event.target.selectedOptions[0].value
+                                parseInt(event.target.selectedOptions[0].value)
                             );
                         }}
+                        sx={ScrollbarStyle}
                     >
                         {Instruments.map((instrument, index) => (
-                            <option key={index} value={index}>
+                            <option
+                                style={{
+                                    backgroundColor: theme.colors.primary[500],
+                                    color: "white",
+                                }}
+                                key={index}
+                                value={index}
+                            >
                                 {instrument.name}
                             </option>
                         ))}
@@ -56,21 +70,26 @@ export const AddTrackModal = (props: AddTrackModalProps) => {
                 </ModalBody>
                 <ModalFooter>
                     <Button
+                        variant="ghost"
+                        onClick={props.onClose}
+                        textColor="text.primary"
+                        _hover={{
+                            bgColor: "primary.600",
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
                         type="submit"
                         colorScheme="secondary"
                         mr={3}
                         onClick={() => {
-                            if (selectedInstrument === "") return;
                             props.onSubmit(selectedInstrument);
-                            //console.log(onClose);
                             props.onClose();
-                            setSelectedInstrument("");
+                            setSelectedInstrument(0);
                         }}
                     >
                         Add
-                    </Button>
-                    <Button variant="ghost" onClick={props.onClose}>
-                        Cancel
                     </Button>
                 </ModalFooter>
             </ModalContent>

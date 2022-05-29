@@ -1,8 +1,17 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
-import { useState, useEffect, useRef, Fragment, useMemo, useId } from "react";
+import {
+    useState,
+    useEffect,
+    useRef,
+    Fragment,
+    useMemo,
+    useId,
+    useCallback,
+} from "react";
 import { SplitDirection } from "@devbookhq/splitter";
 import * as Tone from "tone";
 import { saveAs } from "file-saver";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { PlayBackController } from "@Components/studio/PlaybackController";
 import PianoRoll from "@Components/studio/PianoRoll/PianoRoll";
@@ -15,7 +24,6 @@ import { PlaybackState } from "@Types/Types";
 import { NotesModifierContext } from "@Data/NotesModifierContext";
 import { Note } from "@Interfaces/Note";
 import {
-    defaultBPM,
     divisionsPerSecond,
     PianoKeys,
     secondsPerDivision,
@@ -25,6 +33,8 @@ import {
     GetNewPartStartTime,
     GetNewPartStopTime,
     GetExtendedPartStopTime,
+    CreateTonePart,
+    CreatePart,
 } from "@Utility/PartUtils";
 import Splitter from "@Components/Splitter";
 import { Panel } from "@Interfaces/Panel";
@@ -34,29 +44,45 @@ import { Part } from "@Interfaces/Part";
 import { TopBar } from "./TopBar";
 import { SaveData, TrackSaveData } from "@Interfaces/SaveData";
 import { useNumId } from "@Hooks/useNumId";
+import CreateSampler from "@Utility/SamplerUtils";
+import { Instrument } from "@Interfaces/Instrument";
+import { defaultBPM, defaultName, defaultTrack } from "@Data/Defaults";
+import {
+    ChangeTrackBpm,
+    DisposeTracks,
+    GetTracksSaveData,
+    SetTrackMute,
+    SetTrackSolo,
+    SetTrackSoloMute,
+} from "@Utility/TrackUtils";
+import {
+    GetPartNote,
+    IsNoteInPart,
+    MakeNotePartRelative,
+} from "@Utility/NoteUtils";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
-    const [fileName, setFileName] = useState("Untitled");
+    const [keyMap, setKeyMap] = useState({
+        TOGGLE_PLAYBACK: "space",
+        DELETE_TRACKS: "delete",
+    });
+    const [projectName, setProjectName] = useState(defaultName);
     const [playbackState, setPlaybackState] = useState<PlaybackState>(0);
     const [activeWidth, setActiveWidth] = useState(5 * 40);
     const [seek, setSeek] = useState(0);
-    const [isInstrumentLoading, setIsInstrumentLoading] = useState(0);
+    const [instrumentsLoading, setInstrumentsLoading] = useState(0);
     const [bpm, setBPM] = useState(defaultBPM);
     const [bps, setBPS] = useState(BpmToBps(defaultBPM));
     const [projectLength, setProjectLength] = useState(180);
     const [currentSecondsPerDivision, setCurrentSecondsPerDivision] = useState(
         secondsPerDivision / bps
     );
-
     const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
-
     const [selectedPartIndices, setSelectedPartIndices] = useState<
         Array<PartSelectionIndex>
     >([]);
-
     const [isContextStarted, setIsContextStarted] = useState(false);
-
     const [focusedPanel, setFocusedPanel] = useState(Panel.None);
 
     const getPartId = useNumId();
@@ -64,138 +90,23 @@ const Studio = () => {
 
     const pendingBpmUpdateRef = useRef<number>(-1);
 
-    const SaveToFile = () => {
-        const tracksSaveData: Array<TrackSaveData> = [];
-
-        // the sampler property makes the save data circular so we remove it
-        // we also remove the meter property as it is not needed
-        tracks.forEach((track) => {
-            tracksSaveData.push({
-                name: track.name,
-                instrument: track.instrument,
-                parts: track.parts,
-                muted: track.muted,
-                soloed: track.soloed,
-                soloMuted: track.soloMuted,
-            });
-        });
-
-        const data: SaveData = {
-            tracks: tracksSaveData,
-            bpm: bpm,
-            name: fileName,
-        };
-
-        const blob = new Blob([JSON.stringify(data)], {
-            type: "text/plain;charset=utf-8",
-        });
-
-        saveAs(blob, fileName + ".msq");
+    const onLoadInstrumentEnd = () => {
+        setInstrumentsLoading((prevState) => prevState - 1);
     };
 
-    const OpenFile = async (file: File) => {
-        const saveData: SaveData = JSON.parse(await file.text());
-
-        tracks.forEach((track) => {
-            track.parts.forEach((part) => {
-                part.tonePart.dispose();
-            });
-        });
-        const newTracks: Array<Track> = [];
-
-        saveData.tracks.forEach((track) => {
-            setIsInstrumentLoading(isInstrumentLoading - 1);
-            const meter = new Tone.Meter();
-
-            const sampler = new Tone.Sampler({
-                urls: track.instrument.urls as any,
-                release: track.instrument.release,
-                attack: track.instrument.attack,
-                onload: () => {
-                    // Causes the loading modal to close
-                    setIsInstrumentLoading(isInstrumentLoading - 1);
-                },
-            })
-                .toDestination()
-                .connect(meter);
-
-            track.parts.forEach((part) => {
-                part.tonePart = new Tone.Part((time, value: any) => {
-                    sampler.triggerAttackRelease(
-                        value.note,
-                        value.duration,
-                        time,
-                        value.velocity
-                    );
-                }, [])
-                    .start(part.startTime)
-                    .stop(part.stopTime);
-
-                part.notes.forEach((note) => {
-                    part.tonePart.add(GetPartNote(note));
-                });
-
-                part.id = getPartId();
-            });
-
-            newTracks.push({
-                name: track.name,
-                instrument: track.instrument,
-                sampler: sampler,
-                meter: meter,
-                parts: track.parts,
-                muted: track.muted,
-                soloed: track.soloed,
-                soloMuted: track.soloMuted,
-            });
-        });
-
-        setFileName(saveData.name);
-        setTracks(newTracks);
-        pendingBpmUpdateRef.current = saveData.bpm;
-    };
-
-    const CreateTrack = (instrumentIndex: number): Track => {
-        // Causes the loading modal to show
-        setIsInstrumentLoading(1);
-        const instrument = Instruments[instrumentIndex];
-        const noteLength = (wholeNoteDivisions / 4) * (bpm / 60);
+    const CreateTrack = (instrument: Instrument): Track => {
+        setInstrumentsLoading(1);
 
         const meter = new Tone.Meter();
 
-        const sampler = new Tone.Sampler({
-            urls: instrument.urls as any,
-            release: instrument.release,
-            attack: instrument.attack,
-            onload: () => {
-                // Causes the loading modal to close
-                setIsInstrumentLoading(0);
-            },
-        })
+        const sampler = CreateSampler(instrument, onLoadInstrumentEnd)
             .toDestination()
             .connect(meter);
-
-        const tonePart = new Tone.Part((time, value: any) => {
-            sampler.triggerAttackRelease(
-                value.note,
-                value.duration,
-                time,
-                value.velocity
-            );
-        }, []).start(0);
 
         return {
             name: instrument.name,
             instrument: instrument,
-            parts: [
-                {
-                    id: getPartId(),
-                    tonePart: tonePart,
-                    startTime: 0,
-                    stopTime: 32 / noteLength,
-                    notes: [],
-                },
-            ],
+            parts: [],
             sampler: sampler,
             meter: meter,
             muted: false,
@@ -203,7 +114,83 @@ const Studio = () => {
             soloMuted: false,
         };
     };
-    const [tracks, setTracks] = useState<Array<Track>>(() => [CreateTrack(0)]);
+
+    const CreateTrackFromIndex = (instrumentIndex: number): Track => {
+        // Causes the loading modal to show
+
+        const instrument = Instruments[instrumentIndex];
+
+        return CreateTrack(instrument);
+    };
+
+    const [tracks, setTracks] = useState<Array<Track>>(() => [
+        CreateTrackFromIndex(defaultTrack),
+    ]);
+
+    useHotkeys(
+        keyMap.TOGGLE_PLAYBACK,
+        () => {
+            TogglePlayback();
+        },
+        {},
+        [playbackState]
+    );
+
+    const TogglePlayback = () => {
+        // console.log("TogglePlayback", playbackState);
+        if (playbackState === 0) setPlaybackState(1);
+        else if (playbackState === 2) setPlaybackState(1);
+        else if (playbackState === 1) setPlaybackState(2);
+    };
+
+    const SaveToFile = () => {
+        const tracksSaveData = GetTracksSaveData(tracks);
+
+        const data: SaveData = {
+            tracks: tracksSaveData,
+            bpm: bpm,
+            name: projectName,
+        };
+
+        const blob = new Blob([JSON.stringify(data)], {
+            type: "text/plain;charset=utf-8",
+        });
+
+        saveAs(blob, projectName + ".msq");
+    };
+
+    const OpenFile = async (file: File) => {
+        const saveData: SaveData = JSON.parse(await file.text());
+
+        DisposeTracks(tracks);
+
+        const newTracks: Array<Track> = [];
+
+        saveData.tracks.forEach((track) => {
+            const newTrack = CreateTrack(track.instrument);
+
+            track.parts.forEach((part) => {
+                newTrack.parts.push(
+                    CreatePart(
+                        getPartId(),
+                        part.startTime,
+                        part.stopTime,
+                        newTrack.sampler,
+                        [...part.notes]
+                    )
+                );
+            });
+
+            newTracks.push(newTrack);
+        });
+
+        // Convert track to current bpm
+        ChangeTrackBpm(newTracks, saveData.bpm, bpm);
+
+        pendingBpmUpdateRef.current = saveData.bpm;
+        setProjectName(saveData.name);
+        setTracks(newTracks);
+    };
 
     const {
         isOpen: isWaitingModalOpen,
@@ -217,33 +204,10 @@ const Studio = () => {
     };
 
     useEffect(() => {
-        // console.log("BPM: " + bpm);
         Tone.Transport.bpm.value = bpm;
 
         let tracksCopy = [...tracks];
-
-        const newTimeMultiplier = bps / BpmToBps(bpm);
-
-        tracksCopy.forEach((track) => {
-            track.parts.forEach((part) => {
-                part.tonePart.clear();
-                part.startTime *= newTimeMultiplier;
-                part.stopTime *= newTimeMultiplier;
-                part.tonePart
-                    .cancel(0)
-                    .start(part.startTime)
-                    .stop(part.stopTime);
-
-                part.notes.forEach((note) => {
-                    note.startTime *= newTimeMultiplier;
-                    note.stopTime *= newTimeMultiplier;
-                    note.duration *= newTimeMultiplier;
-
-                    part.tonePart.add(GetPartNote(note));
-                });
-            });
-        });
-
+        ChangeTrackBpm(tracksCopy, bps, BpmToBps(bpm));
         setTracks(tracksCopy);
 
         setBPS(BpmToBps(bpm));
@@ -252,19 +216,18 @@ const Studio = () => {
 
     useEffect(() => {
         if (pendingBpmUpdateRef.current > -1) {
-            console.log("Updating bpm");
             setBPM(pendingBpmUpdateRef.current);
             pendingBpmUpdateRef.current = -1;
         }
     }, [tracks]);
 
     useEffect(() => {
-        if (isInstrumentLoading > 0) {
+        if (instrumentsLoading > 0) {
             onWaitingModalOpen();
         } else {
             onWaitingModalClose();
         }
-    }, [isInstrumentLoading, onWaitingModalClose, onWaitingModalOpen]);
+    }, [instrumentsLoading, onWaitingModalClose, onWaitingModalOpen]);
 
     useEffect(() => {
         if (!isContextStarted) StartAudioContext();
@@ -282,97 +245,48 @@ const Studio = () => {
         }
     }, [playbackState, isContextStarted]);
 
-    useEffect(() => {
-        // console.log("event listener update");
-        const HandleKeyboardEvent = (event: KeyboardEvent) => {
-            if (event.keyCode === 32) {
-                // Space key
-                if (playbackState === 0) setPlaybackState(1);
-                else if (playbackState === 2) setPlaybackState(1);
-                else if (playbackState === 1) setPlaybackState(2);
-            } else if (event.keyCode === 46) {
-                // Delete key
-                console.log(focusedPanel);
-                if (focusedPanel === Panel.TrackView) {
-                    let tracksCopy = [...tracks];
+    //             } else if (focusedPanel === Panel.TrackSequencer) {
+    //                 if (selectedPartIndices.length > 0) {
+    //                     let tracksCopy = [...tracks];
 
-                    // Stop all the parts in the deleted track
-                    tracksCopy[selectedTrackIndex].parts.forEach((part) => {
-                        part.tonePart.stop();
-                    });
+    //                     // Stop all the parts to be deleted
 
-                    tracksCopy.splice(selectedTrackIndex, 1);
+    //                     selectedPartIndices.forEach(
+    //                         ({ trackIndex, partIndex }) => {
+    //                             // console.log(
+    //                             //     trackIndex,
+    //                             //     partIndex
+    //                             // );
+    //                             tracksCopy[trackIndex].parts[
+    //                                 partIndex
+    //                             ].tonePart.cancel(0);
 
-                    setSelectedTrackIndex(
-                        selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0
-                    );
-                    setSelectedPartIndices([]);
-                    setTracks(tracksCopy);
-                } else if (focusedPanel === Panel.TrackSequencer) {
-                    if (selectedPartIndices.length > 0) {
-                        let tracksCopy = [...tracks];
+    //                             // Hacky way to mark part to be deleted
+    //                             tracksCopy[trackIndex].parts[partIndex] =
+    //                                 null as any;
+    //                         }
+    //                     );
 
-                        // Stop all the parts to be deleted
+    //                     // Delete all the null parts
+    //                     tracksCopy.forEach((track, trackIndex) => {
+    //                         tracksCopy[trackIndex].parts = track.parts.filter(
+    //                             (part) => part !== null
+    //                         );
+    //                     });
 
-                        selectedPartIndices.forEach(
-                            ({ trackIndex, partIndex }) => {
-                                // console.log(
-                                //     trackIndex,
-                                //     partIndex
-                                // );
-                                tracksCopy[trackIndex].parts[
-                                    partIndex
-                                ].tonePart.cancel(0);
+    //                     setTracks(tracksCopy);
+    //                     setSelectedPartIndices([]);
+    //                 }
+    //             }
+    //         }
+    //     };
 
-                                // Hacky way to mark part to be deleted
-                                tracksCopy[trackIndex].parts[partIndex] =
-                                    null as any;
-                            }
-                        );
-
-                        // Delete all the null parts
-                        tracksCopy.forEach((track, trackIndex) => {
-                            tracksCopy[trackIndex].parts = track.parts.filter(
-                                (part) => part !== null
-                            );
-                        });
-
-                        setTracks(tracksCopy);
-                        setSelectedPartIndices([]);
-                    }
-                }
-            }
-        };
-
-        window.addEventListener("keydown", HandleKeyboardEvent);
-        return () => {
-            window.removeEventListener("keydown", HandleKeyboardEvent);
-        };
-    }, [
-        tracks,
-        selectedTrackIndex,
-        playbackState,
-        focusedPanel,
-        selectedPartIndices,
-    ]);
-
-    const SetRelease = (value: number) => {
+    const SetTrackRelease = (value: number) => {
         tracks[selectedTrackIndex].sampler.release = value;
     };
 
-    const SetAttack = (value: number) => {
+    const SetTrackAttack = (value: number) => {
         tracks[selectedTrackIndex].sampler.attack = value;
-    };
-
-    const GetPartNote = (note: Note) => {
-        const partNote = {
-            time: note.startTime,
-            note: note.key,
-            duration: note.duration,
-            velocity: note.velocity,
-        };
-
-        return partNote;
     };
 
     const PlayNote = (note: Note) => {
@@ -382,14 +296,21 @@ const Studio = () => {
         );
     };
 
-    const IsNoteInPart = (note: Note, part: Part) => {
-        return (
-            part.startTime <= note.startTime && part.stopTime > note.startTime
-        );
+    const CreateNewProject = () => {
+        DisposeTracks(tracks);
+
+        setTracks([CreateTrackFromIndex(defaultTrack)]);
+        setBPM(defaultBPM);
+        setProjectName(defaultName);
     };
 
     const AddTrack = (instrument: number) => {
         // console.log("Track added");
+
+        // setKeyMap((keyMap) => ({
+        //     ...keyMap,
+        //     ...{ TOGGLE_PLAYBACK: "y" },
+        // }));
 
         // Just to be neat and tidy, reset the timeline
         Tone.Transport.stop();
@@ -398,8 +319,27 @@ const Studio = () => {
         // We need a copy as we cannot mutate the original
         let tracksCopy = [...tracks];
 
-        tracksCopy.push(CreateTrack(instrument));
+        tracksCopy.push(CreateTrackFromIndex(instrument));
 
+        setTracks(tracksCopy);
+    };
+
+    const DeleteSelectedTrack = () => {
+        console.log(tracks.length, selectedTrackIndex);
+        if (tracks.length == 0) return;
+        let tracksCopy = [...tracks];
+
+        // Stop all the parts in the deleted track
+        tracksCopy[selectedTrackIndex].parts.forEach((part) => {
+            part.tonePart.stop();
+        });
+
+        tracksCopy.splice(selectedTrackIndex, 1);
+
+        setSelectedTrackIndex(
+            selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0
+        );
+        setSelectedPartIndices([]);
         setTracks(tracksCopy);
     };
 
@@ -411,11 +351,6 @@ const Studio = () => {
         part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 
         return part;
-    };
-
-    const MakeNotePartRelative = (note: Note, part: Part) => {
-        note.startTime -= part.startTime;
-        note.stopTime -= part.startTime;
     };
 
     const AddNoteToTrack = (track: Track, note: Note) => {
@@ -455,24 +390,15 @@ const Studio = () => {
             // Make the note time relative to the start of the part
             note.startTime -= partStartTime;
 
-            const tonePart = new Tone.Part((time, value: any) => {
-                track.sampler.triggerAttackRelease(
-                    value.note,
-                    value.duration,
-                    time,
-                    value.velocity
-                );
-            }, []).start(partStartTime);
-
-            tonePart.add(GetPartNote(note));
-
-            track.parts.push({
-                id: getPartId(),
-                tonePart: tonePart,
-                startTime: partStartTime,
-                stopTime: partStopTime,
-                notes: [note],
-            });
+            track.parts.push(
+                CreatePart(
+                    getPartId(),
+                    partStartTime,
+                    partStopTime,
+                    track.sampler,
+                    [note]
+                )
+            );
         }
     };
 
@@ -591,118 +517,40 @@ const Studio = () => {
         setTracks(tracksCopy);
     };
 
-    const SetTrackMute = (track: Track, muted: boolean) => {
-        track.parts.forEach((part) => {
-            part.tonePart.mute = muted;
-        });
-
-        track.muted = muted;
-    };
-
-    const SetTrackSoloMute = (track: Track, muted: boolean) => {
-        track.parts.forEach((part) => {
-            part.tonePart.mute = muted;
-        });
-
-        track.soloMuted = muted;
-        if (muted) {
-            track.muted = false;
-        }
-    };
-
     const ToggleMuteAtIndex = (trackIndex: number) => {
         let tracksCopy = [...tracks];
-
         SetTrackMute(tracksCopy[trackIndex], !tracksCopy[trackIndex].muted);
-
         setTracks(tracksCopy);
     };
 
     const ToggleSoloAtIndex = (trackIndex: number) => {
-        console.log("Toggle solo at index", trackIndex);
         let tracksCopy = [...tracks];
-
-        tracksCopy[trackIndex].soloed = !tracksCopy[trackIndex].soloed;
-
-        if (tracksCopy[trackIndex].soloed) {
-            SetTrackMute(tracksCopy[trackIndex], false);
-            SetTrackSoloMute(tracksCopy[trackIndex], false);
-        }
-
-        const numTracksSoloed = tracksCopy.filter(
-            (track) => track.soloed
-        ).length;
-
-        if (numTracksSoloed > 0) {
-            tracksCopy.forEach((track, index) => {
-                if (!track.soloed && !track.muted) {
-                    console.log("Muting track", index);
-                    SetTrackSoloMute(track, true);
-                }
-            });
-        } else {
-            tracksCopy.forEach((track, index) => {
-                SetTrackSoloMute(track, false);
-            });
-        }
-
+        SetTrackSolo(
+            tracksCopy[trackIndex],
+            tracksCopy,
+            !tracksCopy[trackIndex].soloed
+        );
         setTracks(tracksCopy);
     };
 
     const DuplicateSelectedTrack = () => {
-        setIsInstrumentLoading(1);
+        setInstrumentsLoading(1);
         let tracksCopy = [...tracks];
         const selectedTrack = tracksCopy[selectedTrackIndex];
 
-        // Causes the loading modal to show
+        const newTrack = CreateTrack(selectedTrack.instrument);
 
-        const instrument = selectedTrack.instrument;
-
-        const meter = new Tone.Meter();
-
-        const sampler = new Tone.Sampler({
-            urls: instrument.urls as any,
-            release: instrument.release,
-            attack: instrument.attack,
-            onload: () => {
-                // Causes the loading modal to close
-                setIsInstrumentLoading(0);
-            },
-        })
-            .toDestination()
-            .connect(meter);
-
-        const parts = selectedTrack.parts.map((part) => {
-            const tonePart = new Tone.Part((time, value: any) => {
-                sampler.triggerAttackRelease(
-                    value.note,
-                    value.duration,
-                    time,
-                    value.velocity
-                );
-            }, [])
-                .start(part.startTime)
-                .stop(part.stopTime);
-
-            return {
-                id: getPartId(),
-                tonePart: tonePart,
-                startTime: part.startTime,
-                stopTime: part.stopTime,
-                notes: part.notes,
-            };
+        selectedTrack.parts.forEach((part) => {
+            newTrack.parts.push(
+                CreatePart(
+                    getPartId(),
+                    part.startTime,
+                    part.stopTime,
+                    newTrack.sampler,
+                    [...part.notes]
+                )
+            );
         });
-
-        const newTrack = {
-            name: instrument.name,
-            instrument: instrument,
-            parts: parts,
-            sampler: sampler,
-            meter: meter,
-            muted: false,
-            soloed: false,
-            soloMuted: false,
-        };
 
         tracksCopy.push(newTrack);
         setTracks(tracksCopy);
@@ -725,10 +573,11 @@ const Studio = () => {
                     flexDirection="column"
                 >
                     <TopBar
+                        onNew={CreateNewProject}
                         onSave={SaveToFile}
                         onOpen={OpenFile}
-                        fileName={fileName}
-                        onSetFileName={setFileName}
+                        fileName={projectName}
+                        onSetFileName={setProjectName}
                     />
                     <Flex
                         width="100%"
@@ -752,6 +601,9 @@ const Studio = () => {
                                         projectLength={projectLength}
                                         setSeek={setSeek}
                                         tracks={tracks}
+                                        onDeleteSelectedTrack={
+                                            DeleteSelectedTrack
+                                        }
                                         onAddTrack={AddTrack}
                                         selected={selectedTrackIndex}
                                         setSelected={setSelectedTrackIndex}
@@ -804,8 +656,8 @@ const Studio = () => {
                             <PropertiesPanel
                                 selectedTrack={tracks[selectedTrackIndex]}
                                 numTracks={tracks.length}
-                                setRelease={SetRelease}
-                                setAttack={SetAttack}
+                                setRelease={SetTrackRelease}
+                                setAttack={SetTrackAttack}
                             />
                         </Splitter>
                     </Flex>
