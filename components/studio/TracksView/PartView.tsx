@@ -34,12 +34,12 @@ interface PartViewProps {
 }
 
 const PartView = (props: PartViewProps) => {
-    const selectionStartOffsetRef = useRef(0);
-    const prevResizeDeltaRef = useRef(0);
     const selectionOffsets = useRef<Array<number>>([]);
     const selectionStartIndex = useRef<number>(0);
+
     const isDraggingRef = useRef(false);
-    const isResizingRef = useRef(false);
+    const isResizingEndRef = useRef(false);
+    const isResizingStartRef = useRef(false);
     // const prevDelta = useRef(0);
 
     const resizeAreaWidth = 8;
@@ -49,8 +49,6 @@ const PartView = (props: PartViewProps) => {
 
     const partRef = useRef<HTMLElement>(null);
     const parentRef = useRef<HTMLElement | null>(null);
-
-    const minWidth = 10;
 
     const mouse = useMouse(parentRef, {
         enterDelay: 100,
@@ -85,6 +83,18 @@ const PartView = (props: PartViewProps) => {
         );
     };
 
+    const SetStartOffsets = () => {
+        const newSelectedPartIndices = SelectPart();
+
+        selectionOffsets.current = GetSelectionStartOffsets(
+            props.part,
+            newSelectedPartIndices
+        );
+        selectionStartIndex.current = GetSelectionStartIndex(
+            newSelectedPartIndices
+        );
+    };
+
     const left = props.part.startTime * props.pixelsPerSecond;
     const width =
         props.pixelsPerSecond * (props.part.stopTime - props.part.startTime);
@@ -92,7 +102,8 @@ const PartView = (props: PartViewProps) => {
     useEffect(() => {
         window.addEventListener("mouseup", () => {
             isDraggingRef.current = false;
-            isResizingRef.current = false;
+            isResizingStartRef.current = false;
+            isResizingEndRef.current = false;
         });
         return () => {
             window.removeEventListener("mouseup", () => {});
@@ -111,10 +122,25 @@ const PartView = (props: PartViewProps) => {
                 setSelectedPartsStartTime(
                     startTime,
                     selectionOffsets.current,
-                    selectionStartIndex.current
+                    selectionStartIndex.current,
+                    true
                 );
             }
-        } else if (isResizingRef.current) {
+        } else if (isResizingStartRef.current) {
+            if (mouse.x !== null) {
+                let pos = mouse.x + resizeOffset.current;
+                pos = Snap(pos, props.snapWidth);
+                // pos = Math.max(pos, left + minWidth);
+
+                const startTime = pos / props.pixelsPerSecond;
+                setSelectedPartsStartTime(
+                    startTime,
+                    selectionOffsets.current,
+                    selectionStartIndex.current,
+                    false
+                );
+            }
+        } else if (isResizingEndRef.current) {
             if (mouse.x !== null) {
                 let pos = mouse.x + resizeOffset.current;
                 pos = Snap(pos, props.snapWidth);
@@ -132,71 +158,6 @@ const PartView = (props: PartViewProps) => {
     // });
 
     return (
-        // <Rnd
-        //     ref={rndRef}
-        //     size={{
-        //         width:
-        //             props.pixelsPerSecond *
-        //             (props.part.stopTime - props.part.startTime),
-        //         height: "full",
-        //     }}
-        //     position={{
-        //         x: props.part.startTime * props.pixelsPerSecond,
-        //         y: 0,
-        //     }}
-        //     enableResizing={{
-        //         right: true,
-        //     }}
-        //     dragAxis="x"
-        //     bounds="parent"
-        //     // resizeGrid={[props.snapWidth, 1]}
-        //     // dragGrid={[props.snapWidth, 1]}
-        //     onDragStart={(event, data) => {
-
-        //     }}
-        //     // onDrag={(event, data) => {
-        //     // const prevPositionX =
-        //     //     props.part.startTime * props.pixelsPerSecond;
-
-        //     // console.log(data.x);
-        //     // data.x -= prevDelta.current;
-
-        //     // if (data.x - selectionStartOffsetRef.current < 0) {
-        //     //     data.x = selectionStartOffsetRef.current;
-        //     // }
-
-        //     // console.log(data.x, timeDelta);
-        //     // const startTime = data.x / props.pixelsPerSecond;
-        //     // const stopTime =
-        //     //     data.x / props.pixelsPerSecond +
-        //     //     props.part.stopTime -
-        //     //     props.part.startTime;
-
-        //     // setSelectedPartsTime(
-        //     //     startTime,
-        //     //     stopTime,
-        //     //     selectionOffsets.current,
-        //     //     selectionStartIndex.current
-        //     // );
-
-        //     // setXPos(data.x);
-        //     // }}
-        //     onDragStop={(event, data) => {
-        //         isDraggingRef.current = false;
-        //     }}
-        //     onResizeStart={(event, data) => {
-        //         SelectPart();
-        //         prevResizeDeltaRef.current = 0;
-        //     }}
-        //     onResize={(event, direction, ref, delta, position) => {
-        //         const newDelta = delta.width - prevResizeDeltaRef.current;
-        //         moveSelectedParts(0, (newDelta + 0.0) / props.pixelsPerSecond);
-        //         prevResizeDeltaRef.current = delta.width;
-        //     }}
-        //     // onResizeStop={(event, data) => {
-        //     //     props.onResizeStop();
-        //     // }}
-        // >
         <Box
             ref={partRef as any}
             height="full"
@@ -215,23 +176,7 @@ const PartView = (props: PartViewProps) => {
                 borderColor={props.isSelected ? "brand.secondary" : "white"}
                 onMouseDown={(event) => {
                     event.preventDefault();
-                    const newSelectedPartIndices = SelectPart();
-
-                    // const selectionStartTime = GetSelectionStartTime(
-                    //     newSelectedPartIndices
-                    // );
-
-                    // selectionStartOffsetRef.current =
-                    //     (props.part.startTime - selectionStartTime) *
-                    //     props.pixelsPerSecond;
-
-                    selectionOffsets.current = GetSelectionStartOffsets(
-                        props.part,
-                        newSelectedPartIndices
-                    );
-                    selectionStartIndex.current = GetSelectionStartIndex(
-                        newSelectedPartIndices
-                    );
+                    SetStartOffsets();
 
                     isDraggingRef.current = true;
 
@@ -243,12 +188,6 @@ const PartView = (props: PartViewProps) => {
                     // prevMouseX.current = data.x;
                 }}
                 cursor="move"
-                onDragStart={() => {
-                    return false;
-                }}
-                onDragEnd={() => {
-                    return false;
-                }}
 
                 // onMouseMove={() => {
 
@@ -273,9 +212,29 @@ const PartView = (props: PartViewProps) => {
                         newSelectedPartIndices
                     );
 
-                    isResizingRef.current = true;
+                    isResizingEndRef.current = true;
                     if (mouse.x !== null) {
-                        resizeOffset.current = left + width - mouse.x;
+                        dragOffset.current = left + width - mouse.x;
+                    }
+                }}
+                // bgColor="red"
+            />
+
+            <Box
+                cursor="w-resize"
+                position="absolute"
+                top={0}
+                left={`${-resizeAreaWidth / 2}px`}
+                width={`${resizeAreaWidth}px`}
+                height="full"
+                onMouseDown={(event) => {
+                    event.preventDefault();
+
+                    SetStartOffsets();
+
+                    isResizingStartRef.current = true;
+                    if (mouse.x !== null) {
+                        dragOffset.current = left - mouse.x;
                     }
                 }}
                 // bgColor="red"

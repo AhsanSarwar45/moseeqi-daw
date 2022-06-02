@@ -78,7 +78,8 @@ interface TrackStoreState {
     setSelectedPartsStartTime: (
         startTime: number,
         selectionOffsets: Array<number>,
-        selectionStartIndex: number
+        selectionStartIndex: number,
+        keepDuration: boolean
     ) => void;
 
     setSelectedPartsStopTime: (
@@ -367,7 +368,8 @@ export const useTracksStore = create<TrackStoreState>()(
         setSelectedPartsStartTime: (
             startTime: number,
             selectionOffsets: Array<number>,
-            selectionStartIndex: number
+            selectionStartIndex: number,
+            keepDuration: boolean = false
         ) => {
             set((prev) => {
                 if (startTime - selectionOffsets[selectionStartIndex] < 0) {
@@ -375,9 +377,6 @@ export const useTracksStore = create<TrackStoreState>()(
                         selectionOffsets[selectionStartIndex] - startTime;
                     startTime += delta;
                 }
-
-                console.log(startTime);
-
                 const tracksCopy = [...prev.tracks];
                 prev.selectedPartIndices.forEach(
                     ({ trackIndex, partIndex }, index) => {
@@ -385,11 +384,15 @@ export const useTracksStore = create<TrackStoreState>()(
                         const offset = selectionOffsets[index];
                         // console.log(startTime - offset, stopTime - offset);
                         const partStartTime = startTime - offset;
-                        SetPartTime(
-                            part,
-                            partStartTime,
-                            partStartTime + part.duration
+                        let partStopTime = keepDuration
+                            ? partStartTime + part.duration
+                            : part.stopTime;
+                        partStopTime = Math.max(
+                            partStopTime,
+                            part.startTime + defaultMinPartDuration
                         );
+
+                        SetPartTime(part, partStartTime, partStopTime);
                     }
                 );
                 return {
@@ -410,7 +413,7 @@ export const useTracksStore = create<TrackStoreState>()(
                         let partStopTime = stopTime - offset;
                         partStopTime = Math.max(
                             partStopTime,
-                            defaultMinPartDuration
+                            part.startTime + defaultMinPartDuration
                         );
                         SetPartTime(part, part.startTime, partStopTime);
                     }
