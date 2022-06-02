@@ -5,10 +5,9 @@ export enum SelectionType {
     Track,
 }
 
-export interface NoteSelectionIndices {
+export interface NoteSelectionIndex {
     noteIndex: number;
     partIndex: number;
-    trackIndex: number;
 }
 
 export interface PartSelectionIndex {
@@ -16,14 +15,16 @@ export interface PartSelectionIndex {
     trackIndex: number;
 }
 
-export interface TrackSelectionIndices {
+export interface TrackSelectionIndex {
     trackIndex: number;
 }
+
+export type SubSelectionIndex = NoteSelectionIndex | PartSelectionIndex;
 
 export interface Selection {
     type: SelectionType;
     indices:
-        | Array<NoteSelectionIndices>
+        | Array<NoteSelectionIndex>
         | Array<PartSelectionIndex>
-        | Array<TrackSelectionIndices>;
+        | Array<TrackSelectionIndex>;
 }

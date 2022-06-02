@@ -32,8 +32,8 @@ import {
 } from "@Utility/PartUtils";
 import {
     FindSelectedIndex,
-    GetSelectionStartIndex,
-    GetSelectionStartTime,
+    GetNoteSelectionStartIndex,
+    GetPartSelectionStartTime,
 } from "@Utility/SelectionUtils";
 import { defaultInstrumentIndex, defaultMinPartDuration } from "./Defaults";
 
@@ -389,7 +389,7 @@ export const useTracksStore = create<TrackStoreState>()(
                             : part.stopTime;
                         partStopTime = Math.max(
                             partStopTime,
-                            part.startTime + defaultMinPartDuration
+                            partStartTime + defaultMinPartDuration
                         );
 
                         SetPartTime(part, partStartTime, partStopTime);

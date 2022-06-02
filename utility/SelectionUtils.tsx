@@ -1,6 +1,7 @@
 import { useTracksStore } from "@Data/TracksStore";
+import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
-import { PartSelectionIndex } from "@Interfaces/Selection";
+import { NoteSelectionIndex, PartSelectionIndex } from "@Interfaces/Selection";
 
 export const FindSelectedIndex = (
     indices: Array<PartSelectionIndex>,
@@ -13,7 +14,7 @@ export const FindSelectedIndex = (
     );
 };
 
-export const GetSelectionStartTime = (
+export const GetPartSelectionStartTime = (
     selectedPartIndices: Array<PartSelectionIndex>
 ): number => {
     let selectionStartTime = 100000;
@@ -29,7 +30,7 @@ export const GetSelectionStartTime = (
     return selectionStartTime;
 };
 
-export const GetSelectionStartIndex = (
+export const GetPartSelectionStartIndex = (
     selectedPartIndices: Array<PartSelectionIndex>
 ): number => {
     let selectionStartTime = 100000;
@@ -47,7 +48,7 @@ export const GetSelectionStartIndex = (
     return selectionIndex;
 };
 
-export const GetSelectionStartOffsets = (
+export const GetPartSelectionStartOffsets = (
     part: Part,
     selectedPartIndices: Array<PartSelectionIndex>
 ): Array<number> => {
@@ -58,7 +59,7 @@ export const GetSelectionStartOffsets = (
     });
 };
 
-export const GetSelectionStopOffsets = (
+export const GetPartSelectionStopOffsets = (
     part: Part,
     selectedPartIndices: Array<PartSelectionIndex>
 ): Array<number> => {
@@ -66,6 +67,59 @@ export const GetSelectionStopOffsets = (
 
     return selectedPartIndices.map(({ partIndex, trackIndex }) => {
         return part.stopTime - tracks[trackIndex].parts[partIndex].stopTime;
+    });
+};
+
+export const GetNoteSelectionStartIndex = (
+    selectedPartIndices: Array<NoteSelectionIndex>
+): number => {
+    let selectionStartTime = 100000;
+    let selectionIndex = 0;
+    const tracks = useTracksStore.getState().tracks;
+    const selectedTrackIndex = useTracksStore.getState().selectedTrackIndex;
+    const selectedTrack = tracks[selectedTrackIndex];
+
+    selectedPartIndices.forEach(({ partIndex, noteIndex }) => {
+        const noteStartTime =
+            selectedTrack.parts[partIndex].notes[noteIndex].startTime;
+        if (noteStartTime < selectionStartTime) {
+            selectionStartTime = noteStartTime;
+            selectionIndex = partIndex;
+        }
+    });
+
+    return selectionIndex;
+};
+
+export const GetNoteSelectionStartOffsets = (
+    note: Note,
+    selectedPartIndices: Array<NoteSelectionIndex>
+): Array<number> => {
+    const tracks = useTracksStore.getState().tracks;
+    const selectedTrackIndex = useTracksStore.getState().selectedTrackIndex;
+    const selectedTrack = tracks[selectedTrackIndex];
+
+    return selectedPartIndices.map(({ partIndex, noteIndex }) => {
+        return (
+            note.startTime -
+            selectedTrack.parts[partIndex].notes[noteIndex].startTime
+        );
+    });
+};
+
+export const GetNoteSelectionStopOffsets = (
+    note: Note,
+    selectedPartIndices: Array<NoteSelectionIndex>
+): Array<number> => {
+    const tracks = useTracksStore.getState().tracks;
+    const selectedTrackIndex = useTracksStore.getState().selectedTrackIndex;
+    const selectedTrack = tracks[selectedTrackIndex];
+
+    return selectedPartIndices.map(({ partIndex, noteIndex }) => {
+        return (
+            note.stopTime -
+            selectedTrack.parts[partIndex].notes[noteIndex].stopTime
+        );
     });
 };
 
