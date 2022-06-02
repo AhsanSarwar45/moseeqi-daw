@@ -1,5 +1,6 @@
 import { Flex } from "@chakra-ui/react";
 import { blackKeyHeightModifier, blackKeyWidthModifier } from "@Data/Constants";
+import { selectSelectedTrack, useTracksStore } from "@Data/TracksStore";
 import { KeyType } from "@Interfaces/KeyType";
 import { useMemo, useRef, useState } from "react";
 
@@ -8,8 +9,6 @@ interface KeyProps {
     index: number;
     width: number;
     height: number;
-    onKeyDown: (label: string) => void;
-    onKeyUp: (label: string) => void;
 }
 
 const BlackKeyOffsets = [
@@ -28,6 +27,16 @@ const BlackKeyOffsets = [
 ];
 
 export const Key = (props: KeyProps) => {
+    const selectedTrack = useTracksStore(selectSelectedTrack);
+
+    const OnKeyDown = (key: string) => {
+        selectedTrack.sampler.triggerAttack([key]);
+    };
+
+    const OnKeyUp = (key: string) => {
+        selectedTrack.sampler.triggerRelease([key]);
+    };
+
     const type = useRef<KeyType>(
         props.label.includes("#") ? KeyType.Black : KeyType.White
     );
@@ -56,14 +65,14 @@ export const Key = (props: KeyProps) => {
             boxSizing="border-box"
             cursor="pointer"
             userSelect="none"
-            onMouseDown={() => props.onKeyDown(props.label)}
-            onMouseUp={() => props.onKeyUp(props.label)}
+            onMouseDown={() => OnKeyDown(props.label)}
+            onMouseUp={() => OnKeyUp(props.label)}
             onMouseLeave={(event) => {
-                if (event.buttons === 1) props.onKeyUp(props.label);
+                if (event.buttons === 1) OnKeyUp(props.label);
             }}
             onMouseEnter={(event) => {
                 if (event.buttons === 1) {
-                    props.onKeyDown(props.label);
+                    OnKeyDown(props.label);
                 }
             }}
             justifyContent="right"

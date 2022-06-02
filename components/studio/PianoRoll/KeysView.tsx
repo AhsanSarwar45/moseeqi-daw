@@ -9,8 +9,6 @@ interface KeysViewProps {
     width: Dimension;
     stickyHeight: Dimension;
     rowHeight: Dimension;
-    onKeyDown: (label: string) => void;
-    onKeyUp: (label: string) => void;
 }
 
 export const KeysView = memo((props: KeysViewProps) => {
@@ -39,8 +37,6 @@ export const KeysView = memo((props: KeysViewProps) => {
                     label={label}
                     width={StrDimToNum(props.width)}
                     height={StrDimToNum(props.rowHeight)}
-                    onKeyDown={props.onKeyDown}
-                    onKeyUp={props.onKeyUp}
                 />
             ))}
         </Box>

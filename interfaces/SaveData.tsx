@@ -3,6 +3,7 @@ import { Instrument } from "./Instrument";
 import { Part } from "./Part";
 
 export interface TrackSaveData {
+    id: number;
     name: string;
     instrument: Instrument;
     parts: Array<Part>;

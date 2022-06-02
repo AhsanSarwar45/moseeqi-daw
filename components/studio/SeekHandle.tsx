@@ -1,23 +1,21 @@
 import { Box } from "@chakra-ui/react";
-import { SeekContext } from "@Data/SeekContext";
+import { selectPlaybackState, usePlaybackStore } from "@Data/PlaybackStore";
+import { selectSeek, useSeekStore } from "@Data/SeekStore";
+import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { Dimension } from "@Types/Types";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
 
-interface TimeHandleProps {
-    playbackState: number;
+interface SeekHandleProps {
     height: Dimension;
-    seek: number;
-    setSeek: (seek: number) => void;
     scale: number;
 }
 
-const SeekHandle = (props: TimeHandleProps) => {
+const SeekHandle = (props: SeekHandleProps) => {
     const wholeNoteWidth = 40;
     const snapDivisions = 8;
 
-    const [seek, setSeek] = useState(0);
     const [snapWidth, setSnapWidth] = useState(
         (wholeNoteWidth / snapDivisions) * props.scale
     );
@@ -25,42 +23,41 @@ const SeekHandle = (props: TimeHandleProps) => {
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
 
+    const { seek, setSeek } = useSeekStore();
+
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
         const newSeek = data.lastX / (5 * props.scale);
         // console.log(newSeek, data.lastX)
         setSeek(newSeek);
-        props.setSeek(newSeek);
 
         Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
         dragging.current = false;
     };
 
-    useEffect(() => {
-        // console.log(props.seek)
-        setSeek(props.seek);
-    }, [props.seek]);
-
-    useEffect(() => {
-        if (props.playbackState === 1) {
-            seekAnimationRef.current = requestAnimationFrame(
-                function UpdateSeek() {
-                    setSeek(
-                        Tone.Transport.seconds * (Tone.Transport.bpm.value / 30)
+    useEffect(
+        () =>
+            usePlaybackStore.subscribe((state) => {
+                if (state.playbackState === PlaybackState.Stopped) {
+                    setSeek(0);
+                    cancelAnimationFrame(seekAnimationRef.current);
+                } else if (state.playbackState === PlaybackState.Playing) {
+                    seekAnimationRef.current = requestAnimationFrame(
+                        function UpdateSeek() {
+                            setSeek(
+                                Tone.Transport.seconds *
+                                    (Tone.Transport.bpm.value / 30)
+                            );
+                            seekAnimationRef.current =
+                                requestAnimationFrame(UpdateSeek);
+                        }
                     );
-                    seekAnimationRef.current =
-                        requestAnimationFrame(UpdateSeek);
+                } else if (state.playbackState === PlaybackState.Paused) {
+                    cancelAnimationFrame(seekAnimationRef.current);
                 }
-            );
-        } else if (props.playbackState === 0) {
-            // Stop
-            setSeek(0);
-            cancelAnimationFrame(seekAnimationRef.current);
-        } else if (props.playbackState === 2) {
-            //Pause
-            cancelAnimationFrame(seekAnimationRef.current);
-        }
-    }, [props.playbackState]);
+            }),
+        []
+    );
 
     return (
         <Draggable

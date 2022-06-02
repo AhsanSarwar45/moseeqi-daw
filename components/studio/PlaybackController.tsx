@@ -17,58 +17,64 @@ import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { PlaybackState } from "@Types/Types";
+import { usePlaybackStore } from "@Data/PlaybackStore";
+import { useBpmStore } from "@Data/BpmStore";
+import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 
-interface PlayBackControllerProps {
-    playbackState: PlaybackState;
-    setPlaybackState: (playbackState: PlaybackState) => void;
-    bpm: number;
-    setBPM: (bpm: number) => void;
-}
+interface PlayBackControllerProps {}
 
 export const PlayBackController = (props: PlayBackControllerProps) => {
-    const [bpm, setBpm] = useState(props.bpm);
+    const [localBpm, setLocalBpm] = useState(useBpmStore.getState().bpm);
     const [transportTime, setTransportTime] = useState("00:00.0");
 
     const seekAnimationRef = useRef(0);
 
-    useEffect(() => {
-        if (props.playbackState === 1) {
-            seekAnimationRef.current = requestAnimationFrame(
-                function UpdateSeek() {
-                    const minutes = Math.floor(
-                        Tone.Transport.seconds / 60
-                    ).toLocaleString("en-US", {
-                        minimumIntegerDigits: 2,
-                        useGrouping: false,
-                    });
-                    const seconds = (
-                        Tone.Transport.seconds % 60
-                    ).toLocaleString("en-US", {
-                        minimumIntegerDigits: 2,
-                        maximumFractionDigits: 1,
-                        minimumFractionDigits: 1,
-                        useGrouping: false,
-                    });
+    const { bpm, setBpm } = useBpmStore();
+    const { playbackState, setPlaybackState } = usePlaybackStore();
 
-                    setTransportTime(minutes + ":" + seconds);
-                    seekAnimationRef.current =
-                        requestAnimationFrame(UpdateSeek);
+    useEffect(
+        () =>
+            usePlaybackStore.subscribe((state) => {
+                if (state.playbackState === PlaybackState.Stopped) {
+                    setTransportTime("00:00.0");
+                    cancelAnimationFrame(seekAnimationRef.current);
+                } else if (state.playbackState === PlaybackState.Playing) {
+                    seekAnimationRef.current = requestAnimationFrame(
+                        function UpdateSeek() {
+                            const minutes = Math.floor(
+                                Tone.Transport.seconds / 60
+                            ).toLocaleString("en-US", {
+                                minimumIntegerDigits: 2,
+                                useGrouping: false,
+                            });
+                            const seconds = (
+                                Tone.Transport.seconds % 60
+                            ).toLocaleString("en-US", {
+                                minimumIntegerDigits: 2,
+                                maximumFractionDigits: 1,
+                                minimumFractionDigits: 1,
+                                useGrouping: false,
+                            });
+
+                            setTransportTime(minutes + ":" + seconds);
+                            seekAnimationRef.current =
+                                requestAnimationFrame(UpdateSeek);
+                        }
+                    );
+                } else if (state.playbackState === PlaybackState.Paused) {
+                    cancelAnimationFrame(seekAnimationRef.current);
                 }
-            );
-        } else if (props.playbackState === 0) {
-            // Stop
-            setTransportTime("00:00.0");
-            cancelAnimationFrame(seekAnimationRef.current);
-        } else if (props.playbackState === 2) {
-            //Pause
-            cancelAnimationFrame(seekAnimationRef.current);
-        }
-    }, [props.playbackState]);
+            }),
+        []
+    );
 
-    useEffect(() => {
-        setBpm(props.bpm);
-    }, [props.bpm]);
+    useEffect(
+        () =>
+            useBpmStore.subscribe((state) => {
+                setLocalBpm(state.bpm);
+            }),
+        []
+    );
 
     return (
         <HStack
@@ -108,25 +114,25 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                     aria-label="play"
                     icon={<TiMediaPlay />}
                     borderWidth={1}
-                    isDisabled={props.playbackState === 1}
+                    isDisabled={playbackState === PlaybackState.Playing}
                     borderColor="secondary.700"
-                    onClick={() => props.setPlaybackState(1)}
+                    onClick={() => setPlaybackState(PlaybackState.Playing)}
                 />
                 <IconButton
                     aria-label="pause"
                     icon={<TiMediaPause />}
                     borderWidth={1}
-                    isDisabled={props.playbackState === 2}
+                    isDisabled={playbackState === PlaybackState.Paused}
                     borderColor="secondary.700"
-                    onClick={() => props.setPlaybackState(2)}
+                    onClick={() => setPlaybackState(PlaybackState.Paused)}
                 />
                 <IconButton
                     aria-label="stop"
                     icon={<TiMediaStop />}
                     borderWidth={1}
-                    isDisabled={props.playbackState === 0}
+                    isDisabled={playbackState === PlaybackState.Stopped}
                     borderColor="secondary.700"
-                    onClick={() => props.setPlaybackState(0)}
+                    onClick={() => setPlaybackState(PlaybackState.Stopped)}
                 />
                 <IconButton
                     aria-label="fast-forward"
@@ -146,14 +152,14 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                 maxWidth={20}
                 min={30}
                 max={600}
-                value={bpm}
+                value={localBpm}
                 onChange={(valueString) => {
-                    setBpm(parseInt(valueString));
+                    setLocalBpm(parseInt(valueString));
                 }}
                 defaultValue={120}
                 borderRadius="sm"
                 onBlur={(event) => {
-                    props.setBPM(parseInt(event.target.value));
+                    setBpm(parseInt(event.target.value));
                 }}
             >
                 <NumberInputField />

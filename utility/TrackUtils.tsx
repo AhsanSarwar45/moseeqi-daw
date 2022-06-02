@@ -1,10 +1,20 @@
-import { GetIdCallback } from "@Hooks/useNumId";
+import { getTrackId } from "@Data/Id";
+import { useLoadingStore } from "@Data/IsLoadingStore";
 import { Instruments } from "@Instruments/Instruments";
+import { Instrument } from "@Interfaces/Instrument";
+import { Note } from "@Interfaces/Note";
 import { TrackSaveData } from "@Interfaces/SaveData";
 import { Track } from "@Interfaces/Track";
 import * as Tone from "tone";
-import { GetPartNote } from "./NoteUtils";
-import { CreateTonePart } from "./PartUtils";
+import { GetPartNote, IsNoteInPart, MakeNotePartRelative } from "./NoteUtils";
+import {
+    AddNoteToPart,
+    CreatePart,
+    CreateTonePart,
+    ExtendPart,
+    GetNewPartStartTime,
+    GetNewPartStopTime,
+} from "./PartUtils";
 import CreateSampler from "./SamplerUtils";
 
 export const DisposeTracks = (tracks: Array<Track>) => {
@@ -61,6 +71,14 @@ export const SetTrackSolo = (
     }
 };
 
+export const SetTrackRelease = (track: Track, value: number) => {
+    track.sampler.release = value;
+};
+
+export const SetTrackAttack = (track: Track, value: number) => {
+    track.sampler.attack = value;
+};
+
 export const GetTracksSaveData = (
     tracks: Array<Track>
 ): Array<TrackSaveData> => {
@@ -68,6 +86,7 @@ export const GetTracksSaveData = (
     // we also remove the meter property as it is not needed
     return tracks.map((track) => {
         return {
+            id: track.id,
             name: track.name,
             instrument: track.instrument,
             parts: track.parts,
@@ -78,7 +97,7 @@ export const GetTracksSaveData = (
     });
 };
 
-export const ChangeTrackBpm = (
+export const ChangeTracksBpm = (
     tracks: Array<Track>,
     oldBpm: number,
     newBpm: number
@@ -103,36 +122,35 @@ export const ChangeTrackBpm = (
     });
 };
 
-const CreateTrack = (
-    instrumentIndex: number,
-    onLoadInstrumentStart: (instruments: number) => void,
-    onLoadInstrumentEnd: () => void,
-    getPartId: GetIdCallback
-): Track => {
-    // Causes the loading modal to show
-    onLoadInstrumentStart(1);
-    const instrument = Instruments[instrumentIndex];
+export const StopTrackParts = (track: Track) => {
+    track.parts.forEach((part) => {
+        part.tonePart.stop();
+    });
+};
+
+export const ClearTrack = (track: Track) => {
+    track.parts.forEach((part) => {
+        part.tonePart.clear();
+        part.notes = [];
+    });
+};
+
+export const CreateTrack = (instrument: Instrument): Track => {
+    useLoadingStore.setState({ isLoading: true });
 
     const meter = new Tone.Meter();
 
-    const sampler = CreateSampler(instrument, () => onLoadInstrumentEnd())
+    const sampler = CreateSampler(instrument, () =>
+        useLoadingStore.setState({ isLoading: false })
+    )
         .toDestination()
         .connect(meter);
 
-    const tonePart = CreateTonePart(sampler).start(0);
-
     return {
+        id: getTrackId(),
         name: instrument.name,
         instrument: instrument,
-        parts: [
-            {
-                id: getPartId(),
-                tonePart: tonePart,
-                startTime: 0,
-                stopTime: 8,
-                notes: [],
-            },
-        ],
+        parts: [],
         sampler: sampler,
         meter: meter,
         muted: false,
@@ -141,4 +159,49 @@ const CreateTrack = (
     };
 };
 
-export default CreateTrack;
+export const CreateTrackFromIndex = (instrumentIndex: number): Track => {
+    const instrument = Instruments[instrumentIndex];
+    return CreateTrack(instrument);
+};
+
+export const AddNoteToTrack = (track: Track, note: Note) => {
+    // Check which part the note is in
+    const currentPartIndex = track.parts.findIndex((part) =>
+        IsNoteInPart(note, part)
+    );
+
+    // If the note lies in an existing part, add it to the part
+    if (currentPartIndex !== -1) {
+        const part = track.parts[currentPartIndex];
+
+        // if the end of the note lies beyond the end of the part, extend the part
+        if (note.stopTime > part.stopTime) {
+            ExtendPart(note, part);
+        }
+        MakeNotePartRelative(note, part);
+        AddNoteToPart(note, part);
+    }
+    // If in not in any existing part, create a new part and add the note to it
+    else {
+        // TODO: Add snap settings
+        const partStartTime = GetNewPartStartTime(note.startTime);
+        const partStopTime = GetNewPartStopTime(note.stopTime);
+        const newPart = CreatePart(
+            partStartTime,
+            partStopTime,
+            track.sampler,
+            []
+        );
+        MakeNotePartRelative(note, newPart);
+        AddNoteToPart(note, newPart);
+        track.parts.push(newPart);
+    }
+};
+
+export const CopyParts = (originalTrack: Track, copiedTrack: Track) => {
+    copiedTrack.parts = originalTrack.parts.map((part) => {
+        return CreatePart(part.startTime, part.stopTime, copiedTrack.sampler, [
+            ...part.notes,
+        ]);
+    });
+};

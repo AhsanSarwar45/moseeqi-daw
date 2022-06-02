@@ -1,4 +1,3 @@
-import { forwardRef, memo, useContext, useMemo, useRef, useState } from "react";
 import { Box, Flex, HStack } from "@chakra-ui/react";
 import { PianoKeys } from "@Data/Constants";
 import SeekHandle from "../SeekHandle";
@@ -18,9 +17,6 @@ interface TimelineProps {
     stickyWidth: Dimension;
     width: Dimension;
     columnWidth: number;
-    playbackState: number;
-    seek: number;
-    setSeek: (seek: number) => void;
 }
 
 export const Timeline = (props: TimelineProps) => {
@@ -35,10 +31,7 @@ export const Timeline = (props: TimelineProps) => {
         >
             <SeekHandle
                 height={props.gridHeight}
-                playbackState={props.playbackState}
-                seek={props.seek}
                 scale={props.columnWidth / 5}
-                setSeek={props.setSeek}
             />
             <Ruler
                 type="horizontal"

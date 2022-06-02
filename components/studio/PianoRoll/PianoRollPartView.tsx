@@ -12,9 +12,7 @@ interface PianoRollProps {
     cellWidth: number;
     gridHeight: number;
     isSnappingOn: boolean;
-    pixelsPerSecond: number;
     currentPixelsPerSecond: number;
-    onFilledNoteClick: (key: string, duration: number) => void;
 }
 
 const PianoRollPartView = (props: PianoRollProps) => {
@@ -49,8 +47,6 @@ const PianoRollPartView = (props: PianoRollProps) => {
                     partIndex={props.partIndex}
                     cellHeight={props.rowHeight}
                     cellWidth={props.cellWidth}
-                    onClick={props.onFilledNoteClick}
-                    pixelsPerSecond={props.pixelsPerSecond}
                     currentPixelsPerSecond={props.currentPixelsPerSecond}
                 />
             ))}

@@ -3,6 +3,9 @@ import * as Tone from "tone";
 import { wholeNoteDivisions } from "@Data/Constants";
 import { Note } from "@Interfaces/Note";
 import { GetPartNote } from "./NoteUtils";
+import { getPartId } from "@Data/Id";
+import { GetSecondsPerDivision } from "./TimeUtils";
+import { Part } from "@Interfaces/Part";
 
 export const CreateTonePart = (sampler: Tone.Sampler) => {
     return new Tone.Part((time, value: any) => {
@@ -16,7 +19,6 @@ export const CreateTonePart = (sampler: Tone.Sampler) => {
 };
 
 export const CreatePart = (
-    id: number,
     startTime: number,
     stopTime: number,
     sampler: Tone.Sampler,
@@ -29,7 +31,7 @@ export const CreatePart = (
     });
 
     return {
-        id: id,
+        id: getPartId(),
         tonePart: tonePart,
         startTime: startTime,
         stopTime: stopTime,
@@ -37,38 +39,60 @@ export const CreatePart = (
     };
 };
 
-export const GetNewPartStartTime = (
-    noteStartTime: number,
-    currentSecondsPerDivision: number
+export const MapPartTime = (
+    part: Part,
+    startMapper: (startTime: number) => number,
+    stopMapper: (stopTime: number) => number
 ) => {
-    const noteStartColumn = Math.floor(
-        noteStartTime / currentSecondsPerDivision
-    );
-    // console.log("note moved", noteStartColumn);
+    part.startTime = startMapper(part.startTime);
+    part.stopTime = stopMapper(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+};
+
+export const SetPartTime = (
+    part: Part,
+    startTime: number,
+    stopTime: number
+) => {
+    part.startTime = startTime;
+    part.stopTime = stopTime;
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+};
+
+export const AddNoteToPart = (note: Note, part: Part) => {
+    part.notes.push(note);
+    part.tonePart.add(GetPartNote(note));
+};
+
+export const ExtendPart = (note: Note, part: Part): Part => {
+    part.stopTime = GetExtendedPartStopTime(note.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+
+    return part;
+};
+
+export const GetNewPartStartTime = (noteStartTime: number) => {
+    const secondsPerDivision = GetSecondsPerDivision();
+    const noteStartColumn = Math.floor(noteStartTime / secondsPerDivision);
     return (
         Math.floor(noteStartColumn / wholeNoteDivisions) *
         wholeNoteDivisions *
-        currentSecondsPerDivision
+        secondsPerDivision
     );
 };
 
-export const GetNewPartStopTime = (
-    noteStopTime: number,
-    currentSecondsPerDivision: number
-) => {
-    const noteStopColumn = Math.floor(noteStopTime / currentSecondsPerDivision);
+export const GetNewPartStopTime = (noteStopTime: number) => {
+    const secondsPerDivision = GetSecondsPerDivision();
+    const noteStopColumn = Math.floor(noteStopTime / secondsPerDivision);
     return (
         Math.ceil(noteStopColumn / wholeNoteDivisions) *
         wholeNoteDivisions *
-        currentSecondsPerDivision
+        secondsPerDivision
     );
 };
 
-export const GetExtendedPartStopTime = (
-    noteStopTime: number,
-    currentSecondsPerDivision: number
-) => {
-    const noteStopColumn = Math.ceil(noteStopTime / currentSecondsPerDivision);
-    console.log("noteStopColumn", noteStopColumn);
-    return noteStopColumn * currentSecondsPerDivision;
+export const GetExtendedPartStopTime = (noteStopTime: number) => {
+    const secondsPerDivision = GetSecondsPerDivision();
+    const noteStopColumn = Math.ceil(noteStopTime / secondsPerDivision);
+    return noteStopColumn * secondsPerDivision;
 };

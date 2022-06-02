@@ -1,23 +1,26 @@
 import React, { useState } from "react";
-import {
-    ButtonGroup,
-    Button,
-    HStack,
-    Heading,
-    VStack,
-    Flex,
-} from "@chakra-ui/react";
-import KnobControl from "components/Knob";
-import { Track } from "@Interfaces/Track";
+import { Heading, VStack, Flex } from "@chakra-ui/react";
 
-interface PropertiesPanelProps {
-    numTracks: number;
-    selectedTrack: Track;
-    setAttack: (value: number) => void;
-    setRelease: (value: number) => void;
-}
+import KnobControl from "@Components/Knob";
+import {
+    selectSelectedTrack,
+    selectSetSelectedTrackAttack,
+    selectSetSelectedTrackRelease,
+    selectTrackCount,
+    useTracksStore,
+} from "@Data/TracksStore";
+
+interface PropertiesPanelProps {}
 
 export const PropertiesPanel = (props: PropertiesPanelProps) => {
+    const trackCount = useTracksStore(selectTrackCount);
+    const selectedTrack = useTracksStore(selectSelectedTrack);
+
+    const setSelectedTrackAttack = useTracksStore(selectSetSelectedTrackAttack);
+    const setSelectedTrackRelease = useTracksStore(
+        selectSetSelectedTrackRelease
+    );
+
     return (
         <VStack
             padding="10px"
@@ -28,7 +31,7 @@ export const PropertiesPanel = (props: PropertiesPanelProps) => {
             <Heading width="100%" color="white" size="md">
                 Properties
             </Heading>
-            {props.numTracks > 0 ? (
+            {trackCount > 0 ? (
                 <VStack spacing={5} width="100%">
                     <Heading width="100%" size="sm" color="white">
                         Envelope
@@ -38,19 +41,15 @@ export const PropertiesPanel = (props: PropertiesPanelProps) => {
                         <KnobControl
                             size={50}
                             label="Attack"
-                            setValue={props.setAttack}
-                            defaultVal={
-                                props.selectedTrack.sampler.attack as number
-                            }
+                            setValue={(value) => setSelectedTrackAttack(value)}
+                            defaultVal={selectedTrack.sampler.attack as number}
                             //defaultVal={0}
                         />
                         <KnobControl
                             size={50}
                             label="Release"
-                            setValue={props.setRelease}
-                            defaultVal={
-                                props.selectedTrack.sampler.release as number
-                            }
+                            setValue={(value) => setSelectedTrackRelease(value)}
+                            defaultVal={selectedTrack.sampler.release as number}
                             //defaultVal={1}
                         />
                     </Flex>

@@ -1,10 +1,19 @@
 import { Box } from "@chakra-ui/react";
+
+import { useContext, useEffect, useRef, useState } from "react";
+import { Rnd } from "react-rnd";
+
 import { NotesModifierContext } from "@Data/NotesModifierContext";
+import {
+    selectMoveNoteInSelectedTrack,
+    selectRemoveNoteFromSelectedTrack,
+    selectSelectedTrack,
+    useTracksStore,
+} from "@Data/TracksStore";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { Snap } from "@Utility/SnapUtils";
-import { useContext, useEffect, useRef, useState } from "react";
-import { Rnd } from "react-rnd";
+import { GetPartNote, MoveNote } from "@Utility/NoteUtils";
 
 interface MidiNoteProps {
     note: Note;
@@ -14,16 +23,21 @@ interface MidiNoteProps {
     cellHeight: number;
     cellWidth: number;
     isSnappingOn: boolean;
-    pixelsPerSecond: number;
     currentPixelsPerSecond: number;
-    onClick: (key: string, duration: number) => void;
 }
 
 export const MidiNote = (props: MidiNoteProps) => {
-    const { onMoveNote, onRemoveNote } = useContext(NotesModifierContext);
-
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
+
+    const removeNoteFromSelectedTrack = useTracksStore(
+        selectRemoveNoteFromSelectedTrack
+    );
+    const moveNoteInSelectedTrack = useTracksStore(
+        selectMoveNoteInSelectedTrack
+    );
+
+    const selectedTrack = useTracksStore(selectSelectedTrack);
 
     const [snappedDraggingPosition, setSnappedDraggingPosition] = useState(
         props.note.startTime * props.currentPixelsPerSecond
@@ -31,6 +45,9 @@ export const MidiNote = (props: MidiNoteProps) => {
     // const [snappedResizingWidth, setSnappedResizingWidth] = useState(
     //     props.note.duration * props.currentPixelsPerSecond
     // );
+    const OnNoteClick = (key: string, duration: number) => {
+        selectedTrack.sampler.triggerAttackRelease(key, duration);
+    };
 
     useEffect(() => {
         setSnappedDraggingPosition(
@@ -121,7 +138,7 @@ export const MidiNote = (props: MidiNoteProps) => {
                     startTime = 0;
                 }
 
-                onMoveNote(
+                moveNoteInSelectedTrack(
                     props.partIndex,
                     props.noteIndex,
                     startTime,
@@ -165,7 +182,7 @@ export const MidiNote = (props: MidiNoteProps) => {
 
                 const row = position.y / props.cellHeight;
                 // console.log("width", width, "position", position);
-                onMoveNote(
+                moveNoteInSelectedTrack(
                     props.partIndex,
                     props.noteIndex,
                     startTime,
@@ -185,7 +202,10 @@ export const MidiNote = (props: MidiNoteProps) => {
                 borderColor="secondary.700"
                 bgColor="secondary.500"
                 onContextMenu={() => {
-                    onRemoveNote(props.partIndex, props.noteIndex);
+                    removeNoteFromSelectedTrack(
+                        props.partIndex,
+                        props.noteIndex
+                    );
                     return false;
                 }}
                 zIndex={9999}
