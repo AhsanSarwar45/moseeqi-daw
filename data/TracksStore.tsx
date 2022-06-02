@@ -35,7 +35,7 @@ import {
     GetSelectionStartIndex,
     GetSelectionStartTime,
 } from "@Utility/SelectionUtils";
-import { defaultInstrumentIndex } from "./Defaults";
+import { defaultInstrumentIndex, defaultMinPartDuration } from "./Defaults";
 
 interface TrackStoreState {
     tracks: Array<Track>;
@@ -75,11 +75,15 @@ interface TrackStoreState {
     toggleMuteAtIndex: (trackIndex: number) => void;
     toggleSoloAtIndex: (trackIndex: number) => void;
     moveSelectedParts: (startDelta: number, stopDelta: number) => void;
-    setSelectedPartsTime: (
+    setSelectedPartsStartTime: (
         startTime: number,
-        stopTime: number,
         selectionOffsets: Array<number>,
         selectionStartIndex: number
+    ) => void;
+
+    setSelectedPartsStopTime: (
+        stopTime: number,
+        selectionOffsets: Array<number>
     ) => void;
 }
 
@@ -360,9 +364,8 @@ export const useTracksStore = create<TrackStoreState>()(
                 };
             });
         },
-        setSelectedPartsTime: (
+        setSelectedPartsStartTime: (
             startTime: number,
-            stopTime: number,
             selectionOffsets: Array<number>,
             selectionStartIndex: number
         ) => {
@@ -371,10 +374,9 @@ export const useTracksStore = create<TrackStoreState>()(
                     const delta =
                         selectionOffsets[selectionStartIndex] - startTime;
                     startTime += delta;
-                    stopTime += delta;
                 }
 
-                // console.log(startTime, stopTime);
+                console.log(startTime);
 
                 const tracksCopy = [...prev.tracks];
                 prev.selectedPartIndices.forEach(
@@ -382,11 +384,35 @@ export const useTracksStore = create<TrackStoreState>()(
                         const part = tracksCopy[trackIndex].parts[partIndex];
                         const offset = selectionOffsets[index];
                         // console.log(startTime - offset, stopTime - offset);
+                        const partStartTime = startTime - offset;
                         SetPartTime(
                             part,
-                            startTime - offset,
-                            stopTime - offset
+                            partStartTime,
+                            partStartTime + part.duration
                         );
+                    }
+                );
+                return {
+                    tracks: tracksCopy,
+                };
+            });
+        },
+        setSelectedPartsStopTime: (
+            stopTime: number,
+            selectionOffsets: Array<number>
+        ) => {
+            set((prev) => {
+                const tracksCopy = [...prev.tracks];
+                prev.selectedPartIndices.forEach(
+                    ({ trackIndex, partIndex }, index) => {
+                        const part = tracksCopy[trackIndex].parts[partIndex];
+                        const offset = selectionOffsets[index];
+                        let partStopTime = stopTime - offset;
+                        partStopTime = Math.max(
+                            partStopTime,
+                            defaultMinPartDuration
+                        );
+                        SetPartTime(part, part.startTime, partStopTime);
                     }
                 );
                 return {
@@ -436,8 +462,10 @@ export const selectSetSelectedPartsIndices = (state: TrackStoreState) =>
     state.setSelectedPartsIndices;
 export const selectClearSelectedPartsIndices = (state: TrackStoreState) =>
     state.clearSelectedPartsIndices;
-export const selectSetSelectedPartsTime = (state: TrackStoreState) =>
-    state.setSelectedPartsTime;
+export const selectSetSelectedPartsStartTime = (state: TrackStoreState) =>
+    state.setSelectedPartsStartTime;
+export const selectSetSelectedPartsStopTime = (state: TrackStoreState) =>
+    state.setSelectedPartsStopTime;
 
 const MergeSelectors = (
     state: TrackStoreState,

@@ -47,7 +47,7 @@ export const GetSelectionStartIndex = (
     return selectionIndex;
 };
 
-export const GetSelectionOffsets = (
+export const GetSelectionStartOffsets = (
     part: Part,
     selectedPartIndices: Array<PartSelectionIndex>
 ): Array<number> => {
@@ -55,6 +55,17 @@ export const GetSelectionOffsets = (
 
     return selectedPartIndices.map(({ partIndex, trackIndex }) => {
         return part.startTime - tracks[trackIndex].parts[partIndex].startTime;
+    });
+};
+
+export const GetSelectionStopOffsets = (
+    part: Part,
+    selectedPartIndices: Array<PartSelectionIndex>
+): Array<number> => {
+    const tracks = useTracksStore.getState().tracks;
+
+    return selectedPartIndices.map(({ partIndex, trackIndex }) => {
+        return part.stopTime - tracks[trackIndex].parts[partIndex].stopTime;
     });
 };
 

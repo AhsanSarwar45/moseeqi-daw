@@ -23,7 +23,7 @@ export const CreatePart = (
     stopTime: number,
     sampler: Tone.Sampler,
     notes: Array<Note> = []
-) => {
+): Part => {
     const tonePart = CreateTonePart(sampler).start(startTime).stop(stopTime);
 
     notes.forEach((note) => {
@@ -35,6 +35,7 @@ export const CreatePart = (
         tonePart: tonePart,
         startTime: startTime,
         stopTime: stopTime,
+        duration: stopTime - startTime,
         notes: notes,
     };
 };
@@ -46,6 +47,7 @@ export const MapPartTime = (
 ) => {
     part.startTime = startMapper(part.startTime);
     part.stopTime = stopMapper(part.stopTime);
+    part.duration = part.stopTime - part.startTime;
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
@@ -56,6 +58,7 @@ export const SetPartTime = (
 ) => {
     part.startTime = startTime;
     part.stopTime = stopTime;
+    part.duration = part.stopTime - part.startTime;
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
@@ -66,6 +69,7 @@ export const AddNoteToPart = (note: Note, part: Part) => {
 
 export const ExtendPart = (note: Note, part: Part): Part => {
     part.stopTime = GetExtendedPartStopTime(note.stopTime);
+    part.duration = part.stopTime - part.startTime;
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 
     return part;

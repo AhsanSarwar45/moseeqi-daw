@@ -7,4 +7,5 @@ export interface Part {
     notes: Array<Note>;
     startTime: number;
     stopTime: number;
+    duration: number;
 }
