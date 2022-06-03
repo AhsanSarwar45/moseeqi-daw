@@ -34,6 +34,7 @@ import {
     FindSelectedIndex,
     GetNoteSelectionStartIndex,
     GetPartSelectionStartTime,
+    IsPartSelected,
 } from "@Utility/SelectionUtils";
 import { defaultInstrumentIndex, defaultMinPartDuration } from "./Defaults";
 
@@ -87,6 +88,7 @@ interface TrackStoreState {
         stopTime: number,
         selectionOffsets: Array<number>
     ) => void;
+    deleteSelectedParts: () => void;
 }
 
 const DeleteTrack = (trackToDelete: Track, prev: TrackStoreState) => {
@@ -430,6 +432,29 @@ export const useTracksStore = create<TrackStoreState>()(
                 };
             });
         },
+        deleteSelectedParts: () => {
+            set((prev) => {
+                return {
+                    tracks: prev.tracks.map((track, trackIndex) => {
+                        track.parts = track.parts.filter((part, partIndex) => {
+                            if (
+                                IsPartSelected(
+                                    prev.selectedPartIndices,
+                                    partIndex,
+                                    trackIndex
+                                )
+                            ) {
+                                part.tonePart.cancel(0);
+                                return false;
+                            }
+                            return true;
+                        });
+                        return track;
+                    }),
+                    selectedPartIndices: [],
+                };
+            });
+        },
     }))
 );
 
@@ -479,6 +504,8 @@ export const selectSetSelectedPartsStartTime = (state: TrackStoreState) =>
     state.setSelectedPartsStartTime;
 export const selectSetSelectedPartsStopTime = (state: TrackStoreState) =>
     state.setSelectedPartsStopTime;
+export const selectDeleteSelectedParts = (state: TrackStoreState) =>
+    state.deleteSelectedParts;
 
 const MergeSelectors = (
     state: TrackStoreState,

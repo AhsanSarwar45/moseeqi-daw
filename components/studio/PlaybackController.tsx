@@ -21,6 +21,7 @@ import { usePlaybackStore } from "@Data/PlaybackStore";
 import { useBpmStore } from "@Data/BpmStore";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
+import useKeyMap from "@Hooks/useKeyMap";
 
 interface PlayBackControllerProps {}
 
@@ -36,9 +37,7 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
 
     const keymap = useKeymapStore(selectKeymap);
 
-    useHotkeys(keymap.TOGGLE_PLAYBACK, () => {
-        togglePlayback();
-    });
+    useKeyMap("TOGGLE_PLAYBACK", togglePlayback);
 
     useEffect(
         () =>

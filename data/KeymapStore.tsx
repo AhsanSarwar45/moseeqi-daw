@@ -1,24 +1,25 @@
+import { Panel } from "@Interfaces/enums/Panel";
+import { KeyAction, Keymap } from "@Interfaces/Keymap";
 import create from "zustand";
-
-interface Keymap {
-    TOGGLE_PLAYBACK: string;
-    DELETE_TRACKS: string;
-}
+import { defaultKeymap } from "./Defaults";
 
 interface KeymapStoreState {
     keymap: Keymap;
-    setKeymap: (action: string, key: string) => void;
+    setKeymap: (action: KeyAction, key: string) => void;
 }
 
 export const useKeymapStore = create<KeymapStoreState>()((set) => ({
-    keymap: {
-        TOGGLE_PLAYBACK: "space",
-        DELETE_TRACKS: "delete",
-    },
-    setKeymap: (action: string, key: string) => {
+    keymap: defaultKeymap,
+    setKeymap: (action: KeyAction, key: string) => {
         set((prev) => {
             return {
-                keymap: { ...prev.keymap, [action]: key },
+                keymap: {
+                    ...prev.keymap,
+                    [action]: {
+                        ...prev.keymap[action],
+                        key,
+                    },
+                },
             };
         });
     },

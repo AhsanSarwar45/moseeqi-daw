@@ -1,7 +1,7 @@
 export enum Panel {
     None,
-    TrackSequencer,
-    TrackView,
+    SequenceView,
+    TracksInfoView,
     PianoRoll,
     PropertiesPanel,
 }

@@ -41,6 +41,8 @@ import {
 } from "@Data/TracksStore";
 import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import GridView from "./GridView";
+import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
+import { Panel } from "@Interfaces/enums/Panel";
 
 interface PianoRollProps {}
 
@@ -128,7 +130,8 @@ const PianoRoll = (props: PianoRollProps) => {
     return (
         <>
             {trackCount > 0 ? (
-                <Flex
+                <FlexFocusArea
+                    panel={Panel.PianoRoll}
                     height="100%"
                     flexDirection="column"
                     width="full"
@@ -312,7 +315,7 @@ const PianoRoll = (props: PianoRollProps) => {
                             </Box>
                         </VStack>
                     </HStack>
-                </Flex>
+                </FlexFocusArea>
             ) : (
                 <Flex
                     textColor="white"

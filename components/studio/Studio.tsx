@@ -14,53 +14,6 @@ import Splitter from "@Components/Splitter";
 import { TopBar } from "./TopBar";
 
 const Studio = () => {
-    //const [ numCols, setNumCols ] = useState(40);
-
-    // useHotkeys(
-    //     keyMap.TOGGLE_PLAYBACK,
-    //     () => {
-    //         TogglePlayback();
-    //     },
-    //     {},
-    //     [playbackState]
-    // );
-
-    //             } else if (focusedPanel === Panel.TrackSequencer) {
-    //                 if (selectedPartIndices.length > 0) {
-    //                     let tracksCopy = [...tracks];
-
-    //                     // Stop all the parts to be deleted
-
-    //                     selectedPartIndices.forEach(
-    //                         ({ trackIndex, partIndex }) => {
-    //                             // console.log(
-    //                             //     trackIndex,
-    //                             //     partIndex
-    //                             // );
-    //                             tracksCopy[trackIndex].parts[
-    //                                 partIndex
-    //                             ].tonePart.cancel(0);
-
-    //                             // Hacky way to mark part to be deleted
-    //                             tracksCopy[trackIndex].parts[partIndex] =
-    //                                 null as any;
-    //                         }
-    //                     );
-
-    //                     // Delete all the null parts
-    //                     tracksCopy.forEach((track, trackIndex) => {
-    //                         tracksCopy[trackIndex].parts = track.parts.filter(
-    //                             (part) => part !== null
-    //                         );
-    //                     });
-
-    //                     setTracks(tracksCopy);
-    //                     setSelectedPartIndices([]);
-    //                 }
-    //             }
-    //         }
-    //     };
-
     return (
         <Fragment>
             <Flex

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
     selectClearSelectedPartsIndices,
+    selectDeleteSelectedParts,
     selectDeleteSelectedTrack,
     selectSelectedPartIndices,
     selectSetSelectedTrackIndex,
@@ -43,7 +44,7 @@ const SequenceView = (props: SequenceViewProps) => {
                     padding="0px"
                     onMouseDown={(event) => {
                         if (event.currentTarget === event.target) {
-                            clearSelectedPartsIndices;
+                            clearSelectedPartsIndices();
                             setSelectedTrackIndex(trackIndex);
                         }
                     }}

@@ -17,6 +17,7 @@ import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
 import {
+    selectDeleteSelectedParts,
     selectDeleteSelectedTrack,
     selectTrackCount,
     useTracksStore,
@@ -25,8 +26,11 @@ import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import SequenceView from "./SequenceView";
 import TracksInfoView from "./TracksInfoView";
 import TracksEditBar from "./TracksEditBar";
-import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
+// import { selectKeymap, useKeyMapStore } from "@Data/KeymapStore";
 import { useHotkeys } from "react-hotkeys-hook";
+import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
+import { Panel } from "@Interfaces/enums/Panel";
+import useKeyMap from "@Hooks/useKeyMap";
 
 interface TracksViewProps {}
 
@@ -49,27 +53,26 @@ const TracksView = (props: TracksViewProps) => {
     const projectLength = useProjectStore(selectProjectLength);
 
     const deleteSelectedTrack = useTracksStore(selectDeleteSelectedTrack);
+    const deleteSelectedParts = useTracksStore(selectDeleteSelectedParts);
 
-    const keymap = useKeymapStore(selectKeymap);
+    useKeyMap("DELETE_TRACKS", deleteSelectedTrack);
+    useKeyMap("DELETE_PARTS", deleteSelectedParts);
 
-    const deleteTracksScopeRef = useHotkeys(keymap.DELETE_TRACKS, () => {
-        // console.log("delete tracks");
-        deleteSelectedTrack();
-    });
+    const HandleWindowResize = () => {
+        scaleGridTop.current?.resize();
+        scaleGridMain.current?.resize();
+        scaleGridMinor.current?.resize();
+    };
 
     useEffect(() => {
-        window.addEventListener("resize", () => {
-            scaleGridTop.current?.resize();
-            scaleGridMain.current?.resize();
-            scaleGridMinor.current?.resize();
-        });
+        window.addEventListener("resize", HandleWindowResize);
         return () => {
-            window.removeEventListener("resize", () => {});
+            window.removeEventListener("resize", HandleWindowResize);
         };
     }, []);
 
     return (
-        <Fragment>
+        <>
             <HStack
                 alignItems="flex-start"
                 spacing={0}
@@ -85,17 +88,11 @@ const TracksView = (props: TracksViewProps) => {
                     }
                 }}
             >
-                <VStack
-                    spacing={0}
-                    position="sticky"
-                    left={0}
-                    zIndex={500}
-                    tabIndex={-1}
-                    _focusVisible={{ outlineWidth: 0 }}
-                    ref={deleteTracksScopeRef as any}
-                >
-                    <TracksEditBar />
-                    <TracksInfoView />
+                <VStack spacing={0} position="sticky" left={0} zIndex={500}>
+                    <FocusArea panel={Panel.TracksInfoView}>
+                        <TracksEditBar />
+                        <TracksInfoView />
+                    </FocusArea>
                 </VStack>
 
                 <VStack alignItems="flex-start" spacing={0}>
@@ -117,7 +114,8 @@ const TracksView = (props: TracksViewProps) => {
                             segment={4}
                         />
                     </Box>
-                    <Box
+                    <FocusArea
+                        panel={Panel.SequenceView}
                         height={90 * trackCount}
                         padding="0px"
                         width={projectLength * basePixelsPerSecond}
@@ -142,10 +140,10 @@ const TracksView = (props: TracksViewProps) => {
                             basePixelsPerSecond={basePixelsPerSecond}
                             snapWidth={snapWidth}
                         />
-                    </Box>
+                    </FocusArea>
                 </VStack>
             </HStack>
-        </Fragment>
+        </>
     );
 };
 

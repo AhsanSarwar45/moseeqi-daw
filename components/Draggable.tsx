@@ -185,7 +185,7 @@ const TimeDraggable = (props: DraggableProps) => {
                 width={`${resizeAreaWidth}px`}
                 height="full"
                 onMouseDown={(event) => {
-                    // event.preventDefault();
+                    event.preventDefault();
                     const newSelectedPartIndices = SelectPart();
 
                     selectionOffsets.current = props.getSelectionStopOffsets(
@@ -195,6 +195,7 @@ const TimeDraggable = (props: DraggableProps) => {
                     isResizingRightRef.current = true;
 
                     dragOffset.current = left + width - mousePosition.current.x;
+                    return false;
                 }}
                 // bgColor="red"
             />
@@ -207,12 +208,13 @@ const TimeDraggable = (props: DraggableProps) => {
                 width={`${resizeAreaWidth}px`}
                 height="full"
                 onMouseDown={(event) => {
-                    // event.preventDefault();
+                    event.preventDefault();
 
                     SetStartOffsets();
 
                     isResizingLeftRef.current = true;
                     dragOffset.current = left - mousePosition.current.x;
+                    return false;
                 }}
                 // bgColor="red"
             />
