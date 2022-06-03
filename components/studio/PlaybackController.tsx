@@ -20,6 +20,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { usePlaybackStore } from "@Data/PlaybackStore";
 import { useBpmStore } from "@Data/BpmStore";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
+import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
 
 interface PlayBackControllerProps {}
 
@@ -30,7 +31,14 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
     const seekAnimationRef = useRef(0);
 
     const { bpm, setBpm } = useBpmStore();
-    const { playbackState, setPlaybackState } = usePlaybackStore();
+    const { playbackState, setPlaybackState, togglePlayback } =
+        usePlaybackStore();
+
+    const keymap = useKeymapStore(selectKeymap);
+
+    useHotkeys(keymap.TOGGLE_PLAYBACK, () => {
+        togglePlayback();
+    });
 
     useEffect(
         () =>

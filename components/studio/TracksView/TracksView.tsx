@@ -16,11 +16,17 @@ import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
-import { selectTrackCount, useTracksStore } from "@Data/TracksStore";
+import {
+    selectDeleteSelectedTrack,
+    selectTrackCount,
+    useTracksStore,
+} from "@Data/TracksStore";
 import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import SequenceView from "./SequenceView";
 import TracksInfoView from "./TracksInfoView";
 import TracksEditBar from "./TracksEditBar";
+import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface TracksViewProps {}
 
@@ -42,26 +48,23 @@ const TracksView = (props: TracksViewProps) => {
     const trackCount = useTracksStore(selectTrackCount);
     const projectLength = useProjectStore(selectProjectLength);
 
-    useEffect(() => {
-        let timeScaleRefValue: Ruler | null = null;
-        let timeScaleMainRefValue: Ruler | null = null;
-        let timeScaleMinorRefValue: Ruler | null = null;
+    const deleteSelectedTrack = useTracksStore(selectDeleteSelectedTrack);
 
+    const keymap = useKeymapStore(selectKeymap);
+
+    const deleteTracksScopeRef = useHotkeys(keymap.DELETE_TRACKS, () => {
+        console.log("delete tracks");
+        // deleteSelectedTrack();
+    });
+
+    useEffect(() => {
         window.addEventListener("resize", () => {
             scaleGridTop.current?.resize();
             scaleGridMain.current?.resize();
             scaleGridMinor.current?.resize();
-
-            timeScaleRefValue = scaleGridTop.current;
-            timeScaleMainRefValue = scaleGridMain.current;
-            timeScaleMinorRefValue = scaleGridMinor.current;
         });
         return () => {
-            window.removeEventListener("resize", () => {
-                timeScaleRefValue?.resize();
-                timeScaleMainRefValue?.resize();
-                timeScaleMinorRefValue?.resize();
-            });
+            window.removeEventListener("resize", () => {});
         };
     }, []);
 
@@ -87,21 +90,13 @@ const TracksView = (props: TracksViewProps) => {
                     position="sticky"
                     left={0}
                     zIndex={500}
-                    // onClick={(event) => {
-                    //     props.setFocusedPanel(Panel.TrackView);
-                    // }}
+                    // ref={deleteTracksScopeRef as any}
                 >
                     <TracksEditBar />
                     <TracksInfoView />
                 </VStack>
 
-                <VStack
-                    alignItems="flex-start"
-                    spacing={0}
-                    // onClick={(event) => {
-                    //     props.setFocusedPanel(Panel.TrackSequencer);
-                    // }}
-                >
+                <VStack alignItems="flex-start" spacing={0}>
                     <Box
                         height="30px"
                         padding="0px"

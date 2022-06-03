@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
     selectClearSelectedPartsIndices,
+    selectDeleteSelectedTrack,
     selectSelectedPartIndices,
     selectSetSelectedTrackIndex,
     selectTracks,
@@ -13,6 +14,8 @@ import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import PartView from "./PartView";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 import { IsPartSelected } from "@Utility/SelectionUtils";
+import { useHotkeys } from "react-hotkeys-hook";
+import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -28,32 +31,6 @@ const SequenceView = (props: SequenceViewProps) => {
     );
 
     const projectLength = useProjectStore(selectProjectLength);
-
-    const [isShiftHeld, setIsShiftHeld] = useState(false);
-
-    // const partContainerRef = React.useRef<HTMLDivElement>(null);
-    // const [localTracks, setLocalTracks] = useState(tracks);
-
-    const OnKeyDown = ({ key }: { key: string }) => {
-        if (key === "Shift") {
-            setIsShiftHeld(true);
-        }
-    };
-
-    const OnKeyUp = ({ key }: { key: string }) => {
-        if (key === "Shift") {
-            setIsShiftHeld(false);
-        }
-    };
-
-    useEffect(() => {
-        window.addEventListener("keydown", OnKeyDown);
-        window.addEventListener("keyup", OnKeyUp);
-        return () => {
-            window.removeEventListener("keydown", OnKeyDown);
-            window.removeEventListener("keyup", OnKeyUp);
-        };
-    }, []);
 
     return (
         <Box position="absolute" top={0} left={0}>
@@ -82,18 +59,11 @@ const SequenceView = (props: SequenceViewProps) => {
                                 props.basePixelsPerSecond
                             )}
                             snapWidth={props.snapWidth}
-                            isShiftHeld={isShiftHeld}
                             isSelected={IsPartSelected(
                                 selectedPartIndices,
                                 partIndex,
                                 trackIndex
                             )}
-                            // onDragStop={() => {
-                            //     setTracks(localTracks);
-                            // }}
-                            // onResizeStop={() => {
-                            //     setTracks(localTracks);
-                            // }}
                         />
                     ))}
                 </Box>

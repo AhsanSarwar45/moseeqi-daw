@@ -1,25 +1,20 @@
 import { Box } from "@chakra-ui/react";
-import React, { memo, useContext, useEffect, useRef, useState } from "react";
-import { Rnd } from "react-rnd";
-import useMouse from "@react-hook/mouse-position";
+import React from "react";
 
 import {
-    selectMoveSelectedParts,
     selectSetSelectedPartsIndices,
     selectSetSelectedPartsStartTime,
     selectSetSelectedPartsStopTime,
     useTracksStore,
 } from "@Data/TracksStore";
 import { Part } from "@Interfaces/Part";
-import { PartSelectionIndex } from "@Interfaces/Selection";
-import { Snap } from "@Utility/SnapUtils";
-import Draggable from "@Components/Draggable";
 import TimeDraggable from "@Components/Draggable";
 import {
     GetPartSelectionStartIndex,
     GetPartSelectionStartOffsets,
     GetPartSelectionStopOffsets,
 } from "@Utility/SelectionUtils";
+import { isHotkeyPressed } from "react-hotkeys-hook";
 
 interface PartViewProps {
     part: Part;
@@ -27,10 +22,7 @@ interface PartViewProps {
     trackIndex: number;
     pixelsPerSecond: number;
     snapWidth: number;
-    isShiftHeld: boolean;
     isSelected: boolean;
-    // onDragStop: () => void;
-    // onResizeStop: () => void;
 }
 
 const PartView = (props: PartViewProps) => {
@@ -66,7 +58,7 @@ const PartView = (props: PartViewProps) => {
                 setSelectedPartsIndices(
                     props.trackIndex,
                     props.partIndex,
-                    props.isShiftHeld
+                    isHotkeyPressed("shift")
                 )
             }
         >
@@ -83,7 +75,6 @@ const PartView = (props: PartViewProps) => {
                 />
             ))}
         </TimeDraggable>
-        // {/* // </Rnd> */}
     );
 };
 

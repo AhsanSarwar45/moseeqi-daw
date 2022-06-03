@@ -3,6 +3,11 @@ import React, { useEffect, useRef } from "react";
 import useMouse from "@react-hook/mouse-position";
 import { Snap } from "@Utility/SnapUtils";
 import { SubSelectionIndex } from "@Interfaces/Selection";
+import { useSsrCompatible } from "@Hooks/useSsrCompatible";
+import { useMousePosition } from "@Hooks/useMousePosition";
+import Listener from "@Data/Listener";
+
+// const [addMouseUpListener, removeMouseUpListener] = Listener();
 
 interface DraggableProps {
     children: React.ReactNode;
@@ -42,23 +47,72 @@ const TimeDraggable = (props: DraggableProps) => {
     const partRef = useRef<HTMLElement>(null);
     const parentRef = useRef<HTMLElement | null>(null);
 
-    const mouse = useMouse(parentRef, {
-        enterDelay: 100,
-        leaveDelay: 100,
-    });
-
     const width = props.duration * props.pixelsPerSecond;
     const left = props.startTime * props.pixelsPerSecond;
+
+    const mousePosition = useRef({ x: 0, y: 0 });
 
     // const [xPos, setXPos] = useState(
     //     props.part.startTime * props.pixelsPerSecond
     // );
 
+    const HandleMouseMove = (event: MouseEvent) => {
+        const rect = parentRef.current?.getBoundingClientRect() as DOMRect;
+        let mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        mousePosition.current = { x: mouseX, y: event.clientY };
+        if (isDraggingRef.current) {
+            let pos = mouseX - dragOffset.current;
+            pos = Snap(pos, props.snapWidth);
+            pos = Math.max(0, pos);
+
+            const startTime = pos / props.pixelsPerSecond;
+
+            props.setStartTime(
+                startTime,
+                selectionOffsets.current,
+                selectionStartIndex.current,
+                true
+            );
+        } else if (isResizingLeftRef.current) {
+            let pos = mouseX + resizeOffset.current;
+            pos = Snap(pos, props.snapWidth);
+            pos = Math.max(0, pos);
+            // pos = Math.max(pos, left + minWidth);
+
+            const startTime = pos / props.pixelsPerSecond;
+
+            props.setStartTime(
+                startTime,
+                selectionOffsets.current,
+                selectionStartIndex.current,
+                false
+            );
+        } else if (isResizingRightRef.current) {
+            let pos = mouseX + resizeOffset.current;
+            pos = Snap(pos, props.snapWidth);
+            // pos = Math.max(pos, left + minWidth);
+
+            const stopTime = pos / props.pixelsPerSecond;
+            props.setStopTime(stopTime, selectionOffsets.current);
+        }
+    };
+
     useEffect(() => {
         if (partRef.current) {
             parentRef.current = partRef.current.parentNode as HTMLElement;
-            // console.log(parentRef.current);
+
+            parentRef.current.addEventListener("mousemove", HandleMouseMove);
         }
+
+        return () => {
+            parentRef.current?.removeEventListener(
+                "mousemove",
+                HandleMouseMove
+            );
+        };
+        // console.log(parentRef.current);
     }, []);
 
     const SelectPart = (): Array<SubSelectionIndex> => {
@@ -76,60 +130,23 @@ const TimeDraggable = (props: DraggableProps) => {
         );
     };
 
+    const HandleDrag = () => {
+        isDraggingRef.current = false;
+        isResizingLeftRef.current = false;
+        isResizingRightRef.current = false;
+    };
+
     useEffect(() => {
-        window.addEventListener("mouseup", () => {
-            isDraggingRef.current = false;
-            isResizingLeftRef.current = false;
-            isResizingRightRef.current = false;
-        });
+        window.addEventListener("mouseup", HandleDrag);
         return () => {
-            window.removeEventListener("mouseup", () => {});
+            window.removeEventListener("mouseup", HandleDrag);
         };
     }, []);
 
-    useEffect(() => {
-        if (isDraggingRef.current) {
-            if (mouse.x !== null) {
-                let pos = mouse.x - dragOffset.current;
-                pos = Snap(pos, props.snapWidth);
-                pos = Math.max(0, pos);
+    // useEffect(() => {
+    //     console.log("render", mouse.x);
 
-                const startTime = pos / props.pixelsPerSecond;
-
-                props.setStartTime(
-                    startTime,
-                    selectionOffsets.current,
-                    selectionStartIndex.current,
-                    true
-                );
-            }
-        } else if (isResizingLeftRef.current) {
-            if (mouse.x !== null) {
-                let pos = mouse.x + resizeOffset.current;
-                pos = Snap(pos, props.snapWidth);
-                pos = Math.max(0, pos);
-                // pos = Math.max(pos, left + minWidth);
-
-                const startTime = pos / props.pixelsPerSecond;
-
-                props.setStartTime(
-                    startTime,
-                    selectionOffsets.current,
-                    selectionStartIndex.current,
-                    false
-                );
-            }
-        } else if (isResizingRightRef.current) {
-            if (mouse.x !== null) {
-                let pos = mouse.x + resizeOffset.current;
-                pos = Snap(pos, props.snapWidth);
-                // pos = Math.max(pos, left + minWidth);
-
-                const stopTime = pos / props.pixelsPerSecond;
-                props.setStopTime(stopTime, selectionOffsets.current);
-            }
-        }
-    }, [mouse.x]);
+    // }, [mouse.x]);
 
     return (
         <Box
@@ -154,9 +171,7 @@ const TimeDraggable = (props: DraggableProps) => {
 
                     isDraggingRef.current = true;
 
-                    if (mouse.x !== null) {
-                        dragOffset.current = mouse.x - left;
-                    }
+                    dragOffset.current = mousePosition.current.x - left;
 
                     return false;
                 }}
@@ -170,7 +185,7 @@ const TimeDraggable = (props: DraggableProps) => {
                 width={`${resizeAreaWidth}px`}
                 height="full"
                 onMouseDown={(event) => {
-                    event.preventDefault();
+                    // event.preventDefault();
                     const newSelectedPartIndices = SelectPart();
 
                     selectionOffsets.current = props.getSelectionStopOffsets(
@@ -178,9 +193,8 @@ const TimeDraggable = (props: DraggableProps) => {
                     );
 
                     isResizingRightRef.current = true;
-                    if (mouse.x !== null) {
-                        dragOffset.current = left + width - mouse.x;
-                    }
+
+                    dragOffset.current = left + width - mousePosition.current.x;
                 }}
                 // bgColor="red"
             />
@@ -193,14 +207,12 @@ const TimeDraggable = (props: DraggableProps) => {
                 width={`${resizeAreaWidth}px`}
                 height="full"
                 onMouseDown={(event) => {
-                    event.preventDefault();
+                    // event.preventDefault();
 
                     SetStartOffsets();
 
                     isResizingLeftRef.current = true;
-                    if (mouse.x !== null) {
-                        dragOffset.current = left - mouse.x;
-                    }
+                    dragOffset.current = left - mousePosition.current.x;
                 }}
                 // bgColor="red"
             />

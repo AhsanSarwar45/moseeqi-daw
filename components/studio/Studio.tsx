@@ -15,10 +15,6 @@ import { TopBar } from "./TopBar";
 
 const Studio = () => {
     //const [ numCols, setNumCols ] = useState(40);
-    // const [keyMap, setKeyMap] = useState({
-    //     TOGGLE_PLAYBACK: "space",
-    //     DELETE_TRACKS: "delete",
-    // });
 
     // useHotkeys(
     //     keyMap.TOGGLE_PLAYBACK,

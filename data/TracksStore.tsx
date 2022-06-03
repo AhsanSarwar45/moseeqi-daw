@@ -46,6 +46,7 @@ interface TrackStoreState {
     addTrack: (track: Track) => void;
     addInstrumentTrack: (instrumentIndex: number) => void;
     deleteTrack: (track: Track) => void;
+    deleteSelectedTrack: () => void;
     clearTracks: () => void;
     setSelectedTrack: (track: Track) => void;
     setSelectedTrackIndex: (index: number) => void;
@@ -88,8 +89,19 @@ interface TrackStoreState {
     ) => void;
 }
 
+const DeleteTrack = (trackToDelete: Track, prev: TrackStoreState) => {
+    StopTrackParts(trackToDelete);
+    return {
+        tracks: prev.tracks.filter((tracks) => tracks.id !== trackToDelete.id),
+        selectedTrackIndex:
+            prev.selectedTrackIndex > 0 ? prev.selectedTrackIndex - 1 : 0,
+        selectedPartIndices: [],
+        trackCount: prev.trackCount - 1,
+    };
+};
+
 export const useTracksStore = create<TrackStoreState>()(
-    subscribeWithSelector((set) => ({
+    subscribeWithSelector((set, get) => ({
         tracks: [CreateTrackFromIndex(defaultInstrumentIndex)],
         trackCount: 1,
         selectedTrackIndex: 0,
@@ -111,18 +123,13 @@ export const useTracksStore = create<TrackStoreState>()(
         deleteTrack: (trackToDelete: Track) =>
             set((prev) => {
                 if (prev.tracks.length == 0) return prev;
-                StopTrackParts(trackToDelete);
-                return {
-                    tracks: prev.tracks.filter(
-                        (tracks) => tracks.id !== trackToDelete.id
-                    ),
-                    selectedTrackIndex:
-                        prev.selectedTrackIndex > 0
-                            ? prev.selectedTrackIndex - 1
-                            : 0,
-                    selectedPartIndices: [],
-                    trackCount: prev.trackCount - 1,
-                };
+                return DeleteTrack(trackToDelete, prev);
+            }),
+        deleteSelectedTrack: () =>
+            set((prev) => {
+                if (prev.tracks.length == 0) return prev;
+                const selectedTrack = prev.tracks[prev.selectedTrackIndex];
+                return DeleteTrack(selectedTrack, prev);
             }),
         clearTracks: () => {
             set((prev) => ({
@@ -433,6 +440,9 @@ export const selectTrackCount = (state: TrackStoreState) => state.trackCount;
 export const selectSetTracks = (state: TrackStoreState) => state.setTracks;
 export const selectAddTrack = (state: TrackStoreState) => state.addTrack;
 export const selectDeleteTrack = (state: TrackStoreState) => state.deleteTrack;
+export const selectDeleteSelectedTrack = (state: TrackStoreState) =>
+    state.deleteSelectedTrack;
+
 export const selectSelectedPartIndices = (state: TrackStoreState) =>
     state.selectedPartIndices;
 export const selectSelectedTrackIndex = (state: TrackStoreState) =>
