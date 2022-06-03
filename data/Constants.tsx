@@ -1,9 +1,24 @@
+import {
+    EighthNoteIcon,
+    HalfNoteIcon,
+    QuarterNoteIcon,
+    WholeNoteIcon,
+} from "@Components/icons/Notes";
+import { DrawLengthOption } from "@Interfaces/DrawLengthOption";
+
 export const wholeNoteDivisions = 8;
 export const secondsPerWholeNote = 4;
 export const divisionsPerSecond = wholeNoteDivisions / secondsPerWholeNote;
 export const initialSecondsPerDivision = 1 / divisionsPerSecond;
 export const blackKeyWidthModifier = 0.6;
 export const blackKeyHeightModifier = 7 / 12;
+
+export const drawLengthOptions: Array<DrawLengthOption> = [
+    { name: "Whole Note", icon: <WholeNoteIcon />, divisor: 1 },
+    { name: "Half Note", icon: <HalfNoteIcon />, divisor: 2 },
+    { name: "Quarter Note", icon: <QuarterNoteIcon />, divisor: 4 },
+    { name: "Eighth Note", icon: <EighthNoteIcon />, divisor: 8 },
+];
 
 export const PianoKeys = [
     "A0",

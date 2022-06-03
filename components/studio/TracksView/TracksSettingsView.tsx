@@ -1,17 +1,19 @@
-import { HStack, Icon, useDisclosure } from "@chakra-ui/react";
-import { TiPlus, TiVolumeMute } from "react-icons/ti";
-import { BiDuplicate } from "react-icons/bi";
-
+import { HStack, ButtonGroup, Icon, useDisclosure } from "@chakra-ui/react";
 import TooltipButton from "@Components/TooltipButton";
-import { AddTrackModal } from "./AddTrackModal";
 import {
     selectAddInstrumentTrack,
+    selectClearSelectedTrack,
     selectDuplicateSelectedTrack,
     useTracksStore,
 } from "@Data/TracksStore";
-import { useEffect } from "react";
+import React from "react";
+import { BiTrash, BiMagnet, BiDuplicate } from "react-icons/bi";
+import { TiPlus } from "react-icons/ti";
+import { AddTrackModal } from "./AddTrackModal";
 
-const TracksEditBar = () => {
+interface TracksSettingsViewProps {}
+
+const TracksSettingsView = (props: TracksSettingsViewProps) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const addInstrumentTrack = useTracksStore(selectAddInstrumentTrack);
@@ -20,18 +22,16 @@ const TracksEditBar = () => {
     return (
         <>
             <HStack
-                paddingX={1}
-                height={30}
-                // width="full"
-                spacing={1}
-                justifyContent="flex-start"
-                bgColor="primary.500"
-                borderBottom="1px solid gray"
+                w="full"
+                // height="20px"
+                flexShrink={0}
+                padding={2}
+                spacing={2}
+                bg="brand.primary"
                 position="sticky"
-                top={0}
                 left={0}
-                width={200}
-                zIndex={9300}
+                boxShadow="md"
+                zIndex={997}
             >
                 <TooltipButton
                     aria-label="Add track"
@@ -39,8 +39,6 @@ const TracksEditBar = () => {
                     label=""
                     icon={<Icon as={TiPlus} />}
                     tooltip="Add track"
-                    fontSize="xs"
-                    size="xs"
                 />
                 <TooltipButton
                     aria-label="Duplicate track"
@@ -48,8 +46,6 @@ const TracksEditBar = () => {
                     label=""
                     icon={<Icon as={BiDuplicate} />}
                     tooltip="Duplicate selected track"
-                    fontSize="xs"
-                    size="xs"
                 />
             </HStack>
             <AddTrackModal
@@ -61,4 +57,4 @@ const TracksEditBar = () => {
     );
 };
 
-export default TracksEditBar;
+export default TracksSettingsView;

@@ -92,6 +92,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
             spacing={2}
             bg="brand.primary"
             justifyContent="center"
+            boxShadow="md"
+            zIndex={9999}
         >
             <Flex
                 borderRadius="sm"

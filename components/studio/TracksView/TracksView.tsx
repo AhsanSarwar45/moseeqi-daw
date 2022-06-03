@@ -16,6 +16,8 @@ import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
+import { PlayBackController } from "@Components/studio/PlaybackController";
+
 import {
     selectDeleteSelectedParts,
     selectDeleteSelectedTrack,
@@ -31,6 +33,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
+import TracksSettingsView from "./TracksSettingsView";
 
 interface TracksViewProps {}
 
@@ -72,26 +75,54 @@ const TracksView = (props: TracksViewProps) => {
     }, []);
 
     return (
-        <>
+        <VStack height="full" bgColor="primary.600" spacing={0}>
+            <TracksSettingsView />
             <HStack
                 alignItems="flex-start"
                 spacing={0}
                 width="full"
-                height="100%"
+                height="full"
                 overflowX="scroll"
                 overflowY="scroll"
                 sx={ScrollbarStyle}
-                bgColor="primary.600"
                 onClick={(event) => {
                     if (event.currentTarget === event.target) {
                         clearSelectedPartsIndices();
                     }
                 }}
             >
-                <VStack spacing={0} position="sticky" left={0} zIndex={500}>
+                <VStack
+                    spacing={0}
+                    position="sticky"
+                    left={0}
+                    zIndex={500}
+                    bgColor="primary.700"
+                >
                     <FocusArea panel={Panel.TracksInfoView}>
-                        <TracksEditBar />
+                        <Box
+                            height={30}
+                            bgColor="primary.500"
+                            borderBottom="1px solid gray"
+                            position="sticky"
+                            top={0}
+                            left={0}
+                            width={200}
+                            zIndex={9300}
+                        />
                         <TracksInfoView />
+                        {/* <HStack
+                            color="white"
+                            paddingY={2}
+                            paddingX={2}
+                            width={200}
+                            height={90}
+                            boxSizing="border-box"
+                            // borderBottomWidth={1}
+                            borderColor={"gray.500"}
+                            // height={200}
+                            position="relative"
+                            alignItems="flex-start"
+                        ></HStack> */}
                     </FocusArea>
                 </VStack>
 
@@ -143,7 +174,7 @@ const TracksView = (props: TracksViewProps) => {
                     </FocusArea>
                 </VStack>
             </HStack>
-        </>
+        </VStack>
     );
 };
 

@@ -8,7 +8,7 @@ import {
     useTracksStore,
 } from "@Data/TracksStore";
 import { Part } from "@Interfaces/Part";
-import TimeDraggable from "@Components/Draggable";
+import TimeDraggable from "@Components/TimeDraggable";
 import {
     GetPartSelectionStartIndex,
     GetPartSelectionStartOffsets,
@@ -64,7 +64,7 @@ const PartView = (props: PartViewProps) => {
         >
             {props.part.notes.map((note, index) => (
                 <Box
-                    zIndex={900}
+                    zIndex={200}
                     key={note.id}
                     bgColor="secondary.500"
                     position="absolute"

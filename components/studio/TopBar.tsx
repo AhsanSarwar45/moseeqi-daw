@@ -119,7 +119,7 @@ export const TopBar = (props: TopBarProps) => {
             spacing={8}
             bg="brand.primary"
             justifyContent="start"
-            zIndex={9999}
+            zIndex={999}
             boxShadow="md"
         >
             <MoseeqiLogo

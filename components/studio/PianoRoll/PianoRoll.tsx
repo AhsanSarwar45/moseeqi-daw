@@ -11,7 +11,7 @@ import Ruler from "@scena/react-ruler";
 
 import { BiMagnet, BiTrash } from "react-icons/bi";
 
-import { PianoKeys } from "@Data/Constants";
+import { drawLengthOptions, PianoKeys } from "@Data/Constants";
 import ToggleButton from "@Components/ToggleButton";
 import {
     blackKeyHeightModifier,
@@ -43,14 +43,9 @@ import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
+import PianoRollSettingsView from "./PianoRollSettingsView";
 
 interface PianoRollProps {}
-
-interface DrawLengthOption {
-    name: string;
-    divisor: number;
-    icon: ReactNode;
-}
 
 const PianoRoll = (props: PianoRollProps) => {
     const columnWidth = 40;
@@ -64,13 +59,6 @@ const PianoRoll = (props: PianoRollProps) => {
     const gridHeight = numWhiteNotes * whiteKeyHeight;
     const gridCellHeight = blackKeyHeightModifier * whiteKeyHeight;
 
-    const options: Array<DrawLengthOption> = [
-        { name: "Whole Note", icon: <WholeNoteIcon />, divisor: 1 },
-        { name: "Half Note", icon: <HalfNoteIcon />, divisor: 2 },
-        { name: "Quarter Note", icon: <QuarterNoteIcon />, divisor: 4 },
-        { name: "Eighth Note", icon: <EighthNoteIcon />, divisor: 8 },
-    ];
-
     // console.log(numNotes, gridCellHeight);
 
     const baseWholeNoteWidth = columnWidth * wholeNoteDivisions;
@@ -80,7 +68,6 @@ const PianoRoll = (props: PianoRollProps) => {
     const [selectedDrawLengthIndex, setSelectedDrawLengthIndex] = useState(2);
 
     const addNoteToSelectedTrack = useTracksStore(selectAddNoteToSelectedTrack);
-    const clearSelectedTrack = useTracksStore(selectClearSelectedTrack);
 
     // const trackCount = 1;
     const trackCount = useTracksStore(selectTrackCount);
@@ -137,57 +124,12 @@ const PianoRoll = (props: PianoRollProps) => {
                     width="full"
                     // onClick={() => props.setFocusedPanel(Panel.PianoRoll)}
                 >
-                    <HStack
-                        w="full"
-                        // height="20px"
-                        flexShrink={0}
-                        padding={2}
-                        spacing={2}
-                        bg="brand.primary"
-                        position="sticky"
-                        left={0}
-                        boxShadow="md"
-                        zIndex={10}
-                    >
-                        <ButtonGroup
-                            size="sm"
-                            isAttached
-                            variant="solid"
-                            colorScheme="secondary"
-                        >
-                            {options.map((option, index) => {
-                                // const name = value;
-                                return (
-                                    <ToggleButton
-                                        tooltipLabel={option.name}
-                                        key={option.name}
-                                        onClick={() =>
-                                            setSelectedDrawLengthIndex(index)
-                                        }
-                                        icon={option.icon}
-                                        isToggled={
-                                            index === selectedDrawLengthIndex
-                                        }
-                                        // borderWidth={0}
-                                    />
-                                );
-                            })}
-                        </ButtonGroup>
-                        <TooltipButton
-                            aria-label="Clear project"
-                            onClick={clearSelectedTrack}
-                            label="Clear"
-                            icon={<Icon as={BiTrash} />}
-                            tooltip="Clear all the notes in the piano roll"
-                        />
-
-                        <ToggleButton
-                            tooltipLabel={"Snap to grid"}
-                            onClick={() => setIsSnappingOn(!isSnappingOn)}
-                            icon={<Icon as={BiMagnet} />}
-                            isToggled={isSnappingOn}
-                        />
-                    </HStack>
+                    <PianoRollSettingsView
+                        isSnappingOn={isSnappingOn}
+                        setIsSnappingOn={setIsSnappingOn}
+                        selectedDrawLengthIndex={selectedDrawLengthIndex}
+                        setSelectedDrawLengthIndex={setSelectedDrawLengthIndex}
+                    />
 
                     <HStack
                         ref={gridRef}
@@ -306,8 +248,9 @@ const PianoRoll = (props: PianoRollProps) => {
                                                         basePixelsPerSecond
                                                     ),
                                                 Math.floor(y / gridCellHeight),
-                                                options[selectedDrawLengthIndex]
-                                                    .divisor
+                                                drawLengthOptions[
+                                                    selectedDrawLengthIndex
+                                                ].divisor
                                             );
                                         }}
                                     />
