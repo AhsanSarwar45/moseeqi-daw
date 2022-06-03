@@ -53,8 +53,8 @@ const TracksView = (props: TracksViewProps) => {
     const keymap = useKeymapStore(selectKeymap);
 
     const deleteTracksScopeRef = useHotkeys(keymap.DELETE_TRACKS, () => {
-        console.log("delete tracks");
-        // deleteSelectedTrack();
+        // console.log("delete tracks");
+        deleteSelectedTrack();
     });
 
     useEffect(() => {
@@ -90,7 +90,9 @@ const TracksView = (props: TracksViewProps) => {
                     position="sticky"
                     left={0}
                     zIndex={500}
-                    // ref={deleteTracksScopeRef as any}
+                    tabIndex={-1}
+                    _focusVisible={{ outlineWidth: 0 }}
+                    ref={deleteTracksScopeRef as any}
                 >
                     <TracksEditBar />
                     <TracksInfoView />
