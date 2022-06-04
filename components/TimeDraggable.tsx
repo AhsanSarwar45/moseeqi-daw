@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import useMouse from "@react-hook/mouse-position";
 import { Snap } from "@Utility/SnapUtils";
 import { SubSelectionIndex } from "@Interfaces/Selection";
@@ -56,48 +56,51 @@ const TimeDraggable = (props: DraggableProps) => {
     //     props.part.startTime * props.pixelsPerSecond
     // );
 
-    const HandleMouseMove = (event: MouseEvent) => {
-        const rect = parentRef.current?.getBoundingClientRect() as DOMRect;
-        let mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
+    const HandleMouseMove = useCallback(
+        (event: MouseEvent) => {
+            const rect = parentRef.current?.getBoundingClientRect() as DOMRect;
+            let mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
 
-        mousePosition.current = { x: mouseX, y: event.clientY };
-        if (isDraggingRef.current) {
-            let pos = mouseX - dragOffset.current;
-            pos = Snap(pos, props.snapWidth);
-            pos = Math.max(0, pos);
+            mousePosition.current = { x: mouseX, y: event.clientY };
+            if (isDraggingRef.current) {
+                let pos = mouseX - dragOffset.current;
+                pos = Snap(pos, props.snapWidth);
+                pos = Math.max(0, pos);
 
-            const startTime = pos / props.pixelsPerSecond;
+                const startTime = pos / props.pixelsPerSecond;
 
-            props.setStartTime(
-                startTime,
-                selectionOffsets.current,
-                selectionStartIndex.current,
-                true
-            );
-        } else if (isResizingLeftRef.current) {
-            let pos = mouseX + resizeOffset.current;
-            pos = Snap(pos, props.snapWidth);
-            pos = Math.max(0, pos);
-            // pos = Math.max(pos, left + minWidth);
+                props.setStartTime(
+                    startTime,
+                    selectionOffsets.current,
+                    selectionStartIndex.current,
+                    true
+                );
+            } else if (isResizingLeftRef.current) {
+                let pos = mouseX + resizeOffset.current;
+                pos = Snap(pos, props.snapWidth);
+                pos = Math.max(0, pos);
+                // pos = Math.max(pos, left + minWidth);
 
-            const startTime = pos / props.pixelsPerSecond;
+                const startTime = pos / props.pixelsPerSecond;
 
-            props.setStartTime(
-                startTime,
-                selectionOffsets.current,
-                selectionStartIndex.current,
-                false
-            );
-        } else if (isResizingRightRef.current) {
-            let pos = mouseX + resizeOffset.current;
-            pos = Snap(pos, props.snapWidth);
-            // pos = Math.max(pos, left + minWidth);
+                props.setStartTime(
+                    startTime,
+                    selectionOffsets.current,
+                    selectionStartIndex.current,
+                    false
+                );
+            } else if (isResizingRightRef.current) {
+                let pos = mouseX + resizeOffset.current;
+                pos = Snap(pos, props.snapWidth);
+                // pos = Math.max(pos, left + minWidth);
 
-            const stopTime = pos / props.pixelsPerSecond;
-            props.setStopTime(stopTime, selectionOffsets.current);
-        }
-    };
+                const stopTime = pos / props.pixelsPerSecond;
+                props.setStopTime(stopTime, selectionOffsets.current);
+            }
+        },
+        [props.snapWidth, props.pixelsPerSecond]
+    );
 
     useEffect(() => {
         if (partRef.current) {
@@ -113,7 +116,7 @@ const TimeDraggable = (props: DraggableProps) => {
             );
         };
         // console.log(parentRef.current);
-    }, []);
+    }, [HandleMouseMove]);
 
     const SelectPart = (): Array<SubSelectionIndex> => {
         return props.setSelectedIndices();

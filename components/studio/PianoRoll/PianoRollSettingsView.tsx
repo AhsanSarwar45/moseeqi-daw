@@ -1,7 +1,7 @@
 import { HStack, ButtonGroup, Icon } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
-import { drawLengthOptions } from "@Data/Constants";
+import { noteLengthOptions } from "@Data/Constants";
 import { selectClearSelectedTrack, useTracksStore } from "@Data/TracksStore";
 import React from "react";
 import { BiTrash, BiMagnet } from "react-icons/bi";
@@ -35,7 +35,7 @@ const PianoRollSettingsView = (props: PianoRollSettingsViewProps) => {
                 variant="solid"
                 colorScheme="secondary"
             >
-                {drawLengthOptions.map((option, index) => {
+                {noteLengthOptions.map((option, index) => {
                     // const name = value;
                     return (
                         <ToggleButton

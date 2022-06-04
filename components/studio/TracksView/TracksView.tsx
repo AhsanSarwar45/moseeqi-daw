@@ -14,7 +14,7 @@ import { useState } from "react";
 import { AddTrackModal } from "./AddTrackModal";
 import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import { secondsPerWholeNote } from "@Data/Constants";
+import { noteLengthOptions, secondsPerWholeNote } from "@Data/Constants";
 import TooltipButton from "@Components/TooltipButton";
 import { PlayBackController } from "@Components/studio/PlaybackController";
 
@@ -40,14 +40,17 @@ interface TracksViewProps {}
 const TracksView = (props: TracksViewProps) => {
     const baseWholeNoteWidth = 40;
     const basePixelsPerSecond = baseWholeNoteWidth / secondsPerWholeNote;
-    const snapDivisions = 8;
-    const snapWidth = baseWholeNoteWidth / snapDivisions;
+    // const snapDivisions = 8;
+    // const snapWidth = baseWholeNoteWidth / snapDivisions;
 
     const theme = useTheme();
 
     const scaleGridTop = useRef<Ruler>(null);
     const scaleGridMain = useRef<Ruler>(null);
     const scaleGridMinor = useRef<Ruler>(null);
+
+    const [snapWidthIndex, setSnapWidthIndex] = useState(3);
+    const [isSnappingOn, setIsSnappingOn] = useState(true);
 
     const clearSelectedPartsIndices = useTracksStore(
         (state) => state.clearSelectedPartsIndices
@@ -74,9 +77,18 @@ const TracksView = (props: TracksViewProps) => {
         };
     }, []);
 
+    useEffect(() => {
+        console.log(snapWidthIndex);
+    }, [snapWidthIndex]);
+
     return (
         <VStack height="full" bgColor="primary.600" spacing={0}>
-            <TracksSettingsView />
+            <TracksSettingsView
+                snapWidthIndex={snapWidthIndex}
+                setSnapWidthIndex={setSnapWidthIndex}
+                isSnappingOn={isSnappingOn}
+                setIsSnappingOn={setIsSnappingOn}
+            />
             <HStack
                 alignItems="flex-start"
                 spacing={0}
@@ -101,7 +113,7 @@ const TracksView = (props: TracksViewProps) => {
                     <FocusArea panel={Panel.TracksInfoView}>
                         <Box
                             height={30}
-                            bgColor="primary.500"
+                            bgColor="primary.600"
                             borderBottom="1px solid gray"
                             position="sticky"
                             top={0}
@@ -169,7 +181,12 @@ const TracksView = (props: TracksViewProps) => {
                         />
                         <SequenceView
                             basePixelsPerSecond={basePixelsPerSecond}
-                            snapWidth={snapWidth}
+                            snapWidth={
+                                isSnappingOn
+                                    ? baseWholeNoteWidth /
+                                      noteLengthOptions[snapWidthIndex].divisor
+                                    : 1
+                            }
                         />
                     </FocusArea>
                 </VStack>

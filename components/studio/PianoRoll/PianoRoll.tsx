@@ -11,7 +11,7 @@ import Ruler from "@scena/react-ruler";
 
 import { BiMagnet, BiTrash } from "react-icons/bi";
 
-import { drawLengthOptions, PianoKeys } from "@Data/Constants";
+import { noteLengthOptions, PianoKeys } from "@Data/Constants";
 import ToggleButton from "@Components/ToggleButton";
 import {
     blackKeyHeightModifier,
@@ -248,7 +248,7 @@ const PianoRoll = (props: PianoRollProps) => {
                                                         basePixelsPerSecond
                                                     ),
                                                 Math.floor(y / gridCellHeight),
-                                                drawLengthOptions[
+                                                noteLengthOptions[
                                                     selectedDrawLengthIndex
                                                 ].divisor
                                             );

@@ -22,7 +22,7 @@ export const KeysView = memo((props: KeysViewProps) => {
         >
             <HStack
                 height={props.stickyHeight}
-                bgColor="primary.500"
+                bgColor="primary.600"
                 position="sticky"
                 top={0}
                 left={0}

@@ -13,7 +13,7 @@ export const initialSecondsPerDivision = 1 / divisionsPerSecond;
 export const blackKeyWidthModifier = 0.6;
 export const blackKeyHeightModifier = 7 / 12;
 
-export const drawLengthOptions: Array<DrawLengthOption> = [
+export const noteLengthOptions: Array<DrawLengthOption> = [
     { name: "Whole Note", icon: <WholeNoteIcon />, divisor: 1 },
     { name: "Half Note", icon: <HalfNoteIcon />, divisor: 2 },
     { name: "Quarter Note", icon: <QuarterNoteIcon />, divisor: 4 },

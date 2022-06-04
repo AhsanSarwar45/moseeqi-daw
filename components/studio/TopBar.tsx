@@ -117,7 +117,7 @@ export const TopBar = (props: TopBarProps) => {
             flexShrink={0}
             padding={2}
             spacing={8}
-            bg="brand.primary"
+            bg="primary.600"
             justifyContent="start"
             zIndex={999}
             boxShadow="md"
