@@ -65,6 +65,7 @@ const PianoRoll = (props: PianoRollProps) => {
     const basePixelsPerSecond = baseWholeNoteWidth / secondsPerWholeNote;
 
     const [isSnappingOn, setIsSnappingOn] = useState(true);
+    const [snapWidthIndex, setSnapWidthIndex] = useState(3);
     const [selectedDrawLengthIndex, setSelectedDrawLengthIndex] = useState(2);
 
     const addNoteToSelectedTrack = useTracksStore(selectAddNoteToSelectedTrack);
@@ -127,6 +128,8 @@ const PianoRoll = (props: PianoRollProps) => {
                     <PianoRollSettingsView
                         isSnappingOn={isSnappingOn}
                         setIsSnappingOn={setIsSnappingOn}
+                        snapWidthIndex={snapWidthIndex}
+                        setSnapWidthIndex={setSnapWidthIndex}
                         selectedDrawLengthIndex={selectedDrawLengthIndex}
                         setSelectedDrawLengthIndex={setSelectedDrawLengthIndex}
                     />
@@ -225,6 +228,14 @@ const PianoRoll = (props: PianoRollProps) => {
                                         gridHeight={gridHeight}
                                         gridCellHeight={gridCellHeight}
                                         isSnappingOn={isSnappingOn}
+                                        snapWidth={
+                                            isSnappingOn
+                                                ? baseWholeNoteWidth /
+                                                  noteLengthOptions[
+                                                      snapWidthIndex
+                                                  ].divisor
+                                                : 1
+                                        }
                                     />
 
                                     <Box

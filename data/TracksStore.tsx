@@ -14,27 +14,25 @@ import {
     SetTrackSolo,
     StopTrackParts,
 } from "@Utility/TrackUtils";
-import { PartSelectionIndex } from "@Interfaces/Selection";
+import {
+    NoteSelectionIndex,
+    PartSelectionIndex,
+    SelectionType,
+    SubSelectionIndex,
+} from "@Interfaces/Selection";
 import { DivisorToDuration } from "@Utility/TimeUtils";
 import {
     CreateNote,
     GetPartNote,
     IsNoteInPart,
     MakeNotePartRelative,
-    MoveNote,
     PlayNote,
 } from "@Utility/NoteUtils";
+import { ExtendPart, MapPartTime, SetPartTime } from "@Utility/PartUtils";
 import {
-    CreatePart,
-    ExtendPart,
-    MapPartTime,
-    SetPartTime,
-} from "@Utility/PartUtils";
-import {
-    FindSelectedIndex,
-    GetNoteSelectionStartIndex,
-    GetPartSelectionStartTime,
-    IsPartSelected,
+    IsSelected,
+    Select,
+    SetSelectedStartTime,
 } from "@Utility/SelectionUtils";
 import { defaultInstrumentIndex, defaultMinPartDuration } from "./Defaults";
 
@@ -42,7 +40,8 @@ interface TrackStoreState {
     tracks: Array<Track>;
     trackCount: number;
     selectedTrackIndex: number;
-    selectedPartIndices: Array<PartSelectionIndex>;
+    selectedPartIndices: Array<SubSelectionIndex>;
+    selectedNoteIndices: Array<SubSelectionIndex>;
     setTracks: (tracks: Array<Track>) => void;
     addTrack: (track: Track) => void;
     addInstrumentTrack: (instrumentIndex: number) => void;
@@ -51,43 +50,20 @@ interface TrackStoreState {
     clearTracks: () => void;
     setSelectedTrack: (track: Track) => void;
     setSelectedTrackIndex: (index: number) => void;
-    setSelectedPartsIndices: (
-        trackIndex: number,
-        partIndex: number,
-        isShiftHeld: boolean
-    ) => Array<PartSelectionIndex>;
     clearSelectedPartsIndices: () => void;
+    clearSelectedNoteIndices: () => void;
     addNoteToSelectedTrack: (
         startTime: number,
         row: number,
         divisor: number
     ) => void;
     removeNoteFromSelectedTrack: (partIndex: number, noteIndex: number) => void;
-    moveNoteInSelectedTrack: (
-        partIndex: number,
-        noteIndex: number,
-        startTime: number,
-        stopTime: number,
-        row: number
-    ) => void;
     clearSelectedTrack: () => void;
     duplicateSelectedTrack: () => void;
     setSelectedTrackAttack: (attack: number) => void;
     setSelectedTrackRelease: (release: number) => void;
     toggleMuteAtIndex: (trackIndex: number) => void;
     toggleSoloAtIndex: (trackIndex: number) => void;
-    moveSelectedParts: (startDelta: number, stopDelta: number) => void;
-    setSelectedPartsStartTime: (
-        startTime: number,
-        selectionOffsets: Array<number>,
-        selectionStartIndex: number,
-        keepDuration: boolean
-    ) => void;
-
-    setSelectedPartsStopTime: (
-        stopTime: number,
-        selectionOffsets: Array<number>
-    ) => void;
     deleteSelectedParts: () => void;
 }
 
@@ -98,6 +74,7 @@ const DeleteTrack = (trackToDelete: Track, prev: TrackStoreState) => {
         selectedTrackIndex:
             prev.selectedTrackIndex > 0 ? prev.selectedTrackIndex - 1 : 0,
         selectedPartIndices: [],
+        selectedNoteIndices: [],
         trackCount: prev.trackCount - 1,
     };
 };
@@ -108,6 +85,7 @@ export const useTracksStore = create<TrackStoreState>()(
         trackCount: 1,
         selectedTrackIndex: 0,
         selectedPartIndices: [],
+        selectedNoteIndices: [],
         setTracks: (tracksToSet: Array<Track>) =>
             set((prev) => ({ tracks: tracksToSet })),
         addTrack: (trackToAdd: Track) => {
@@ -153,48 +131,12 @@ export const useTracksStore = create<TrackStoreState>()(
         setSelectedTrackIndex: (index: number) => {
             set((prev) => ({ selectedTrackIndex: index }));
         },
-        setSelectedPartsIndices: (
-            trackIndex: number,
-            partIndex: number,
-            isShiftHeld: boolean
-        ): Array<PartSelectionIndex> => {
-            let newSelectedPartIndices: Array<PartSelectionIndex> = [];
-            set((prev) => {
-                const selectedPartIndex = FindSelectedIndex(
-                    prev.selectedPartIndices,
-                    trackIndex,
-                    partIndex
-                );
-
-                newSelectedPartIndices = prev.selectedPartIndices;
-
-                if (isShiftHeld) {
-                    // if this part is already selected, deselect it, otherwise select it
-                    if (selectedPartIndex >= 0) {
-                        let selectedPartIndicesCopy = [
-                            ...newSelectedPartIndices,
-                        ];
-                        selectedPartIndicesCopy.splice(selectedPartIndex, 1);
-                        newSelectedPartIndices = selectedPartIndicesCopy;
-                    } else {
-                        newSelectedPartIndices = [
-                            ...newSelectedPartIndices,
-                            { trackIndex, partIndex },
-                        ];
-                    }
-                } else {
-                    // If selected parts does not contain this part, then reset selected parts to only this part
-                    if (selectedPartIndex < 0) {
-                        newSelectedPartIndices = [{ trackIndex, partIndex }];
-                    }
-                }
-                return {
-                    selectedPartIndices: newSelectedPartIndices,
-                };
-            });
-            return newSelectedPartIndices;
-        },
         clearSelectedPartsIndices: () => {
+            set((prev) => ({
+                selectedPartIndices: [],
+            }));
+        },
+        clearSelectedNoteIndices: () => {
             set((prev) => ({
                 selectedPartIndices: [],
             }));
@@ -237,48 +179,7 @@ export const useTracksStore = create<TrackStoreState>()(
                 };
             });
         },
-        moveNoteInSelectedTrack: (
-            partIndex: number,
-            noteIndex: number,
-            startTime: number,
-            stopTime: number,
-            row: number
-        ) => {
-            set((prev) => {
-                const tracksCopy = [...prev.tracks];
-                const selectedTrack = tracksCopy[prev.selectedTrackIndex];
-                const part = selectedTrack.parts[partIndex];
-                const note = part.notes[noteIndex];
 
-                MoveNote(note, startTime, stopTime, row);
-                // Tone doesn't allow us to modify single notes, so we need to clear the part and then re-add all the notes except the modified one
-                part.tonePart.clear();
-                // Check if moved position is within the current part
-                if (IsNoteInPart(note, part)) {
-                    // if the end of the note lies beyond the end of the part, extend the part
-                    if (note.stopTime > part.stopTime) {
-                        ExtendPart(note, part);
-                    }
-                    MakeNotePartRelative(note, part);
-                } else {
-                    // Remove the note from the current part
-                    part.notes.splice(noteIndex, 1);
-                    AddNoteToTrack(selectedTrack, note);
-                }
-
-                // Add back all the notes to the part
-                part.notes.forEach((note) => {
-                    part.tonePart.add(GetPartNote(note));
-                });
-
-                // Play the changed note to give the user feedback
-                PlayNote(selectedTrack, note);
-
-                return {
-                    tracks: tracksCopy,
-                };
-            });
-        },
         clearSelectedTrack: () => {
             set((prev) => {
                 const tracksCopy = [...prev.tracks];
@@ -344,104 +245,19 @@ export const useTracksStore = create<TrackStoreState>()(
                 };
             });
         },
-        moveSelectedParts: (startDelta: number, stopDelta: number) => {
-            set((prev) => {
-                const tracksCopy = [...prev.tracks];
-                prev.selectedPartIndices.forEach(
-                    ({ trackIndex, partIndex }) => {
-                        // const part = tracksCopy[trackIndex].parts[partIndex];
-                        // MapPartTime(
-                        //     part,
-                        //     (startTime) => startTime + startDelta,
-                        //     (stopTime) => stopTime + stopDelta
-                        // );
-                        let part = tracksCopy[trackIndex].parts[partIndex];
 
-                        part.startTime += startDelta;
-                        part.stopTime += stopDelta;
-
-                        part.tonePart
-                            .cancel(0)
-                            .start(part.startTime)
-                            .stop(part.stopTime);
-
-                        tracksCopy[trackIndex].parts[partIndex] = part;
-                        // console.log(part.startTime);/
-                    }
-                );
-                return {
-                    tracks: tracksCopy,
-                };
-            });
-        },
-        setSelectedPartsStartTime: (
-            startTime: number,
-            selectionOffsets: Array<number>,
-            selectionStartIndex: number,
-            keepDuration: boolean = false
-        ) => {
-            set((prev) => {
-                if (startTime - selectionOffsets[selectionStartIndex] < 0) {
-                    const delta =
-                        selectionOffsets[selectionStartIndex] - startTime;
-                    startTime += delta;
-                }
-                const tracksCopy = [...prev.tracks];
-                prev.selectedPartIndices.forEach(
-                    ({ trackIndex, partIndex }, index) => {
-                        const part = tracksCopy[trackIndex].parts[partIndex];
-                        const offset = selectionOffsets[index];
-                        // console.log(startTime - offset, stopTime - offset);
-                        const partStartTime = startTime - offset;
-                        let partStopTime = keepDuration
-                            ? partStartTime + part.duration
-                            : part.stopTime;
-                        partStopTime = Math.max(
-                            partStopTime,
-                            partStartTime + defaultMinPartDuration
-                        );
-
-                        SetPartTime(part, partStartTime, partStopTime);
-                    }
-                );
-                return {
-                    tracks: tracksCopy,
-                };
-            });
-        },
-        setSelectedPartsStopTime: (
-            stopTime: number,
-            selectionOffsets: Array<number>
-        ) => {
-            set((prev) => {
-                const tracksCopy = [...prev.tracks];
-                prev.selectedPartIndices.forEach(
-                    ({ trackIndex, partIndex }, index) => {
-                        const part = tracksCopy[trackIndex].parts[partIndex];
-                        const offset = selectionOffsets[index];
-                        let partStopTime = stopTime - offset;
-                        partStopTime = Math.max(
-                            partStopTime,
-                            part.startTime + defaultMinPartDuration
-                        );
-                        SetPartTime(part, part.startTime, partStopTime);
-                    }
-                );
-                return {
-                    tracks: tracksCopy,
-                };
-            });
-        },
         deleteSelectedParts: () => {
             set((prev) => {
                 return {
                     tracks: prev.tracks.map((track, trackIndex) => {
                         track.parts = track.parts.filter((part, partIndex) => {
                             if (
-                                IsPartSelected(
-                                    prev.selectedPartIndices,
-                                    partIndex,
-                                    trackIndex
+                                IsSelected(
+                                    {
+                                        containerIndex: trackIndex,
+                                        selectionIndex: partIndex,
+                                    },
+                                    SelectionType.Part
                                 )
                             ) {
                                 part.tonePart.cancel(0);
@@ -452,6 +268,7 @@ export const useTracksStore = create<TrackStoreState>()(
                         return track;
                     }),
                     selectedPartIndices: [],
+                    selectedNoteIndices: [],
                 };
             });
         },
@@ -470,6 +287,8 @@ export const selectDeleteSelectedTrack = (state: TrackStoreState) =>
 
 export const selectSelectedPartIndices = (state: TrackStoreState) =>
     state.selectedPartIndices;
+export const selectSelectedNoteIndices = (state: TrackStoreState) =>
+    state.selectedNoteIndices;
 export const selectSelectedTrackIndex = (state: TrackStoreState) =>
     state.selectedTrackIndex;
 export const selectSetSelectedTrackIndex = (state: TrackStoreState) =>
@@ -482,8 +301,6 @@ export const selectAddNoteToSelectedTrack = (state: TrackStoreState) =>
     state.addNoteToSelectedTrack;
 export const selectRemoveNoteFromSelectedTrack = (state: TrackStoreState) =>
     state.removeNoteFromSelectedTrack;
-export const selectMoveNoteInSelectedTrack = (state: TrackStoreState) =>
-    state.moveNoteInSelectedTrack;
 export const selectClearSelectedTrack = (state: TrackStoreState) =>
     state.clearSelectedTrack;
 export const selectToggleMuteAtIndex = (state: TrackStoreState) =>
@@ -494,16 +311,10 @@ export const selectSetSelectedTrackAttack = (state: TrackStoreState) =>
     state.setSelectedTrackAttack;
 export const selectSetSelectedTrackRelease = (state: TrackStoreState) =>
     state.setSelectedTrackRelease;
-export const selectMoveSelectedParts = (state: TrackStoreState) =>
-    state.moveSelectedParts;
-export const selectSetSelectedPartsIndices = (state: TrackStoreState) =>
-    state.setSelectedPartsIndices;
+// export const selectSetSelectedPartsIndices = (state: TrackStoreState) =>
+//     state.setSelectedPartsIndices;
 export const selectClearSelectedPartsIndices = (state: TrackStoreState) =>
     state.clearSelectedPartsIndices;
-export const selectSetSelectedPartsStartTime = (state: TrackStoreState) =>
-    state.setSelectedPartsStartTime;
-export const selectSetSelectedPartsStopTime = (state: TrackStoreState) =>
-    state.setSelectedPartsStopTime;
 export const selectDeleteSelectedParts = (state: TrackStoreState) =>
     state.deleteSelectedParts;
 

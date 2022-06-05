@@ -5,10 +5,13 @@ import { noteLengthOptions } from "@Data/Constants";
 import { selectClearSelectedTrack, useTracksStore } from "@Data/TracksStore";
 import React from "react";
 import { BiTrash, BiMagnet } from "react-icons/bi";
+import SnapSettings from "../SnapSettings";
 
 interface PianoRollSettingsViewProps {
     isSnappingOn: boolean;
     setIsSnappingOn: (isSnappingOn: boolean) => void;
+    snapWidthIndex: number;
+    setSnapWidthIndex: (snapWidth: number) => void;
     selectedDrawLengthIndex: number;
     setSelectedDrawLengthIndex: (selectedDrawLengthIndex: number) => void;
 }
@@ -59,12 +62,18 @@ const PianoRollSettingsView = (props: PianoRollSettingsViewProps) => {
                 tooltip="Clear all the notes in the piano roll"
             />
 
-            <ToggleButton
-                tooltipLabel={"Snap to grid"}
-                isToggled={props.isSnappingOn}
-                onClick={() => props.setIsSnappingOn(!props.isSnappingOn)}
-                icon={<Icon as={BiMagnet} />}
-            />
+            <HStack padding={0} spacing={0}>
+                <ToggleButton
+                    tooltipLabel={"Snap to grid"}
+                    isToggled={props.isSnappingOn}
+                    onClick={() => props.setIsSnappingOn(!props.isSnappingOn)}
+                    icon={<Icon as={BiMagnet} />}
+                />
+                <SnapSettings
+                    snapWidthIndex={props.snapWidthIndex}
+                    setSnapWidthIndex={props.setSnapWidthIndex}
+                />
+            </HStack>
         </HStack>
     );
 };

@@ -77,10 +77,6 @@ const TracksView = (props: TracksViewProps) => {
         };
     }, []);
 
-    useEffect(() => {
-        console.log(snapWidthIndex);
-    }, [snapWidthIndex]);
-
     return (
         <VStack height="full" bgColor="primary.600" spacing={0}>
             <TracksSettingsView
@@ -97,7 +93,7 @@ const TracksView = (props: TracksViewProps) => {
                 overflowX="scroll"
                 overflowY="scroll"
                 sx={ScrollbarStyle}
-                onClick={(event) => {
+                onMouseDown={(event) => {
                     if (event.currentTarget === event.target) {
                         clearSelectedPartsIndices();
                     }

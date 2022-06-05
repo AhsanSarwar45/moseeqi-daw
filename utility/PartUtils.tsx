@@ -6,6 +6,7 @@ import { GetPartNote } from "./NoteUtils";
 import { getPartId } from "@Data/Id";
 import { GetSecondsPerDivision } from "./TimeUtils";
 import { Part } from "@Interfaces/Part";
+import { Track } from "@Interfaces/Track";
 
 export const CreateTonePart = (sampler: Tone.Sampler) => {
     return new Tone.Part((time, value: any) => {
@@ -59,6 +60,15 @@ export const SetPartTime = (
     part.startTime = startTime;
     part.stopTime = stopTime;
     part.duration = part.stopTime - part.startTime;
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+};
+
+export const UpdatePart = (
+    trackIndex: number,
+    partIndex: number,
+    tracksCopy: Array<Track>
+) => {
+    const part = tracksCopy[trackIndex].parts[partIndex];
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 

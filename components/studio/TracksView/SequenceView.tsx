@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
     selectClearSelectedPartsIndices,
-    selectDeleteSelectedParts,
-    selectDeleteSelectedTrack,
     selectSelectedPartIndices,
     selectSetSelectedTrackIndex,
     selectTracks,
@@ -14,9 +12,6 @@ import { Track } from "@Interfaces/Track";
 import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import PartView from "./PartView";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import { IsPartSelected } from "@Utility/SelectionUtils";
-import { useHotkeys } from "react-hotkeys-hook";
-import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -25,7 +20,6 @@ interface SequenceViewProps {
 
 const SequenceView = (props: SequenceViewProps) => {
     const tracks = useTracksStore(selectTracks);
-    const selectedPartIndices = useTracksStore(selectSelectedPartIndices);
     const setSelectedTrackIndex = useTracksStore(selectSetSelectedTrackIndex);
     const clearSelectedPartsIndices = useTracksStore(
         selectClearSelectedPartsIndices
@@ -54,17 +48,14 @@ const SequenceView = (props: SequenceViewProps) => {
                         <PartView
                             key={part.id}
                             part={part}
-                            trackIndex={trackIndex}
-                            partIndex={partIndex}
+                            subSelectionIndex={{
+                                containerIndex: trackIndex,
+                                selectionIndex: partIndex,
+                            }}
                             pixelsPerSecond={GetPixelsPerSecond(
                                 props.basePixelsPerSecond
                             )}
                             snapWidth={props.snapWidth}
-                            isSelected={IsPartSelected(
-                                selectedPartIndices,
-                                partIndex,
-                                trackIndex
-                            )}
                         />
                     ))}
                 </Box>

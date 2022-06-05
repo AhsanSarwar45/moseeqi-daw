@@ -1,9 +1,10 @@
 import { Box } from "@chakra-ui/react";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { MidiNote } from "./MidiNote";
+import { IsSelected } from "@Utility/SelectionUtils";
 
 interface PianoRollProps {
     partIndex: number;
@@ -12,16 +13,21 @@ interface PianoRollProps {
     cellWidth: number;
     gridHeight: number;
     isSnappingOn: boolean;
-    currentPixelsPerSecond: number;
+    snapWidth: number;
+    pixelsPerSecond: number;
 }
 
 const PianoRollPartView = (props: PianoRollProps) => {
+    // useEffect(() => {
+    //     console.log("start2", props.part);
+    // }, [props.part]);
+
     return (
         // <Box key={partIndex} >
         <Box
             key={props.partIndex}
             position="absolute"
-            left={`${props.part.startTime * props.currentPixelsPerSecond}px`}
+            left={`${props.part.startTime * props.pixelsPerSecond}px`}
         >
             <Box
                 borderWidth={1}
@@ -30,7 +36,7 @@ const PianoRollPartView = (props: PianoRollProps) => {
                 pointerEvents="none"
                 width={
                     (props.part.stopTime - props.part.startTime) *
-                        props.currentPixelsPerSecond +
+                        props.pixelsPerSecond +
                     1
                 }
                 height={props.gridHeight}
@@ -47,7 +53,8 @@ const PianoRollPartView = (props: PianoRollProps) => {
                     partIndex={props.partIndex}
                     cellHeight={props.rowHeight}
                     cellWidth={props.cellWidth}
-                    currentPixelsPerSecond={props.currentPixelsPerSecond}
+                    snapWidth={props.snapWidth}
+                    pixelsPerSecond={props.pixelsPerSecond}
                 />
             ))}
         </Box>

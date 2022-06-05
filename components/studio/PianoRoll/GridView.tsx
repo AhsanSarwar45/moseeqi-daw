@@ -6,7 +6,7 @@ import {
     useTracksStore,
 } from "@Data/TracksStore";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import PianoRollPartView from "./PianoRollPartView";
 
 interface GridViewProps {
@@ -15,6 +15,7 @@ interface GridViewProps {
     gridHeight: number;
     gridCellHeight: number;
     isSnappingOn: boolean;
+    snapWidth: number;
 }
 
 const GridView = (props: GridViewProps) => {
@@ -31,9 +32,10 @@ const GridView = (props: GridViewProps) => {
                     rowHeight={props.gridCellHeight}
                     cellWidth={props.columnWidth}
                     gridHeight={props.gridHeight}
-                    currentPixelsPerSecond={GetPixelsPerSecond(
+                    pixelsPerSecond={GetPixelsPerSecond(
                         props.basePixelsPerSecond
                     )}
+                    snapWidth={props.snapWidth}
                     isSnappingOn={props.isSnappingOn}
                 />
             ))}

@@ -19,7 +19,10 @@ export interface TrackSelectionIndex {
     trackIndex: number;
 }
 
-export type SubSelectionIndex = NoteSelectionIndex | PartSelectionIndex;
+export interface SubSelectionIndex {
+    containerIndex: number;
+    selectionIndex: number;
+}
 
 export interface Selection {
     type: SelectionType;

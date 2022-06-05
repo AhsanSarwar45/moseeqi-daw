@@ -31,6 +31,7 @@ import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
 import { IoMdSave } from "react-icons/io";
 import { RiFileAddLine } from "react-icons/ri";
 import { TiFolderOpen, TiPlus } from "react-icons/ti";
+import SnapSettings from "../SnapSettings";
 import { AddTrackModal } from "./AddTrackModal";
 
 interface TracksSettingsViewProps {
@@ -83,63 +84,10 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
                         }
                         icon={<Icon as={BiMagnet} />}
                     />
-                    <Menu colorScheme="primary">
-                        <MenuButton
-                            textColor="text.primary"
-                            borderWidth={1}
-                            borderRightRadius="sm"
-                            borderLeftWidth={0}
-                            borderColor="secondary.500"
-                            height="2rem"
-                        >
-                            <Icon color="text.white" as={BiChevronDown} />
-                        </MenuButton>
-
-                        <MenuList
-                            bgColor="primary.500"
-                            marginTop={0}
-                            paddingX={2}
-                            paddingY={2}
-                        >
-                            <MenuOptionGroup
-                                marginTop={0}
-                                marginLeft={0}
-                                defaultValue="asc"
-                                title="Snap Width"
-                                textColor="text.primary"
-
-                                // paddingLe
-                            >
-                                <ButtonGroup
-                                    size="sm"
-                                    isAttached
-                                    variant="solid"
-                                    colorScheme="secondary"
-                                >
-                                    {noteLengthOptions.map((option, index) => {
-                                        // const name = value;
-                                        return (
-                                            <ToggleButton
-                                                tooltipLabel={option.name}
-                                                key={option.name}
-                                                onClick={() =>
-                                                    props.setSnapWidthIndex(
-                                                        index
-                                                    )
-                                                }
-                                                icon={option.icon}
-                                                isToggled={
-                                                    index ===
-                                                    props.snapWidthIndex
-                                                }
-                                                // borderWidth={0}
-                                            />
-                                        );
-                                    })}
-                                </ButtonGroup>
-                            </MenuOptionGroup>
-                        </MenuList>
-                    </Menu>
+                    <SnapSettings
+                        snapWidthIndex={props.snapWidthIndex}
+                        setSnapWidthIndex={props.setSnapWidthIndex}
+                    />
                 </HStack>
             </HStack>
             <AddTrackModal

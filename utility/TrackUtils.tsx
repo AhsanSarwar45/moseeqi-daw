@@ -1,5 +1,6 @@
 import { getTrackId } from "@Data/Id";
 import { useLoadingStore } from "@Data/IsLoadingStore";
+import { useTracksStore } from "@Data/TracksStore";
 import { Instruments } from "@Instruments/Instruments";
 import { Instrument } from "@Interfaces/Instrument";
 import { Note } from "@Interfaces/Note";
@@ -165,6 +166,7 @@ export const CreateTrackFromIndex = (instrumentIndex: number): Track => {
 };
 
 export const AddNoteToTrack = (track: Track, note: Note) => {
+    // console.log("add");
     // Check which part the note is in
     const currentPartIndex = track.parts.findIndex((part) =>
         IsNoteInPart(note, part)
@@ -172,6 +174,7 @@ export const AddNoteToTrack = (track: Track, note: Note) => {
 
     // If the note lies in an existing part, add it to the part
     if (currentPartIndex !== -1) {
+        // console.log("existing");
         const part = track.parts[currentPartIndex];
 
         // if the end of the note lies beyond the end of the part, extend the part
@@ -183,6 +186,8 @@ export const AddNoteToTrack = (track: Track, note: Note) => {
     }
     // If in not in any existing part, create a new part and add the note to it
     else {
+        // console.log("new");
+
         // TODO: Add snap settings
         const partStartTime = GetNewPartStartTime(note.startTime);
         const partStopTime = GetNewPartStopTime(note.stopTime);
@@ -195,6 +200,8 @@ export const AddNoteToTrack = (track: Track, note: Note) => {
         MakeNotePartRelative(note, newPart);
         AddNoteToPart(note, newPart);
         track.parts.push(newPart);
+
+        // console.log(track);
     }
 };
 
@@ -204,4 +211,10 @@ export const CopyParts = (originalTrack: Track, copiedTrack: Track) => {
             ...part.notes,
         ]);
     });
+};
+
+export const GetSelectedTrack = (
+    tracks: Array<Track> = useTracksStore.getState().tracks
+): Track => {
+    return tracks[useTracksStore.getState().selectedTrackIndex];
 };

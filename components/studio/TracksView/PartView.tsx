@@ -1,66 +1,33 @@
 import { Box } from "@chakra-ui/react";
-import React from "react";
+import React, { forwardRef } from "react";
 
-import {
-    selectSetSelectedPartsIndices,
-    selectSetSelectedPartsStartTime,
-    selectSetSelectedPartsStopTime,
-    useTracksStore,
-} from "@Data/TracksStore";
 import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
-import {
-    GetPartSelectionStartIndex,
-    GetPartSelectionStartOffsets,
-    GetPartSelectionStopOffsets,
-} from "@Utility/SelectionUtils";
 import { isHotkeyPressed } from "react-hotkeys-hook";
+import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 
 interface PartViewProps {
     part: Part;
-    partIndex: number;
-    trackIndex: number;
+    subSelectionIndex: SubSelectionIndex;
     pixelsPerSecond: number;
     snapWidth: number;
-    isSelected: boolean;
 }
 
 const PartView = (props: PartViewProps) => {
-    const setSelectedPartsStopTime = useTracksStore(
-        selectSetSelectedPartsStopTime
-    );
-    const setSelectedPartsStartTime = useTracksStore(
-        selectSetSelectedPartsStartTime
-    );
-    const setSelectedPartsIndices = useTracksStore(
-        selectSetSelectedPartsIndices
-    );
-
     return (
         <TimeDraggable
-            startTime={props.part.startTime}
-            duration={props.part.duration}
+            timeContainer={props.part}
+            selectionType={SelectionType.Part}
             snapWidth={props.snapWidth}
-            isSelected={props.isSelected}
             pixelsPerSecond={props.pixelsPerSecond}
-            setStartTime={setSelectedPartsStartTime}
-            setStopTime={setSelectedPartsStopTime}
-            getSelectionStartOffsets={(selection) =>
-                GetPartSelectionStartOffsets(props.part, selection)
-            }
-            getSelectionStopOffsets={(selection) =>
-                GetPartSelectionStopOffsets(props.part, selection)
-            }
-            getSelectionStartIndex={(selection) =>
-                GetPartSelectionStartIndex(selection)
-            }
-            setSelectedIndices={() =>
-                setSelectedPartsIndices(
-                    props.trackIndex,
-                    props.partIndex,
-                    isHotkeyPressed("shift")
-                )
-            }
+            subSelectionIndex={props.subSelectionIndex}
+            borderColor="white"
+            selectedBorderColor="secondary.500"
+            bgColor="rgb(0,0,0,0.4)"
+            height="full"
+            getSelectionRowOffsets={() => []}
+            getSelectionRowStartIndex={() => 0}
+            setRow={(row, selectionRowOffsets) => {}}
         >
             {props.part.notes.map((note, index) => (
                 <Box

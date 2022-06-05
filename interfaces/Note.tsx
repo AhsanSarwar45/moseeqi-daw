@@ -1,9 +1,8 @@
-export interface Note {
+import { TimeContainer } from "./TimeContainer";
+
+export interface Note extends TimeContainer {
     id: number;
-    startTime: number;
-    stopTime: number;
     keyIndex: number;
     key: string;
-    duration: number;
     velocity: number;
 }
