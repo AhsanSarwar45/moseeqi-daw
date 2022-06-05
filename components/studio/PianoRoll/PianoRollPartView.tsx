@@ -34,11 +34,7 @@ const PianoRollPartView = (props: PianoRollProps) => {
                 zIndex={9998}
                 position="absolute"
                 pointerEvents="none"
-                width={
-                    (props.part.stopTime - props.part.startTime) *
-                        props.pixelsPerSecond +
-                    1
-                }
+                width={props.part.duration * props.pixelsPerSecond + 1}
                 height={props.gridHeight}
                 bgColor="rgba(255,0,0,0.05)"
             />

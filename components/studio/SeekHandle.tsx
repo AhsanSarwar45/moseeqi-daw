@@ -1,8 +1,8 @@
 import { Box } from "@chakra-ui/react";
-import { selectPlaybackState, usePlaybackStore } from "@Data/PlaybackStore";
-import { selectSeek, useSeekStore } from "@Data/SeekStore";
+import { selectPlaybackState, selectSeek, useStore } from "@Data/Store";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { Dimension } from "@Types/Types";
+import { SetSeek } from "@Utility/SeekUtils";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
@@ -23,13 +23,13 @@ const SeekHandle = (props: SeekHandleProps) => {
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
 
-    const { seek, setSeek } = useSeekStore();
+    const seek = useStore(selectSeek);
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
         const newSeek = data.lastX / (5 * props.scale);
         // console.log(newSeek, data.lastX)
-        setSeek(newSeek);
+        SetSeek(newSeek);
 
         Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
         dragging.current = false;
@@ -37,14 +37,14 @@ const SeekHandle = (props: SeekHandleProps) => {
 
     useEffect(
         () =>
-            usePlaybackStore.subscribe((state) => {
-                if (state.playbackState === PlaybackState.Stopped) {
-                    setSeek(0);
+            useStore.subscribe(selectPlaybackState, (playbackState) => {
+                if (playbackState === PlaybackState.Stopped) {
+                    SetSeek(0);
                     cancelAnimationFrame(seekAnimationRef.current);
-                } else if (state.playbackState === PlaybackState.Playing) {
+                } else if (playbackState === PlaybackState.Playing) {
                     seekAnimationRef.current = requestAnimationFrame(
                         function UpdateSeek() {
-                            setSeek(
+                            SetSeek(
                                 Tone.Transport.seconds *
                                     (Tone.Transport.bpm.value / 30)
                             );
@@ -52,7 +52,7 @@ const SeekHandle = (props: SeekHandleProps) => {
                                 requestAnimationFrame(UpdateSeek);
                         }
                     );
-                } else if (state.playbackState === PlaybackState.Paused) {
+                } else if (playbackState === PlaybackState.Paused) {
                     cancelAnimationFrame(seekAnimationRef.current);
                 }
             }),

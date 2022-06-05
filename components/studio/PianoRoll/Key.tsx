@@ -1,6 +1,6 @@
 import { Flex } from "@chakra-ui/react";
 import { blackKeyHeightModifier, blackKeyWidthModifier } from "@Data/Constants";
-import { selectSelectedTrack, useTracksStore } from "@Data/TracksStore";
+import { selectSelectedTrack, useStore } from "@Data/Store";
 import { KeyType } from "@Interfaces/KeyType";
 import { useMemo, useRef, useState } from "react";
 
@@ -27,7 +27,7 @@ const BlackKeyOffsets = [
 ];
 
 export const Key = (props: KeyProps) => {
-    const selectedTrack = useTracksStore(selectSelectedTrack);
+    const selectedTrack = useStore(selectSelectedTrack);
 
     const OnKeyDown = (key: string) => {
         selectedTrack.sampler.triggerAttack([key]);

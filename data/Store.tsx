@@ -15,22 +15,37 @@ import {
     StopTrackParts,
 } from "@Utility/TrackUtils";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
-import { DivisorToDuration } from "@Utility/TimeUtils";
+import { BpmToBps, DivisorToDuration } from "@Utility/TimeUtils";
 import { CreateNote, GetPartNote, PlayNote } from "@Utility/NoteUtils";
 import { IsSelected } from "@Utility/SelectionUtils";
-import { defaultInstrumentIndex } from "./Defaults";
+import {
+    defaultBPM,
+    defaultInstrumentIndex,
+    defaultProjectLength,
+    defaultProjectName,
+} from "./Defaults";
+import { initialSecondsPerDivision } from "./Constants";
+import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 
-interface TrackStoreState {
+interface StoreState {
     tracks: Array<Track>;
     trackCount: number;
     selectedTrackIndex: number;
     selectedPartIndices: Array<SubSelectionIndex>;
     selectedNoteIndices: Array<SubSelectionIndex>;
+
+    bpm: number;
+
+    projectName: string;
+    projectLength: number;
+
+    playbackState: PlaybackState;
+
+    seek: number;
+
     setTracks: (tracks: Array<Track>) => void;
     addTrack: (track: Track) => void;
     addInstrumentTrack: (instrumentIndex: number) => void;
-    deleteTrack: (track: Track) => void;
-    deleteSelectedTrack: () => void;
     clearTracks: () => void;
     setSelectedTrack: (track: Track) => void;
     setSelectedTrackIndex: (index: number) => void;
@@ -48,25 +63,18 @@ interface TrackStoreState {
     deleteSelectedParts: () => void;
 }
 
-const DeleteTrack = (trackToDelete: Track, prev: TrackStoreState) => {
-    StopTrackParts(trackToDelete);
-    return {
-        tracks: prev.tracks.filter((tracks) => tracks.id !== trackToDelete.id),
-        selectedTrackIndex:
-            prev.selectedTrackIndex > 0 ? prev.selectedTrackIndex - 1 : 0,
-        selectedPartIndices: [],
-        selectedNoteIndices: [],
-        trackCount: prev.trackCount - 1,
-    };
-};
-
-export const useTracksStore = create<TrackStoreState>()(
+export const useStore = create<StoreState>()(
     subscribeWithSelector((set, get) => ({
         tracks: [CreateTrackFromIndex(defaultInstrumentIndex)],
         trackCount: 1,
         selectedTrackIndex: 0,
         selectedPartIndices: [],
         selectedNoteIndices: [],
+        bpm: defaultBPM,
+        projectName: defaultProjectName,
+        projectLength: defaultProjectLength,
+        playbackState: PlaybackState.Stopped,
+        seek: 0,
         setTracks: (tracksToSet: Array<Track>) =>
             set((prev) => ({ tracks: tracksToSet })),
         addTrack: (trackToAdd: Track) => {
@@ -81,17 +89,7 @@ export const useTracksStore = create<TrackStoreState>()(
                 trackCount: prev.trackCount + 1,
             }));
         },
-        deleteTrack: (trackToDelete: Track) =>
-            set((prev) => {
-                if (prev.tracks.length == 0) return prev;
-                return DeleteTrack(trackToDelete, prev);
-            }),
-        deleteSelectedTrack: () =>
-            set((prev) => {
-                if (prev.tracks.length == 0) return prev;
-                const selectedTrack = prev.tracks[prev.selectedTrackIndex];
-                return DeleteTrack(selectedTrack, prev);
-            }),
+
         clearTracks: () => {
             set((prev) => ({
                 tracks: [],
@@ -229,47 +227,53 @@ export const useTracksStore = create<TrackStoreState>()(
     }))
 );
 
-export const selectTracks = (state: TrackStoreState) => state.tracks;
-export const selectSelectedTrack = (state: TrackStoreState) =>
+export const selectTracks = (state: StoreState) => state.tracks;
+export const selectSelectedTrack = (state: StoreState) =>
     state.tracks[state.selectedTrackIndex];
-export const selectTrackCount = (state: TrackStoreState) => state.trackCount;
-export const selectSetTracks = (state: TrackStoreState) => state.setTracks;
-export const selectAddTrack = (state: TrackStoreState) => state.addTrack;
-export const selectDeleteTrack = (state: TrackStoreState) => state.deleteTrack;
-export const selectDeleteSelectedTrack = (state: TrackStoreState) =>
-    state.deleteSelectedTrack;
-
-export const selectSelectedPartIndices = (state: TrackStoreState) =>
+export const selectTrackCount = (state: StoreState) => state.trackCount;
+export const selectSelectedPartIndices = (state: StoreState) =>
     state.selectedPartIndices;
-export const selectSelectedNoteIndices = (state: TrackStoreState) =>
+export const selectSelectedNoteIndices = (state: StoreState) =>
     state.selectedNoteIndices;
-export const selectSelectedTrackIndex = (state: TrackStoreState) =>
+export const selectSelectedTrackIndex = (state: StoreState) =>
     state.selectedTrackIndex;
-export const selectSetSelectedTrackIndex = (state: TrackStoreState) =>
+
+export const selectBpm = (state: StoreState) => state.bpm;
+export const selectBps = (state: StoreState) => state.bpm / 60;
+export const selectCurrentSecondPerDivision = (state: StoreState) =>
+    initialSecondsPerDivision / BpmToBps(state.bpm);
+
+export const selectProjectName = (state: StoreState) => state.projectName;
+export const selectProjectLength = (state: StoreState) => state.projectLength;
+
+export const selectPlaybackState = (state: StoreState) => state.playbackState;
+
+export const selectSeek = (state: StoreState) => state.seek;
+
+export const selectSetTracks = (state: StoreState) => state.setTracks;
+export const selectAddTrack = (state: StoreState) => state.addTrack;
+export const selectSetSelectedTrackIndex = (state: StoreState) =>
     state.setSelectedTrackIndex;
-export const selectAddInstrumentTrack = (state: TrackStoreState) =>
+export const selectAddInstrumentTrack = (state: StoreState) =>
     state.addInstrumentTrack;
-export const selectDuplicateSelectedTrack = (state: TrackStoreState) =>
+export const selectDuplicateSelectedTrack = (state: StoreState) =>
     state.duplicateSelectedTrack;
-export const selectAddNoteToSelectedTrack = (state: TrackStoreState) =>
+export const selectAddNoteToSelectedTrack = (state: StoreState) =>
     state.addNoteToSelectedTrack;
-export const selectClearSelectedTrack = (state: TrackStoreState) =>
+export const selectClearSelectedTrack = (state: StoreState) =>
     state.clearSelectedTrack;
-export const selectToggleMuteAtIndex = (state: TrackStoreState) =>
+export const selectToggleMuteAtIndex = (state: StoreState) =>
     state.toggleMuteAtIndex;
-export const selectToggleSoloAtIndex = (state: TrackStoreState) =>
+export const selectToggleSoloAtIndex = (state: StoreState) =>
     state.toggleSoloAtIndex;
-export const selectSetSelectedTrackAttack = (state: TrackStoreState) =>
+export const selectSetSelectedTrackAttack = (state: StoreState) =>
     state.setSelectedTrackAttack;
-export const selectSetSelectedTrackRelease = (state: TrackStoreState) =>
+export const selectSetSelectedTrackRelease = (state: StoreState) =>
     state.setSelectedTrackRelease;
-export const selectDeleteSelectedParts = (state: TrackStoreState) =>
+export const selectDeleteSelectedParts = (state: StoreState) =>
     state.deleteSelectedParts;
 
-const MergeSelectors = (
-    state: TrackStoreState,
-    ...selectors: Array<() => any>
-) => {
+const MergeSelectors = (state: StoreState, ...selectors: Array<() => any>) => {
     let result = {};
     selectors.forEach((selector) => {
         result = { ...result, ...selector() };

@@ -7,7 +7,8 @@ import { getPartId } from "@Data/Id";
 import { GetSecondsPerDivision } from "./TimeUtils";
 import { Part } from "@Interfaces/Part";
 import { Track } from "@Interfaces/Track";
-import { useTracksStore } from "@Data/TracksStore";
+import { useStore } from "@Data/Store";
+import { MapTimeBlock } from "./TimeBlockUtils";
 
 export const CreateTonePart = (sampler: Tone.Sampler) => {
     return new Tone.Part((time, value: any) => {
@@ -44,12 +45,9 @@ export const CreatePart = (
 
 export const MapPartTime = (
     part: Part,
-    startMapper: (startTime: number) => number,
-    stopMapper: (stopTime: number) => number
+    mapper: (startTime: number) => number
 ) => {
-    part.startTime = startMapper(part.startTime);
-    part.stopTime = stopMapper(part.stopTime);
-    part.duration = part.stopTime - part.startTime;
+    MapTimeBlock(part, mapper);
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
@@ -113,5 +111,5 @@ export const GetExtendedPartStopTime = (noteStopTime: number) => {
 };
 
 export const ClearSelectedPartsIndices = () => {
-    useTracksStore.setState({ selectedPartIndices: [] });
+    useStore.setState({ selectedPartIndices: [] });
 };

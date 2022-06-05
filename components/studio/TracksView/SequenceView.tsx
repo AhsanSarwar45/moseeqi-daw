@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import {
+    selectProjectLength,
     selectSetSelectedTrackIndex,
     selectTracks,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 import { Box } from "@chakra-ui/react";
 import { Track } from "@Interfaces/Track";
-import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import PartView from "./PartView";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
@@ -18,9 +18,9 @@ interface SequenceViewProps {
 }
 
 const SequenceView = (props: SequenceViewProps) => {
-    const tracks = useTracksStore(selectTracks);
-    const setSelectedTrackIndex = useTracksStore(selectSetSelectedTrackIndex);
-    const projectLength = useProjectStore(selectProjectLength);
+    const tracks = useStore(selectTracks);
+    const setSelectedTrackIndex = useStore(selectSetSelectedTrackIndex);
+    const projectLength = useStore(selectProjectLength);
 
     return (
         <Box position="absolute" top={0} left={0}>

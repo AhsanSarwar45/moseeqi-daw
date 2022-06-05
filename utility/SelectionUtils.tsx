@@ -1,20 +1,20 @@
 import { defaultMinPartDuration } from "@Data/Defaults";
-import { useTracksStore } from "@Data/TracksStore";
+import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
-import { TimeContainer } from "@Interfaces/TimeContainer";
+import { TimeBlock } from "@Interfaces/TimeBlock";
 import { Track } from "@Interfaces/Track";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { UpdateNote } from "./NoteUtils";
 import { SetPartTime, UpdatePart } from "./PartUtils";
-import { SetTimeContainerTime } from "./TimeContainerUtils";
+import { SetTimeBlockTime } from "./TimeBlockUtils";
 import { GetSelectedTrack } from "./TrackUtils";
 
 export const SetSelectedIndices = (
     selectionType: SelectionType,
     indices: Array<SubSelectionIndex>
 ) => {
-    useTracksStore.setState(
+    useStore.setState(
         selectionType === SelectionType.Part
             ? {
                   selectedPartIndices: indices,
@@ -79,8 +79,8 @@ export const FindSelectionIndex = (
 export const GetSubSelectionTime = (
     type: SelectionType,
     subSelectionIndex: SubSelectionIndex,
-    tracks: Array<Track> = useTracksStore.getState().tracks
-): TimeContainer => {
+    tracks: Array<Track> = useStore.getState().tracks
+): TimeBlock => {
     return type === SelectionType.Part
         ? tracks[subSelectionIndex.containerIndex].parts[
               subSelectionIndex.selectionIndex
@@ -124,15 +124,13 @@ export const GetSelectionStartIndex = (
 };
 
 export const GetSelectionTimeOffsets = (
-    timeObject: TimeContainer,
+    timeBlock: TimeBlock,
     selectedIndices: Array<SubSelectionIndex>,
     type: SelectionType,
     timeMark: "startTime" | "stopTime" = "startTime"
 ): Array<number> => {
     return selectedIndices.map((index) => {
-        return (
-            timeObject[timeMark] - GetSubSelectionTime(type, index)[timeMark]
-        );
+        return timeBlock[timeMark] - GetSubSelectionTime(type, index)[timeMark];
     });
 };
 
@@ -153,8 +151,8 @@ export const GetSelectedIndices = (
     type: SelectionType
 ): Array<SubSelectionIndex> => {
     return type === SelectionType.Part
-        ? useTracksStore.getState().selectedPartIndices
-        : useTracksStore.getState().selectedNoteIndices;
+        ? useStore.getState().selectedPartIndices
+        : useStore.getState().selectedNoteIndices;
 };
 
 const UpdateTimeObject = (
@@ -193,12 +191,12 @@ export const GetAbsoluteTime = (
 };
 
 export const CommitSelectionUpdate = (selectionType: SelectionType) => {
-    const tracksCopy = [...useTracksStore.getState().tracks];
+    const tracksCopy = [...useStore.getState().tracks];
     const selectedIndices = GetSelectedIndices(selectionType);
     selectedIndices.forEach((subSelectionIndex) => {
         UpdateTimeObject(selectionType, subSelectionIndex, tracksCopy);
     });
-    useTracksStore.setState({ tracks: tracksCopy });
+    useStore.setState({ tracks: tracksCopy });
 };
 
 export const SetSelectedStartTime = (
@@ -208,7 +206,7 @@ export const SetSelectedStartTime = (
     selectionType: SelectionType,
     keepDuration: boolean = false
 ) => {
-    const tracksCopy = [...useTracksStore.getState().tracks];
+    const tracksCopy = [...useStore.getState().tracks];
     const selectedIndices = GetSelectedIndices(selectionType);
 
     // console.log(newStartTime, selectionOffsets[selectionStartIndex]);
@@ -229,7 +227,7 @@ export const SetSelectedStartTime = (
     // console.log(selectedIndices);
 
     selectedIndices.forEach((subSelectionIndex, index) => {
-        const timeContainer = GetSubSelectionTime(
+        const timeBlock = GetSubSelectionTime(
             selectionType,
             subSelectionIndex,
             tracksCopy
@@ -239,29 +237,29 @@ export const SetSelectedStartTime = (
         let startTime = newStartTime - offset;
 
         let stopTime = keepDuration
-            ? startTime + timeContainer.duration
-            : timeContainer.stopTime;
+            ? startTime + timeBlock.duration
+            : timeBlock.stopTime;
         stopTime = Math.max(stopTime, startTime + defaultMinPartDuration);
 
-        SetTimeContainerTime(timeContainer, startTime, stopTime);
+        SetTimeBlockTime(timeBlock, startTime, stopTime);
 
         // UpdateSelection(selectionType, subSelectionIndex, tracksCopy);
     });
 
     // console.log(tracksCopy);
 
-    useTracksStore.setState({ tracks: tracksCopy });
+    useStore.setState({ tracks: tracksCopy });
 };
 export const SetSelectedStopTime = (
     newStopTime: number,
     selectionOffsets: Array<number>,
     selectionType: SelectionType
 ) => {
-    const tracksCopy = [...useTracksStore.getState().tracks];
+    const tracksCopy = [...useStore.getState().tracks];
     const selectedIndices = GetSelectedIndices(selectionType);
 
     selectedIndices.forEach((selectionIndex, index) => {
-        const timeContainer = GetSubSelectionTime(
+        const timeBlock = GetSubSelectionTime(
             selectionType,
             selectionIndex,
             tracksCopy
@@ -270,10 +268,10 @@ export const SetSelectedStopTime = (
         let stopTime = newStopTime - offset;
         stopTime = Math.max(
             stopTime,
-            timeContainer.startTime + defaultMinPartDuration
+            timeBlock.startTime + defaultMinPartDuration
         );
-        SetTimeContainerTime(timeContainer, timeContainer.startTime, stopTime);
+        SetTimeBlockTime(timeBlock, timeBlock.startTime, stopTime);
     });
 
-    useTracksStore.setState({ tracks: tracksCopy });
+    useStore.setState({ tracks: tracksCopy });
 };

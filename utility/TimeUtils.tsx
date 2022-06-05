@@ -1,5 +1,5 @@
-import { useBpmStore } from "@Data/BpmStore";
 import { initialSecondsPerDivision, wholeNoteDivisions } from "@Data/Constants";
+import { useStore } from "@Data/Store";
 
 export const ColumnToSeconds = (column: number) => {
     return column / 8;
@@ -10,7 +10,7 @@ export const BpmToBps = (bpm: number) => {
 };
 
 export const GetSecondsPerDivision = (): number => {
-    return initialSecondsPerDivision / BpmToBps(useBpmStore.getState().bpm);
+    return initialSecondsPerDivision / BpmToBps(useStore.getState().bpm);
 };
 
 export const GetWholeNoteDuration = (): number => {
@@ -22,5 +22,5 @@ export const DivisorToDuration = (divisor: number) => {
 };
 
 export const GetPixelsPerSecond = (basePixelsPerSecond: number): number => {
-    return basePixelsPerSecond * BpmToBps(useBpmStore.getState().bpm);
+    return basePixelsPerSecond * BpmToBps(useStore.getState().bpm);
 };

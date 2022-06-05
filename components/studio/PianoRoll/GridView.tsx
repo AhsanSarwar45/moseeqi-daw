@@ -1,10 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
-import {
-    selectSelectedTrack,
-    selectTracks,
-    useTracksStore,
-} from "@Data/TracksStore";
+import { selectSelectedTrack, selectTracks, useStore } from "@Data/Store";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 import React, { useEffect, useRef } from "react";
 import PianoRollPartView from "./PianoRollPartView";
@@ -19,8 +14,8 @@ interface GridViewProps {
 }
 
 const GridView = (props: GridViewProps) => {
-    const selectedTrack = useTracksStore(selectSelectedTrack);
-    const tracks = useTracksStore(selectTracks);
+    const selectedTrack = useStore(selectSelectedTrack);
+    const tracks = useStore(selectTracks);
 
     return (
         <>

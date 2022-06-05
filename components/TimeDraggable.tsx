@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { Snap } from "@Utility/SnapUtils";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
-import { TimeContainer } from "@Interfaces/TimeContainer";
+import { TimeBlock } from "@Interfaces/TimeBlock";
 import {
     GetSelectionTimeOffsets,
     GetSelectionStartIndex,
@@ -23,14 +23,14 @@ import { StrDimToNum } from "@Utility/DimensionUtils";
 import {
     selectSelectedNoteIndices,
     selectSelectedPartIndices,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 
 // const [addMouseUpListener, removeMouseUpListener] = Listener();
 
 interface DraggableProps {
     children?: React.ReactNode;
-    timeContainer: TimeContainer;
+    timeBlock: TimeBlock;
     selectionType: SelectionType;
     subSelectionIndex: SubSelectionIndex;
     isSelected: boolean;
@@ -76,8 +76,8 @@ const TimeDraggable = (props: DraggableProps) => {
 
     const partRef = useRef<HTMLElement>(null);
 
-    const width = props.timeContainer.duration * props.pixelsPerSecond;
-    const left = props.timeContainer.startTime * props.pixelsPerSecond;
+    const width = props.timeBlock.duration * props.pixelsPerSecond;
+    const left = props.timeBlock.startTime * props.pixelsPerSecond;
 
     const HandleMouseMove = useCallback(
         (event: MouseEvent) => {
@@ -90,7 +90,7 @@ const TimeDraggable = (props: DraggableProps) => {
                 const startTime = posX / props.pixelsPerSecond;
                 // console.log(event.clientX, dragOffset.current.x, startTime);
 
-                if (startTime !== props.timeContainer.startTime) {
+                if (startTime !== props.timeBlock.startTime) {
                     SetSelectedStartTime(
                         startTime,
                         selectionTimeOffsets.current,
@@ -122,7 +122,7 @@ const TimeDraggable = (props: DraggableProps) => {
 
                 const startTime = pos / props.pixelsPerSecond;
 
-                if (startTime !== props.timeContainer.startTime) {
+                if (startTime !== props.timeBlock.startTime) {
                     SetSelectedStartTime(
                         startTime,
                         selectionTimeOffsets.current,
@@ -138,7 +138,7 @@ const TimeDraggable = (props: DraggableProps) => {
 
                 const stopTime = pos / props.pixelsPerSecond;
 
-                if (stopTime !== props.timeContainer.stopTime) {
+                if (stopTime !== props.timeBlock.stopTime) {
                     SetSelectedStopTime(
                         stopTime,
                         selectionTimeOffsets.current,
@@ -152,7 +152,7 @@ const TimeDraggable = (props: DraggableProps) => {
             props.snapWidth,
             props.rowHeight,
             props.pixelsPerSecond,
-            props.timeContainer,
+            props.timeBlock,
         ]
     );
 
@@ -164,7 +164,7 @@ const TimeDraggable = (props: DraggableProps) => {
         );
 
         selectionTimeOffsets.current = GetSelectionTimeOffsets(
-            props.timeContainer,
+            props.timeBlock,
             newSelectedPartIndices,
             props.selectionType,
             "startTime"
@@ -271,7 +271,7 @@ const TimeDraggable = (props: DraggableProps) => {
                         );
 
                         selectionTimeOffsets.current = GetSelectionTimeOffsets(
-                            props.timeContainer,
+                            props.timeBlock,
                             newSelectedIndices,
                             props.selectionType,
                             "stopTime"

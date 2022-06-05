@@ -2,7 +2,7 @@ import { HStack, ButtonGroup, Icon } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
 import { noteLengthOptions } from "@Data/Constants";
-import { selectClearSelectedTrack, useTracksStore } from "@Data/TracksStore";
+import { selectClearSelectedTrack, useStore } from "@Data/Store";
 import React from "react";
 import { BiTrash, BiMagnet } from "react-icons/bi";
 import SnapSettings from "../SnapSettings";
@@ -17,7 +17,7 @@ interface PianoRollSettingsViewProps {
 }
 
 const PianoRollSettingsView = (props: PianoRollSettingsViewProps) => {
-    const clearSelectedTrack = useTracksStore(selectClearSelectedTrack);
+    const clearSelectedTrack = useStore(selectClearSelectedTrack);
 
     return (
         <HStack

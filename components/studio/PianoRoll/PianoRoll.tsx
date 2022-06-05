@@ -34,10 +34,10 @@ import { Timeline } from "./Timeline";
 import TooltipButton from "@Components/TooltipButton";
 import {
     selectAddNoteToSelectedTrack,
+    selectProjectLength,
     selectTrackCount,
-    useTracksStore,
-} from "@Data/TracksStore";
-import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
+    useStore,
+} from "@Data/Store";
 import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
@@ -71,11 +71,11 @@ const PianoRoll = (props: PianoRollProps) => {
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
     const [selectedDrawLengthIndex, setSelectedDrawLengthIndex] = useState(2);
 
-    const addNoteToSelectedTrack = useTracksStore(selectAddNoteToSelectedTrack);
+    const addNoteToSelectedTrack = useStore(selectAddNoteToSelectedTrack);
 
     // const trackCount = 1;
-    const trackCount = useTracksStore(selectTrackCount);
-    const projectLength = useProjectStore(selectProjectLength);
+    const trackCount = useStore(selectTrackCount);
+    const projectLength = useStore(selectProjectLength);
 
     useKeyMap("DELETE_NOTES", DeleteSelectedNotes);
 

@@ -6,8 +6,8 @@ import {
     selectToggleMuteAtIndex,
     selectToggleSoloAtIndex,
     selectTracks,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 import { Track } from "@Interfaces/Track";
 import { HStack, VStack, Text } from "@chakra-ui/react";
 import Meter from "./Meter";
@@ -16,11 +16,11 @@ import ToggleButton from "@Components/ToggleButton";
 interface TracksInfoViewProps {}
 
 const TracksInfoView = () => {
-    const tracks = useTracksStore(selectTracks);
-    const selectedTrackIndex = useTracksStore(selectSelectedTrackIndex);
-    const setSelectedTrackIndex = useTracksStore(selectSetSelectedTrackIndex);
-    const toggleMuteAtIndex = useTracksStore(selectToggleMuteAtIndex);
-    const toggleSoloAtIndex = useTracksStore(selectToggleSoloAtIndex);
+    const tracks = useStore(selectTracks);
+    const selectedTrackIndex = useStore(selectSelectedTrackIndex);
+    const setSelectedTrackIndex = useStore(selectSetSelectedTrackIndex);
+    const toggleMuteAtIndex = useStore(selectToggleMuteAtIndex);
+    const toggleSoloAtIndex = useStore(selectToggleSoloAtIndex);
 
     return (
         <>

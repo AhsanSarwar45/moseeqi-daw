@@ -1,6 +1,6 @@
-import { TimeContainer } from "./TimeContainer";
+import { TimeBlock } from "./TimeBlock";
 
-export interface Note extends TimeContainer {
+export interface Note extends TimeBlock {
     id: number;
     keyIndex: number;
     key: string;

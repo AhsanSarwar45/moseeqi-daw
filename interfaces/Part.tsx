@@ -1,8 +1,8 @@
 import Tone from "tone";
 import { Note } from "./Note";
-import { TimeContainer } from "./TimeContainer";
+import { TimeBlock } from "./TimeBlock";
 
-export interface Part extends TimeContainer {
+export interface Part extends TimeBlock {
     id: number;
     tonePart: Tone.Part;
     notes: Array<Note>;

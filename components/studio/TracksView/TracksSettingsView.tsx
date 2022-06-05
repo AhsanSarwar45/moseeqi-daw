@@ -24,8 +24,8 @@ import {
     selectAddInstrumentTrack,
     selectClearSelectedTrack,
     selectDuplicateSelectedTrack,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 import React from "react";
 import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
 import { IoMdSave } from "react-icons/io";
@@ -44,8 +44,8 @@ interface TracksSettingsViewProps {
 const TracksSettingsView = (props: TracksSettingsViewProps) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    const addInstrumentTrack = useTracksStore(selectAddInstrumentTrack);
-    const duplicateSelectedTrack = useTracksStore(selectDuplicateSelectedTrack);
+    const addInstrumentTrack = useStore(selectAddInstrumentTrack);
+    const duplicateSelectedTrack = useStore(selectDuplicateSelectedTrack);
 
     return (
         <>

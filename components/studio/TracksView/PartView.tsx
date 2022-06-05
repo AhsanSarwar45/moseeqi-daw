@@ -6,7 +6,7 @@ import TimeDraggable from "@Components/TimeDraggable";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { IsSelected } from "@Utility/SelectionUtils";
-import { selectSelectedPartIndices, useTracksStore } from "@Data/TracksStore";
+import { selectSelectedPartIndices, useStore } from "@Data/Store";
 import { IsNoteDisabled } from "@Utility/NoteUtils";
 
 interface PartViewProps {
@@ -17,11 +17,11 @@ interface PartViewProps {
 }
 
 const PartView = (props: PartViewProps) => {
-    const selectedPartIndices = useTracksStore(selectSelectedPartIndices);
+    const selectedPartIndices = useStore(selectSelectedPartIndices);
 
     return (
         <TimeDraggable
-            timeContainer={props.part}
+            timeBlock={props.part}
             selectionType={SelectionType.Part}
             snapWidth={props.snapWidth}
             pixelsPerSecond={props.pixelsPerSecond}

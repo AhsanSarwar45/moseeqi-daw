@@ -7,19 +7,17 @@ import {
     selectSetSelectedTrackAttack,
     selectSetSelectedTrackRelease,
     selectTrackCount,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 
 interface PropertiesPanelProps {}
 
 export const PropertiesPanel = (props: PropertiesPanelProps) => {
-    const trackCount = useTracksStore(selectTrackCount);
-    const selectedTrack = useTracksStore(selectSelectedTrack);
+    const trackCount = useStore(selectTrackCount);
+    const selectedTrack = useStore(selectSelectedTrack);
 
-    const setSelectedTrackAttack = useTracksStore(selectSetSelectedTrackAttack);
-    const setSelectedTrackRelease = useTracksStore(
-        selectSetSelectedTrackRelease
-    );
+    const setSelectedTrackAttack = useStore(selectSetSelectedTrackAttack);
+    const setSelectedTrackRelease = useStore(selectSetSelectedTrackRelease);
 
     return (
         <VStack

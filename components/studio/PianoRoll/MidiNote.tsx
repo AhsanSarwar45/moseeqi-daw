@@ -1,8 +1,8 @@
 import {
     selectSelectedNoteIndices,
     selectSelectedTrack,
-    useTracksStore,
-} from "@Data/TracksStore";
+    useStore,
+} from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
@@ -12,6 +12,7 @@ import {
     GetNoteSelectionRowOffsets,
     GetNoteSelectionRowStartIndex,
     IsNoteDisabled,
+    PlayNote,
     SetNoteSelectionRow,
 } from "@Utility/NoteUtils";
 import { IsSelected } from "@Utility/SelectionUtils";
@@ -29,8 +30,8 @@ interface MidiNoteProps {
 }
 
 export const MidiNote = (props: MidiNoteProps) => {
-    const selectedTrack = useTracksStore(selectSelectedTrack);
-    const selectedNoteIndices = useTracksStore(selectSelectedNoteIndices);
+    const selectedTrack = useStore(selectSelectedTrack);
+    const selectedNoteIndices = useStore(selectSelectedNoteIndices);
 
     const subSelectionIndex = {
         containerIndex: props.partIndex,
@@ -40,7 +41,7 @@ export const MidiNote = (props: MidiNoteProps) => {
     return (
         // <></>
         <TimeDraggable
-            timeContainer={props.note}
+            timeBlock={props.note}
             selectionType={SelectionType.Note}
             snapWidth={props.snapWidth}
             rowHeight={props.cellHeight}
@@ -65,16 +66,18 @@ export const MidiNote = (props: MidiNoteProps) => {
                 GetNoteSelectionRowOffsets(props.note, selectionIndices)
             }
             getSelectionRowStartIndex={GetNoteSelectionRowStartIndex}
-            setRow={SetNoteSelectionRow}
+            setRow={(row, selectionRowOffsets, selectionStartIndex) => {
+                SetNoteSelectionRow(
+                    row,
+                    selectionRowOffsets,
+                    selectionStartIndex
+                );
+                PlayNote(selectedTrack, props.note);
+            }}
             onMouseDown={(event) => {
-                if (event.button === 0) {
-                    selectedTrack.sampler.triggerAttackRelease(
-                        props.note.key,
-                        props.note.duration
-                    );
-                } else if (event.button === 2) {
+                if (event.button === 0) PlayNote(selectedTrack, props.note);
+                else if (event.button === 2)
                     DeleteNote(props.partIndex, props.noteIndex);
-                }
             }}
         />
     );

@@ -11,30 +11,24 @@ import {
 import Ruler from "@scena/react-ruler";
 import { useState } from "react";
 
-import { AddTrackModal } from "./AddTrackModal";
 import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { noteLengthOptions, secondsPerWholeNote } from "@Data/Constants";
-import TooltipButton from "@Components/TooltipButton";
-import { PlayBackController } from "@Components/studio/PlaybackController";
 
 import {
     selectDeleteSelectedParts,
-    selectDeleteSelectedTrack,
+    selectProjectLength,
     selectTrackCount,
-    useTracksStore,
-} from "@Data/TracksStore";
-import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
+    useStore,
+} from "@Data/Store";
 import SequenceView from "./SequenceView";
 import TracksInfoView from "./TracksInfoView";
-import TracksEditBar from "./TracksEditBar";
-// import { selectKeymap, useKeyMapStore } from "@Data/KeymapStore";
-import { useHotkeys } from "react-hotkeys-hook";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
 import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
+import { DeleteSelectedTrack } from "@Utility/TrackUtils";
 
 interface TracksViewProps {}
 
@@ -53,13 +47,12 @@ const TracksView = (props: TracksViewProps) => {
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
     const [isSnappingOn, setIsSnappingOn] = useState(true);
 
-    const trackCount = useTracksStore(selectTrackCount);
-    const projectLength = useProjectStore(selectProjectLength);
+    const trackCount = useStore(selectTrackCount);
+    const projectLength = useStore(selectProjectLength);
 
-    const deleteSelectedTrack = useTracksStore(selectDeleteSelectedTrack);
-    const deleteSelectedParts = useTracksStore(selectDeleteSelectedParts);
+    const deleteSelectedParts = useStore(selectDeleteSelectedParts);
 
-    useKeyMap("DELETE_TRACKS", deleteSelectedTrack);
+    useKeyMap("DELETE_TRACKS", DeleteSelectedTrack);
     useKeyMap("DELETE_PARTS", deleteSelectedParts);
 
     const HandleWindowResize = () => {

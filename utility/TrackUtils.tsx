@@ -1,13 +1,18 @@
 import { getTrackId } from "@Data/Id";
 import { useLoadingStore } from "@Data/IsLoadingStore";
-import { useTracksStore } from "@Data/TracksStore";
+import { useStore } from "@Data/Store";
 import { Instruments } from "@Instruments/Instruments";
 import { Instrument } from "@Interfaces/Instrument";
 import { Note } from "@Interfaces/Note";
 import { TrackSaveData } from "@Interfaces/SaveData";
 import { Track } from "@Interfaces/Track";
 import * as Tone from "tone";
-import { GetPartNote, IsNoteInPart, MakeNotePartRelative } from "./NoteUtils";
+import {
+    GetPartNote,
+    IsNoteInPart,
+    MakeNotePartRelative,
+    MapNoteTime,
+} from "./NoteUtils";
 import {
     AddNoteToPart,
     CreatePart,
@@ -15,6 +20,7 @@ import {
     ExtendPart,
     GetNewPartStartTime,
     GetNewPartStopTime,
+    MapPartTime,
 } from "./PartUtils";
 import CreateSampler from "./SamplerUtils";
 
@@ -108,14 +114,10 @@ export const ChangeTracksBpm = (
     tracks.forEach((track) => {
         track.parts.forEach((part) => {
             part.tonePart.clear();
-            part.startTime *= newTimeMultiplier;
-            part.stopTime *= newTimeMultiplier;
-            part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+            MapPartTime(part, (time) => time * newTimeMultiplier);
 
             part.notes.forEach((note) => {
-                note.startTime *= newTimeMultiplier;
-                note.stopTime *= newTimeMultiplier;
-                note.duration *= newTimeMultiplier;
+                MapNoteTime(note, (time) => time * newTimeMultiplier);
 
                 part.tonePart.add(GetPartNote(note));
             });
@@ -166,7 +168,7 @@ export const CreateTrackFromIndex = (instrumentIndex: number): Track => {
 };
 
 export const GetTracksCopy = () => {
-    return [...useTracksStore.getState().tracks];
+    return [...useStore.getState().tracks];
 };
 
 export const AddNoteToTrack = (track: Track, note: Note) => {
@@ -218,7 +220,28 @@ export const CopyParts = (originalTrack: Track, copiedTrack: Track) => {
 };
 
 export const GetSelectedTrack = (
-    tracks: Array<Track> = useTracksStore.getState().tracks
+    tracks: Array<Track> = useStore.getState().tracks
 ): Track => {
-    return tracks[useTracksStore.getState().selectedTrackIndex];
+    return tracks[useStore.getState().selectedTrackIndex];
+};
+
+export const DeleteTrack = (trackToDelete: Track) => {
+    const tracks = useStore.getState().tracks;
+    const selectedTrackIndex = useStore.getState().selectedTrackIndex;
+
+    if (tracks.length === 0) return;
+
+    StopTrackParts(trackToDelete);
+    useStore.setState({
+        tracks: tracks.filter((tracks) => tracks.id !== trackToDelete.id),
+        selectedTrackIndex: selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0,
+        selectedPartIndices: [],
+        selectedNoteIndices: [],
+        trackCount: tracks.length,
+    });
+};
+
+export const DeleteSelectedTrack = () => {
+    const selectedTrack = GetSelectedTrack();
+    DeleteTrack(selectedTrack);
 };

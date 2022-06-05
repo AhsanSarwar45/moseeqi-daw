@@ -15,37 +15,40 @@ import {
 } from "react-icons/ti";
 import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
-import { useHotkeys } from "react-hotkeys-hook";
 
-import { usePlaybackStore } from "@Data/PlaybackStore";
-import { useBpmStore } from "@Data/BpmStore";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
 import useKeyMap from "@Hooks/useKeyMap";
+import { selectBpm, selectPlaybackState, useStore } from "@Data/Store";
+import { SetBpm } from "@Utility/BpmUtils";
+import { SetPlaybackState, TogglePlayback } from "@Utility/PlaybackUtils";
+import {
+    PauseTransport,
+    StartTransport,
+    StopTransport,
+} from "@Utility/TransportUtils";
 
 interface PlayBackControllerProps {}
 
 export const PlayBackController = (props: PlayBackControllerProps) => {
-    const [localBpm, setLocalBpm] = useState(useBpmStore.getState().bpm);
+    const [localBpm, setLocalBpm] = useState(useStore.getState().bpm);
     const [transportTime, setTransportTime] = useState("00:00.0");
 
     const seekAnimationRef = useRef(0);
 
-    const { bpm, setBpm } = useBpmStore();
-    const { playbackState, setPlaybackState, togglePlayback } =
-        usePlaybackStore();
+    const playbackState = useStore(selectPlaybackState);
 
-    const keymap = useKeymapStore(selectKeymap);
-
-    useKeyMap("TOGGLE_PLAYBACK", togglePlayback);
+    useKeyMap("TOGGLE_PLAYBACK", TogglePlayback);
 
     useEffect(
         () =>
-            usePlaybackStore.subscribe((state) => {
-                if (state.playbackState === PlaybackState.Stopped) {
+            useStore.subscribe(selectPlaybackState, (playbackState) => {
+                if (playbackState === PlaybackState.Stopped) {
+                    StopTransport();
                     setTransportTime("00:00.0");
                     cancelAnimationFrame(seekAnimationRef.current);
-                } else if (state.playbackState === PlaybackState.Playing) {
+                } else if (playbackState === PlaybackState.Playing) {
+                    StartTransport();
                     seekAnimationRef.current = requestAnimationFrame(
                         function UpdateSeek() {
                             const minutes = Math.floor(
@@ -68,7 +71,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                                 requestAnimationFrame(UpdateSeek);
                         }
                     );
-                } else if (state.playbackState === PlaybackState.Paused) {
+                } else if (playbackState === PlaybackState.Paused) {
+                    PauseTransport();
                     cancelAnimationFrame(seekAnimationRef.current);
                 }
             }),
@@ -77,8 +81,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
 
     useEffect(
         () =>
-            useBpmStore.subscribe((state) => {
-                setLocalBpm(state.bpm);
+            useStore.subscribe(selectBpm, (bpm) => {
+                setLocalBpm(bpm);
             }),
         []
     );
@@ -125,7 +129,7 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Playing}
                     borderColor="secondary.700"
-                    onClick={() => setPlaybackState(PlaybackState.Playing)}
+                    onClick={() => SetPlaybackState(PlaybackState.Playing)}
                 />
                 <IconButton
                     aria-label="pause"
@@ -133,7 +137,7 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Paused}
                     borderColor="secondary.700"
-                    onClick={() => setPlaybackState(PlaybackState.Paused)}
+                    onClick={() => SetPlaybackState(PlaybackState.Paused)}
                 />
                 <IconButton
                     aria-label="stop"
@@ -141,7 +145,7 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Stopped}
                     borderColor="secondary.700"
-                    onClick={() => setPlaybackState(PlaybackState.Stopped)}
+                    onClick={() => SetPlaybackState(PlaybackState.Stopped)}
                 />
                 <IconButton
                     aria-label="fast-forward"
@@ -168,7 +172,7 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                 defaultValue={120}
                 borderRadius="sm"
                 onBlur={(event) => {
-                    setBpm(parseInt(event.target.value));
+                    SetBpm(parseInt(event.target.value));
                 }}
             >
                 <NumberInputField />
