@@ -7,6 +7,7 @@ import { getPartId } from "@Data/Id";
 import { GetSecondsPerDivision } from "./TimeUtils";
 import { Part } from "@Interfaces/Part";
 import { Track } from "@Interfaces/Track";
+import { useTracksStore } from "@Data/TracksStore";
 
 export const CreateTonePart = (sampler: Tone.Sampler) => {
     return new Tone.Part((time, value: any) => {
@@ -109,4 +110,8 @@ export const GetExtendedPartStopTime = (noteStopTime: number) => {
     const secondsPerDivision = GetSecondsPerDivision();
     const noteStopColumn = Math.ceil(noteStopTime / secondsPerDivision);
     return noteStopColumn * secondsPerDivision;
+};
+
+export const ClearSelectedPartsIndices = () => {
+    useTracksStore.setState({ selectedPartIndices: [] });
 };

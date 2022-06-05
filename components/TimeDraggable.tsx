@@ -1,5 +1,10 @@
 import { Box } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, {
+    MouseEventHandler,
+    useCallback,
+    useEffect,
+    useRef,
+} from "react";
 import { Snap } from "@Utility/SnapUtils";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { TimeContainer } from "@Interfaces/TimeContainer";
@@ -28,6 +33,7 @@ interface DraggableProps {
     timeContainer: TimeContainer;
     selectionType: SelectionType;
     subSelectionIndex: SubSelectionIndex;
+    isSelected: boolean;
     snapWidth: number;
     rowHeight: number;
     pixelsPerSecond: number;
@@ -44,6 +50,7 @@ interface DraggableProps {
     getSelectionRowOffsets: (
         selectionIndices: Array<SubSelectionIndex>
     ) => Array<number>;
+    onMouseDown: MouseEventHandler<HTMLDivElement>;
     bgColor: string;
     borderColor: string;
     selectedBorderColor: string;
@@ -62,10 +69,6 @@ const TimeDraggable = (props: DraggableProps) => {
 
     const prevRow = useRef<number>(0);
 
-    const selectedPartIndices = useTracksStore(selectSelectedPartIndices);
-    const selectedNoteIndices = useTracksStore(selectSelectedNoteIndices);
-    // const prevDelta = useRef(0);
-
     const resizeAreaWidth = 8;
 
     const dragOffset = useRef({ x: 0, y: 0 });
@@ -75,10 +78,6 @@ const TimeDraggable = (props: DraggableProps) => {
 
     const width = props.timeContainer.duration * props.pixelsPerSecond;
     const left = props.timeContainer.startTime * props.pixelsPerSecond;
-
-    // const [xPos, setXPos] = useState(
-    //     props.part.startTime * props.pixelsPerSecond
-    // );
 
     const HandleMouseMove = useCallback(
         (event: MouseEvent) => {
@@ -103,6 +102,7 @@ const TimeDraggable = (props: DraggableProps) => {
 
                 let posY = event.clientY - dragOffset.current.y;
                 posY = Snap(posY, props.rowHeight);
+                posY = Math.max(0, posY);
 
                 const rowIndex = Math.floor(posY / props.rowHeight);
 
@@ -178,20 +178,25 @@ const TimeDraggable = (props: DraggableProps) => {
         return newSelectedPartIndices;
     };
 
-    const HandleDrag = useCallback(() => {
-        if (
-            isDraggingRef.current ||
-            isResizingLeftRef.current ||
-            isResizingRightRef.current
-        ) {
-            CommitSelectionUpdate(props.selectionType);
-        }
+    const HandleDrag = useCallback(
+        (event: MouseEvent) => {
+            if (event.button === 0) {
+                if (
+                    isDraggingRef.current ||
+                    isResizingLeftRef.current ||
+                    isResizingRightRef.current
+                ) {
+                    CommitSelectionUpdate(props.selectionType);
+                }
 
-        isDraggingRef.current = false;
-        isResizingLeftRef.current = false;
-        isResizingRightRef.current = false;
-        window.removeEventListener("mousemove", HandleMouseMove);
-    }, [HandleMouseMove, props.selectionType]);
+                isDraggingRef.current = false;
+                isResizingLeftRef.current = false;
+                isResizingRightRef.current = false;
+                window.removeEventListener("mousemove", HandleMouseMove);
+            }
+        },
+        [HandleMouseMove, props.selectionType]
+    );
 
     useEffect(() => {
         window.addEventListener("mouseup", HandleDrag);
@@ -199,11 +204,6 @@ const TimeDraggable = (props: DraggableProps) => {
             window.removeEventListener("mouseup", HandleDrag);
         };
     }, [HandleDrag]);
-
-    // useEffect(() => {
-    //     console.log("render", mouse.x);
-
-    // }, [mouse.x]);
 
     return (
         <Box
@@ -213,6 +213,11 @@ const TimeDraggable = (props: DraggableProps) => {
             position="absolute"
             width={`${width}px`}
             left={`${left}px`}
+            onMouseDown={props.onMouseDown}
+            onContextMenu={(event) => {
+                event.preventDefault();
+                return false;
+            }}
         >
             <Box
                 zIndex={-10}
@@ -221,29 +226,30 @@ const TimeDraggable = (props: DraggableProps) => {
                 bgColor={props.bgColor}
                 borderWidth={1}
                 borderColor={
-                    IsSelected(props.subSelectionIndex, props.selectionType)
+                    props.isSelected
                         ? props.selectedBorderColor
                         : props.borderColor
                 }
                 borderRadius={props.borderRadius}
                 onMouseDown={(event) => {
                     event.preventDefault();
-                    const selectionIndices = SetupSelection();
+                    if (event.button === 0) {
+                        const selectionIndices = SetupSelection();
 
-                    selectionRowOffsets.current =
-                        props.getSelectionRowOffsets(selectionIndices);
-                    selectionRowStartIndex.current =
-                        props.getSelectionRowStartIndex(selectionIndices);
+                        selectionRowOffsets.current =
+                            props.getSelectionRowOffsets(selectionIndices);
+                        selectionRowStartIndex.current =
+                            props.getSelectionRowStartIndex(selectionIndices);
 
-                    isDraggingRef.current = true;
+                        isDraggingRef.current = true;
 
-                    dragOffset.current = {
-                        x: event.clientX - left,
-                        y: event.clientY - StrDimToNum(props.top),
-                    };
+                        dragOffset.current = {
+                            x: event.clientX - left,
+                            y: event.clientY - StrDimToNum(props.top),
+                        };
 
-                    window.addEventListener("mousemove", HandleMouseMove);
-
+                        window.addEventListener("mousemove", HandleMouseMove);
+                    }
                     return false;
                 }}
                 cursor="move"
@@ -257,24 +263,25 @@ const TimeDraggable = (props: DraggableProps) => {
                 height="full"
                 onMouseDown={(event) => {
                     event.preventDefault();
-                    const newSelectedIndices = Select(
-                        props.subSelectionIndex.containerIndex,
-                        props.subSelectionIndex.selectionIndex,
-                        props.selectionType
-                    );
+                    if (event.button === 0) {
+                        const newSelectedIndices = Select(
+                            props.subSelectionIndex.containerIndex,
+                            props.subSelectionIndex.selectionIndex,
+                            props.selectionType
+                        );
 
-                    selectionTimeOffsets.current = GetSelectionTimeOffsets(
-                        props.timeContainer,
-                        newSelectedIndices,
-                        props.selectionType,
-                        "stopTime"
-                    );
+                        selectionTimeOffsets.current = GetSelectionTimeOffsets(
+                            props.timeContainer,
+                            newSelectedIndices,
+                            props.selectionType,
+                            "stopTime"
+                        );
 
-                    isResizingRightRef.current = true;
-                    resizeOffset.current = left + width - event.clientX;
+                        isResizingRightRef.current = true;
+                        resizeOffset.current = left + width - event.clientX;
 
-                    window.addEventListener("mousemove", HandleMouseMove);
-
+                        window.addEventListener("mousemove", HandleMouseMove);
+                    }
                     return false;
                 }}
                 // bgColor="red"
@@ -289,14 +296,14 @@ const TimeDraggable = (props: DraggableProps) => {
                 height="full"
                 onMouseDown={(event) => {
                     event.preventDefault();
+                    if (event.button === 0) {
+                        SetupSelection();
 
-                    SetupSelection();
+                        isResizingLeftRef.current = true;
+                        resizeOffset.current = left - event.clientX;
 
-                    isResizingLeftRef.current = true;
-                    resizeOffset.current = left - event.clientX;
-
-                    window.addEventListener("mousemove", HandleMouseMove);
-
+                        window.addEventListener("mousemove", HandleMouseMove);
+                    }
                     return false;
                 }}
                 // bgColor="red"
@@ -315,6 +322,7 @@ TimeDraggable.defaultProps = {
     selectedBorderColor: "",
     borderRadius: 0,
     height: 0,
+    onMouseDown: () => {},
     // parentRef: null,
 };
 

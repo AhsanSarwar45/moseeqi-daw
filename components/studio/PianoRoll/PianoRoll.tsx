@@ -34,8 +34,6 @@ import { Timeline } from "./Timeline";
 import TooltipButton from "@Components/TooltipButton";
 import {
     selectAddNoteToSelectedTrack,
-    selectClearSelectedTrack,
-    selectSelectedTrack,
     selectTrackCount,
     useTracksStore,
 } from "@Data/TracksStore";
@@ -44,6 +42,7 @@ import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
+import { ClearSelectedNotesIndices } from "@Utility/NoteUtils";
 
 interface PianoRollProps {}
 
@@ -219,6 +218,10 @@ const PianoRoll = (props: PianoRollProps) => {
                                     height={gridHeight}
                                     zIndex={7}
                                     cursor="url(https://cur.cursors-4u.net/cursors/cur-11/cur1046.cur), auto"
+                                    onContextMenu={(event) => {
+                                        event.preventDefault();
+                                        return false;
+                                    }}
                                 >
                                     <GridView
                                         basePixelsPerSecond={
@@ -263,6 +266,14 @@ const PianoRoll = (props: PianoRollProps) => {
                                                     selectedDrawLengthIndex
                                                 ].divisor
                                             );
+                                        }}
+                                        onMouseDown={(event) => {
+                                            if (
+                                                event.currentTarget ===
+                                                event.target
+                                            ) {
+                                                ClearSelectedNotesIndices();
+                                            }
                                         }}
                                     />
                                 </Box>

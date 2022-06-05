@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import {
-    selectClearSelectedPartsIndices,
-    selectSelectedPartIndices,
     selectSetSelectedTrackIndex,
     selectTracks,
     useTracksStore,
@@ -12,6 +10,7 @@ import { Track } from "@Interfaces/Track";
 import { selectProjectLength, useProjectStore } from "@Data/ProjectStore";
 import PartView from "./PartView";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -21,10 +20,6 @@ interface SequenceViewProps {
 const SequenceView = (props: SequenceViewProps) => {
     const tracks = useTracksStore(selectTracks);
     const setSelectedTrackIndex = useTracksStore(selectSetSelectedTrackIndex);
-    const clearSelectedPartsIndices = useTracksStore(
-        selectClearSelectedPartsIndices
-    );
-
     const projectLength = useProjectStore(selectProjectLength);
 
     return (
@@ -38,7 +33,7 @@ const SequenceView = (props: SequenceViewProps) => {
                     padding="0px"
                     onMouseDown={(event) => {
                         if (event.currentTarget === event.target) {
-                            clearSelectedPartsIndices();
+                            ClearSelectedPartsIndices();
                             setSelectedTrackIndex(trackIndex);
                         }
                     }}

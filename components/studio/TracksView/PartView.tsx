@@ -5,6 +5,8 @@ import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
+import { IsSelected } from "@Utility/SelectionUtils";
+import { selectSelectedPartIndices, useTracksStore } from "@Data/TracksStore";
 
 interface PartViewProps {
     part: Part;
@@ -14,6 +16,8 @@ interface PartViewProps {
 }
 
 const PartView = (props: PartViewProps) => {
+    const selectedPartIndices = useTracksStore(selectSelectedPartIndices);
+
     return (
         <TimeDraggable
             timeContainer={props.part}
@@ -21,6 +25,7 @@ const PartView = (props: PartViewProps) => {
             snapWidth={props.snapWidth}
             pixelsPerSecond={props.pixelsPerSecond}
             subSelectionIndex={props.subSelectionIndex}
+            isSelected={IsSelected(props.subSelectionIndex, SelectionType.Part)}
             borderColor="white"
             selectedBorderColor="secondary.500"
             bgColor="rgb(0,0,0,0.4)"

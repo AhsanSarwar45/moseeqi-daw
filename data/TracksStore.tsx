@@ -14,27 +14,11 @@ import {
     SetTrackSolo,
     StopTrackParts,
 } from "@Utility/TrackUtils";
-import {
-    NoteSelectionIndex,
-    PartSelectionIndex,
-    SelectionType,
-    SubSelectionIndex,
-} from "@Interfaces/Selection";
+import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { DivisorToDuration } from "@Utility/TimeUtils";
-import {
-    CreateNote,
-    GetPartNote,
-    IsNoteInPart,
-    MakeNotePartRelative,
-    PlayNote,
-} from "@Utility/NoteUtils";
-import { ExtendPart, MapPartTime, SetPartTime } from "@Utility/PartUtils";
-import {
-    IsSelected,
-    Select,
-    SetSelectedStartTime,
-} from "@Utility/SelectionUtils";
-import { defaultInstrumentIndex, defaultMinPartDuration } from "./Defaults";
+import { CreateNote, GetPartNote, PlayNote } from "@Utility/NoteUtils";
+import { IsSelected } from "@Utility/SelectionUtils";
+import { defaultInstrumentIndex } from "./Defaults";
 
 interface TrackStoreState {
     tracks: Array<Track>;
@@ -50,8 +34,6 @@ interface TrackStoreState {
     clearTracks: () => void;
     setSelectedTrack: (track: Track) => void;
     setSelectedTrackIndex: (index: number) => void;
-    clearSelectedPartsIndices: () => void;
-    clearSelectedNoteIndices: () => void;
     addNoteToSelectedTrack: (
         startTime: number,
         row: number,
@@ -131,16 +113,6 @@ export const useTracksStore = create<TrackStoreState>()(
         setSelectedTrackIndex: (index: number) => {
             set((prev) => ({ selectedTrackIndex: index }));
         },
-        clearSelectedPartsIndices: () => {
-            set((prev) => ({
-                selectedPartIndices: [],
-            }));
-        },
-        clearSelectedNoteIndices: () => {
-            set((prev) => ({
-                selectedPartIndices: [],
-            }));
-        },
         addNoteToSelectedTrack: (
             startTime: number,
             row: number,
@@ -176,6 +148,7 @@ export const useTracksStore = create<TrackStoreState>()(
 
                 return {
                     tracks: tracksCopy,
+                    selectedNoteIndices: [],
                 };
             });
         },
@@ -311,10 +284,6 @@ export const selectSetSelectedTrackAttack = (state: TrackStoreState) =>
     state.setSelectedTrackAttack;
 export const selectSetSelectedTrackRelease = (state: TrackStoreState) =>
     state.setSelectedTrackRelease;
-// export const selectSetSelectedPartsIndices = (state: TrackStoreState) =>
-//     state.setSelectedPartsIndices;
-export const selectClearSelectedPartsIndices = (state: TrackStoreState) =>
-    state.clearSelectedPartsIndices;
 export const selectDeleteSelectedParts = (state: TrackStoreState) =>
     state.deleteSelectedParts;
 

@@ -140,3 +140,7 @@ export const SetNoteSelectionRow = (
 
     useTracksStore.setState({ tracks: tracksCopy });
 };
+
+export const ClearSelectedNotesIndices = () => {
+    useTracksStore.setState({ selectedNoteIndices: [] });
+};

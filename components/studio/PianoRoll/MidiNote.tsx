@@ -5,6 +5,7 @@ import { Rnd } from "react-rnd";
 
 import {
     selectRemoveNoteFromSelectedTrack,
+    selectSelectedNoteIndices,
     selectSelectedTrack,
     useTracksStore,
 } from "@Data/TracksStore";
@@ -18,6 +19,7 @@ import {
     GetNoteSelectionRowStartIndex,
     SetNoteSelectionRow,
 } from "@Utility/NoteUtils";
+import { IsSelected } from "@Utility/SelectionUtils";
 
 interface MidiNoteProps {
     note: Note;
@@ -36,23 +38,12 @@ export const MidiNote = (props: MidiNoteProps) => {
         selectRemoveNoteFromSelectedTrack
     );
     const selectedTrack = useTracksStore(selectSelectedTrack);
+    const selectedNoteIndices = useTracksStore(selectSelectedNoteIndices);
 
-    const OnNoteClick = (key: string, duration: number) => {
-        selectedTrack.sampler.triggerAttackRelease(key, duration);
+    const subSelectionIndex = {
+        containerIndex: props.partIndex,
+        selectionIndex: props.noteIndex,
     };
-
-    const handleRef = useRef<HTMLElement | null>(null);
-
-    useEffect(() => {
-        handleRef.current?.addEventListener(
-            "contextmenu",
-            function (event: any) {
-                event.preventDefault();
-                return false;
-            },
-            false
-        );
-    }, []);
 
     return (
         // <></>
@@ -61,10 +52,8 @@ export const MidiNote = (props: MidiNoteProps) => {
             selectionType={SelectionType.Note}
             snapWidth={props.snapWidth}
             rowHeight={props.cellHeight}
-            subSelectionIndex={{
-                containerIndex: props.partIndex,
-                selectionIndex: props.noteIndex,
-            }}
+            subSelectionIndex={subSelectionIndex}
+            isSelected={IsSelected(subSelectionIndex, SelectionType.Note)}
             pixelsPerSecond={props.pixelsPerSecond}
             borderColor="secondary.500"
             selectedBorderColor="white"
@@ -77,6 +66,19 @@ export const MidiNote = (props: MidiNoteProps) => {
             }
             getSelectionRowStartIndex={GetNoteSelectionRowStartIndex}
             setRow={SetNoteSelectionRow}
+            onMouseDown={(event) => {
+                if (event.button === 0) {
+                    selectedTrack.sampler.triggerAttackRelease(
+                        props.note.key,
+                        props.note.duration
+                    );
+                } else if (event.button === 2) {
+                    removeNoteFromSelectedTrack(
+                        props.partIndex,
+                        props.noteIndex
+                    );
+                }
+            }}
         />
         // {/* <Box
         //     ref={handleRef as any}

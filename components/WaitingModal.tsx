@@ -43,7 +43,7 @@ export const WaitingModal = () => {
             <ModalOverlay />
             <ModalContent width="fit-content">
                 <ModalBody p={6} bgColor="brand.primary">
-                    <HStack spacing={10}>
+                    <HStack spacing={6}>
                         <Spinner
                             thickness="4px"
                             speed="0.75s"

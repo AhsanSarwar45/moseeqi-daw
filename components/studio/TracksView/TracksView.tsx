@@ -34,6 +34,7 @@ import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
+import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
 
 interface TracksViewProps {}
 
@@ -52,9 +53,6 @@ const TracksView = (props: TracksViewProps) => {
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
     const [isSnappingOn, setIsSnappingOn] = useState(true);
 
-    const clearSelectedPartsIndices = useTracksStore(
-        (state) => state.clearSelectedPartsIndices
-    );
     const trackCount = useTracksStore(selectTrackCount);
     const projectLength = useProjectStore(selectProjectLength);
 
@@ -95,7 +93,7 @@ const TracksView = (props: TracksViewProps) => {
                 sx={ScrollbarStyle}
                 onMouseDown={(event) => {
                     if (event.currentTarget === event.target) {
-                        clearSelectedPartsIndices();
+                        ClearSelectedPartsIndices();
                     }
                 }}
             >
