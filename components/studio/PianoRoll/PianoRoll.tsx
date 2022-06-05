@@ -42,7 +42,11 @@ import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
-import { ClearSelectedNotesIndices } from "@Utility/NoteUtils";
+import {
+    ClearSelectedNotesIndices,
+    DeleteSelectedNotes,
+} from "@Utility/NoteUtils";
+import useKeyMap from "@Hooks/useKeyMap";
 
 interface PianoRollProps {}
 
@@ -72,6 +76,8 @@ const PianoRoll = (props: PianoRollProps) => {
     // const trackCount = 1;
     const trackCount = useTracksStore(selectTrackCount);
     const projectLength = useProjectStore(selectProjectLength);
+
+    useKeyMap("DELETE_NOTES", DeleteSelectedNotes);
 
     const hasScrolledRef = useRef(false);
     const clickAreaRef = useRef<any>(null);

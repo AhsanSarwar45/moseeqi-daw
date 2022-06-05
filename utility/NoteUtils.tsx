@@ -3,11 +3,11 @@ import { getNoteId } from "@Data/Id";
 import { useTracksStore } from "@Data/TracksStore";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
-import { SubSelectionIndex } from "@Interfaces/Selection";
-import { TimeContainer } from "@Interfaces/TimeContainer";
+import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { Track } from "@Interfaces/Track";
 import { ExtendPart } from "./PartUtils";
-import { AddNoteToTrack, GetSelectedTrack } from "./TrackUtils";
+import { IsSelected } from "./SelectionUtils";
+import { AddNoteToTrack, GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
 
 export const CreateNote = (
     startTime: number,
@@ -123,7 +123,7 @@ export const SetNoteSelectionRow = (
         const delta = startRowOffset - newRow;
         newRow += delta;
     }
-    const tracksCopy = [...useTracksStore.getState().tracks];
+    const tracksCopy = GetTracksCopy();
     const selectedIndices = useTracksStore.getState().selectedNoteIndices;
 
     // console.log(selectedIndices);
@@ -143,4 +143,60 @@ export const SetNoteSelectionRow = (
 
 export const ClearSelectedNotesIndices = () => {
     useTracksStore.setState({ selectedNoteIndices: [] });
+};
+
+export const UpdatePartNotes = (part: Part) => {
+    // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
+    part.tonePart.clear();
+    // Re-add all the notes to the part
+    part.notes.forEach((note) => {
+        part.tonePart.add(GetPartNote(note));
+    });
+};
+
+export const DeleteNote = (partIndex: number, noteIndex: number) => {
+    const tracksCopy = GetTracksCopy();
+    const selectedTrack = GetSelectedTrack(tracksCopy);
+    const part = selectedTrack.parts[partIndex];
+    const note = part.notes[noteIndex];
+
+    // Remove the note from the part
+    part.notes = part.notes.filter((n) => n.id !== note.id);
+
+    UpdatePartNotes(part);
+
+    useTracksStore.setState({
+        tracks: tracksCopy,
+        selectedNoteIndices: [],
+    });
+};
+
+export const DeleteSelectedNotes = () => {
+    const tracksCopy = GetTracksCopy();
+    const selectedTrack = GetSelectedTrack(tracksCopy);
+
+    tracksCopy[useTracksStore.getState().selectedTrackIndex].parts =
+        selectedTrack.parts.map((part, partIndex) => {
+            part.notes = part.notes.filter((note, noteIndex) => {
+                if (
+                    IsSelected(
+                        {
+                            containerIndex: partIndex,
+                            selectionIndex: noteIndex,
+                        },
+                        SelectionType.Note
+                    )
+                ) {
+                    return false;
+                }
+                return true;
+            });
+            UpdatePartNotes(part);
+            return part;
+        });
+
+    useTracksStore.setState({
+        tracks: tracksCopy,
+        selectedNoteIndices: [],
+    });
 };

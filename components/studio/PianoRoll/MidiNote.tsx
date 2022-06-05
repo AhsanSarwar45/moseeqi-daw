@@ -1,20 +1,14 @@
-import { Box } from "@chakra-ui/react";
-
-import { useContext, useEffect, useRef, useState } from "react";
-import { Rnd } from "react-rnd";
-
 import {
-    selectRemoveNoteFromSelectedTrack,
     selectSelectedNoteIndices,
     selectSelectedTrack,
     useTracksStore,
 } from "@Data/TracksStore";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
-import { Snap } from "@Utility/SnapUtils";
 import TimeDraggable from "@Components/TimeDraggable";
-import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
+import { SelectionType } from "@Interfaces/Selection";
 import {
+    DeleteNote,
     GetNoteSelectionRowOffsets,
     GetNoteSelectionRowStartIndex,
     SetNoteSelectionRow,
@@ -34,9 +28,6 @@ interface MidiNoteProps {
 }
 
 export const MidiNote = (props: MidiNoteProps) => {
-    const removeNoteFromSelectedTrack = useTracksStore(
-        selectRemoveNoteFromSelectedTrack
-    );
     const selectedTrack = useTracksStore(selectSelectedTrack);
     const selectedNoteIndices = useTracksStore(selectSelectedNoteIndices);
 
@@ -55,7 +46,7 @@ export const MidiNote = (props: MidiNoteProps) => {
             subSelectionIndex={subSelectionIndex}
             isSelected={IsSelected(subSelectionIndex, SelectionType.Note)}
             pixelsPerSecond={props.pixelsPerSecond}
-            borderColor="secondary.500"
+            borderColor="secondary.600"
             selectedBorderColor="white"
             bgColor="secondary.500"
             borderRadius="sm"
@@ -73,24 +64,9 @@ export const MidiNote = (props: MidiNoteProps) => {
                         props.note.duration
                     );
                 } else if (event.button === 2) {
-                    removeNoteFromSelectedTrack(
-                        props.partIndex,
-                        props.noteIndex
-                    );
+                    DeleteNote(props.partIndex, props.noteIndex);
                 }
             }}
         />
-        // {/* <Box
-        //     ref={handleRef as any}
-
-        //     onContextMenu={() => {
-        //         removeNoteFromSelectedTrack(
-        //             props.partIndex,
-        //             props.noteIndex
-        //         );
-        //         return false;
-        //     }}
-        //     zIndex={9999}
-        // /> */}
     );
 };

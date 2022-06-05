@@ -39,7 +39,6 @@ interface TrackStoreState {
         row: number,
         divisor: number
     ) => void;
-    removeNoteFromSelectedTrack: (partIndex: number, noteIndex: number) => void;
     clearSelectedTrack: () => void;
     duplicateSelectedTrack: () => void;
     setSelectedTrackAttack: (attack: number) => void;
@@ -111,7 +110,10 @@ export const useTracksStore = create<TrackStoreState>()(
             });
         },
         setSelectedTrackIndex: (index: number) => {
-            set((prev) => ({ selectedTrackIndex: index }));
+            set((prev) => ({
+                selectedTrackIndex: index,
+                selectedNoteIndices: [],
+            }));
         },
         addNoteToSelectedTrack: (
             startTime: number,
@@ -128,27 +130,6 @@ export const useTracksStore = create<TrackStoreState>()(
                 PlayNote(selectedTrack, note);
                 return {
                     tracks: tracksCopy,
-                };
-            });
-        },
-        removeNoteFromSelectedTrack: (partIndex: number, noteIndex: number) => {
-            set((prev) => {
-                const tracksCopy = [...prev.tracks];
-                const selectedTrack = tracksCopy[prev.selectedTrackIndex];
-                const part = selectedTrack.parts[partIndex];
-
-                // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
-                part.tonePart.clear();
-                // Remove the note from the part
-                part.notes.splice(noteIndex, 1);
-                // Re-add all the notes to the part
-                part.notes.forEach((note) => {
-                    part.tonePart.add(GetPartNote(note));
-                });
-
-                return {
-                    tracks: tracksCopy,
-                    selectedNoteIndices: [],
                 };
             });
         },
@@ -272,8 +253,6 @@ export const selectDuplicateSelectedTrack = (state: TrackStoreState) =>
     state.duplicateSelectedTrack;
 export const selectAddNoteToSelectedTrack = (state: TrackStoreState) =>
     state.addNoteToSelectedTrack;
-export const selectRemoveNoteFromSelectedTrack = (state: TrackStoreState) =>
-    state.removeNoteFromSelectedTrack;
 export const selectClearSelectedTrack = (state: TrackStoreState) =>
     state.clearSelectedTrack;
 export const selectToggleMuteAtIndex = (state: TrackStoreState) =>

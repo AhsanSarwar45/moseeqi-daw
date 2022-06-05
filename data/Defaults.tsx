@@ -11,6 +11,7 @@ export const defaultKeymap: Keymap = {
     TOGGLE_PLAYBACK: { key: "space", scope: Panel.None },
     DELETE_TRACKS: { key: "delete", scope: Panel.TracksInfoView },
     DELETE_PARTS: { key: "delete", scope: Panel.SequenceView },
+    DELETE_NOTES: { key: "delete", scope: Panel.PianoRoll },
 };
 
 // export const defaultKeyMaps: Array<KeyMap> = [

@@ -165,6 +165,10 @@ export const CreateTrackFromIndex = (instrumentIndex: number): Track => {
     return CreateTrack(instrument);
 };
 
+export const GetTracksCopy = () => {
+    return [...useTracksStore.getState().tracks];
+};
+
 export const AddNoteToTrack = (track: Track, note: Note) => {
     // console.log("add");
     // Check which part the note is in
