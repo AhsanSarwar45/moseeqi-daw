@@ -1,4 +1,11 @@
-import { ButtonGroup, Flex, HStack, IconButton } from "@chakra-ui/react";
+import {
+    Box,
+    ButtonGroup,
+    Flex,
+    HStack,
+    IconButton,
+    Tooltip,
+} from "@chakra-ui/react";
 import {
     NumberInput,
     NumberIncrementStepper,
@@ -87,6 +94,8 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
         []
     );
 
+    const FormatBpm = (bpm: number) => bpm + " BPM";
+
     return (
         <HStack
             // height="20px"
@@ -99,18 +108,37 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
             boxShadow="md"
             zIndex={9999}
         >
-            <Flex
-                borderRadius="sm"
-                height="2rem"
-                width="6rem"
-                borderColor="secondary.500"
-                borderWidth={1}
-                justifyContent="center"
-                alignItems="center"
-                textColor="white"
-            >
-                {transportTime}
-            </Flex>
+            <HStack spacing={0}>
+                <Flex
+                    paddingX={2}
+                    textColor="white"
+                    bgColor="secondary.500"
+                    borderColor="secondary.500"
+                    boxSizing="border-box"
+                    borderWidth={1}
+                    height="2rem"
+                    alignItems={"center"}
+                    borderLeftRadius="sm"
+                    // marginRight={-1}
+                >
+                    Time
+                </Flex>
+                <Tooltip label="Minute:Seconds">
+                    <Flex
+                        borderRadius="sm"
+                        height="2rem"
+                        width="6rem"
+                        borderColor="secondary.500"
+                        borderWidth={1}
+                        justifyContent="center"
+                        alignItems="center"
+                        textColor="white"
+                        cursor="default"
+                    >
+                        {transportTime}
+                    </Flex>
+                </Tooltip>
+            </HStack>
             <ButtonGroup
                 size="sm"
                 isAttached
@@ -154,33 +182,48 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
                     borderColor="secondary.700"
                 />
             </ButtonGroup>
-
-            <NumberInput
-                allowMouseWheel
-                size="sm"
-                textColor="white"
-                borderColor="secondary.500"
-                boxSizing="border-box"
-                borderWidth={0}
-                maxWidth={20}
-                min={30}
-                max={600}
-                value={localBpm}
-                onChange={(valueString) => {
-                    setLocalBpm(parseInt(valueString));
-                }}
-                defaultValue={120}
-                borderRadius="sm"
-                onBlur={(event) => {
-                    SetBpm(parseInt(event.target.value));
-                }}
-            >
-                <NumberInputField />
-                <NumberInputStepper>
-                    <NumberIncrementStepper borderColor="secondary.500" />
-                    <NumberDecrementStepper borderColor="secondary.500" />
-                </NumberInputStepper>
-            </NumberInput>
+            <HStack spacing={0}>
+                <Flex
+                    paddingX={2}
+                    textColor="white"
+                    bgColor="secondary.500"
+                    borderColor="secondary.500"
+                    boxSizing="border-box"
+                    borderWidth={1}
+                    height="2rem"
+                    alignItems={"center"}
+                    borderLeftRadius="sm"
+                    // marginRight={-1}
+                >
+                    BPM
+                </Flex>
+                <NumberInput
+                    allowMouseWheel
+                    size="sm"
+                    textColor="white"
+                    borderColor="secondary.500"
+                    boxSizing="border-box"
+                    borderWidth={0}
+                    width="4.5rem"
+                    min={30}
+                    max={600}
+                    value={localBpm}
+                    onChange={(valueString) => {
+                        setLocalBpm(parseInt(valueString));
+                    }}
+                    defaultValue={120}
+                    borderRadius="sm"
+                    onBlur={(event) => {
+                        SetBpm(parseInt(event.target.value));
+                    }}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper borderColor="secondary.500" />
+                        <NumberDecrementStepper borderColor="secondary.500" />
+                    </NumberInputStepper>
+                </NumberInput>
+            </HStack>
         </HStack>
     );
 };
