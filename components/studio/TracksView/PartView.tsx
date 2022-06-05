@@ -7,6 +7,7 @@ import { isHotkeyPressed } from "react-hotkeys-hook";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { IsSelected } from "@Utility/SelectionUtils";
 import { selectSelectedPartIndices, useTracksStore } from "@Data/TracksStore";
+import { IsNoteDisabled } from "@Utility/NoteUtils";
 
 interface PartViewProps {
     part: Part;
@@ -38,7 +39,11 @@ const PartView = (props: PartViewProps) => {
                 <Box
                     zIndex={200}
                     key={note.id}
-                    bgColor="secondary.500"
+                    bgColor={
+                        IsNoteDisabled(note, props.part)
+                            ? "gray.500"
+                            : "secondary.500"
+                    }
                     position="absolute"
                     top={`${note.keyIndex + 1}px`}
                     left={`${note.startTime * props.pixelsPerSecond}px`}

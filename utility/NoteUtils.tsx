@@ -145,6 +145,10 @@ export const ClearSelectedNotesIndices = () => {
     useTracksStore.setState({ selectedNoteIndices: [] });
 };
 
+export const IsNoteDisabled = (note: Note, part: Part) => {
+    return note.startTime >= part.duration;
+};
+
 export const UpdatePartNotes = (part: Part) => {
     // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
     part.tonePart.clear();

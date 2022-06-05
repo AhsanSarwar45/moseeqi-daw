@@ -11,6 +11,7 @@ import {
     DeleteNote,
     GetNoteSelectionRowOffsets,
     GetNoteSelectionRowStartIndex,
+    IsNoteDisabled,
     SetNoteSelectionRow,
 } from "@Utility/NoteUtils";
 import { IsSelected } from "@Utility/SelectionUtils";
@@ -46,9 +47,17 @@ export const MidiNote = (props: MidiNoteProps) => {
             subSelectionIndex={subSelectionIndex}
             isSelected={IsSelected(subSelectionIndex, SelectionType.Note)}
             pixelsPerSecond={props.pixelsPerSecond}
-            borderColor="secondary.600"
+            borderColor={
+                IsNoteDisabled(props.note, props.part)
+                    ? "gray.600"
+                    : "secondary.600"
+            }
             selectedBorderColor="white"
-            bgColor="secondary.500"
+            bgColor={
+                IsNoteDisabled(props.note, props.part)
+                    ? "gray.500"
+                    : "secondary.500"
+            }
             borderRadius="sm"
             height={`${props.cellHeight}px`}
             top={`${props.note.keyIndex * props.cellHeight}px`}
