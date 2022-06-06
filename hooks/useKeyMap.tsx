@@ -4,7 +4,7 @@ import { Panel } from "@Interfaces/enums/Panel";
 import { KeyAction } from "@Interfaces/Keymap";
 import { useHotkeys } from "react-hotkeys-hook";
 
-const useKeyMap = (action: KeyAction, callback: Function) => {
+const useKeyMap = (action: KeyAction, callback: Function | undefined) => {
     const keyMaps = useKeymapStore(selectKeymap);
     const focusArea = useFocusAreaStore(selectFocusArea);
 
@@ -16,7 +16,9 @@ const useKeyMap = (action: KeyAction, callback: Function) => {
                 keyMaps[action].scope === Panel.None
             ) {
                 // console.log(action, focusArea);
-                callback();
+                if (callback !== undefined) {
+                    callback();
+                }
             }
         },
         {},

@@ -24,9 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
-import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
-import useKeyMap from "@Hooks/useKeyMap";
-import { selectBpm, selectPlaybackState, useStore } from "@Data/Store";
+import { selectBpm, useStore } from "@Data/Store";
 import { SetBpm } from "@Utility/BpmUtils";
 import { SetPlaybackState, TogglePlayback } from "@Utility/PlaybackUtils";
 import {
@@ -34,22 +32,21 @@ import {
     StartTransport,
     StopTransport,
 } from "@Utility/TransportUtils";
+import { selectPlaybackState, usePlaybackStore } from "@Data/PlaybackStore";
 
 interface PlayBackControllerProps {}
 
-export const PlayBackController = (props: PlayBackControllerProps) => {
+const PlayBackController = (props: PlayBackControllerProps) => {
     const [localBpm, setLocalBpm] = useState(useStore.getState().bpm);
     const [transportTime, setTransportTime] = useState("00:00.0");
 
     const seekAnimationRef = useRef(0);
 
-    const playbackState = useStore(selectPlaybackState);
-
-    useKeyMap("TOGGLE_PLAYBACK", TogglePlayback);
+    const playbackState = usePlaybackStore(selectPlaybackState);
 
     useEffect(
         () =>
-            useStore.subscribe(selectPlaybackState, (playbackState) => {
+            usePlaybackStore.subscribe(selectPlaybackState, (playbackState) => {
                 if (playbackState === PlaybackState.Stopped) {
                     StopTransport();
                     setTransportTime("00:00.0");
@@ -227,3 +224,5 @@ export const PlayBackController = (props: PlayBackControllerProps) => {
         </HStack>
     );
 };
+
+export default PlayBackController;

@@ -1,26 +1,21 @@
 import React from "react";
 
-import {
-    selectSelectedTrackIndex,
-    selectSetSelectedTrackIndex,
-    selectToggleMuteAtIndex,
-    selectToggleSoloAtIndex,
-    selectTracks,
-    useStore,
-} from "@Data/Store";
+import { selectSelectedTrackIndex, selectTracks, useStore } from "@Data/Store";
 import { Track } from "@Interfaces/Track";
 import { HStack, VStack, Text } from "@chakra-ui/react";
 import Meter from "./Meter";
 import ToggleButton from "@Components/ToggleButton";
+import {
+    SetSelectedTrackIndex,
+    ToggleTrackMute,
+    ToggleTrackSolo,
+} from "@Utility/TrackUtils";
 
 interface TracksInfoViewProps {}
 
 const TracksInfoView = () => {
     const tracks = useStore(selectTracks);
     const selectedTrackIndex = useStore(selectSelectedTrackIndex);
-    const setSelectedTrackIndex = useStore(selectSetSelectedTrackIndex);
-    const toggleMuteAtIndex = useStore(selectToggleMuteAtIndex);
-    const toggleSoloAtIndex = useStore(selectToggleSoloAtIndex);
 
     return (
         <>
@@ -41,7 +36,7 @@ const TracksInfoView = () => {
                     borderBottomWidth={1}
                     borderColor={"gray.500"}
                     onMouseDown={(event) => {
-                        setSelectedTrackIndex(index);
+                        SetSelectedTrackIndex(index);
                     }}
                     // height={200}
                     position="relative"
@@ -53,7 +48,7 @@ const TracksInfoView = () => {
                         <HStack>
                             <ToggleButton
                                 tooltipLabel={"Mute"}
-                                onClick={() => toggleMuteAtIndex(index)}
+                                onClick={() => ToggleTrackMute(index)}
                                 isToggled={track.muted}
                                 label="M"
                                 borderWidth={1}
@@ -64,7 +59,7 @@ const TracksInfoView = () => {
                             />
                             <ToggleButton
                                 tooltipLabel={"Solo"}
-                                onClick={() => toggleSoloAtIndex(index)}
+                                onClick={() => ToggleTrackSolo(index)}
                                 isToggled={track.soloed}
                                 label="S"
                                 borderWidth={1}

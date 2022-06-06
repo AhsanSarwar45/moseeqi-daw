@@ -3,10 +3,13 @@ import {
     defaultInstrumentIndex,
     defaultProjectName,
 } from "@Data/Defaults";
+import { SetStoreState } from "@Data/SetStoreState";
 import { useStore } from "@Data/Store";
+import { useUndoStore } from "@Data/UndoStore";
 import { SaveData } from "@Interfaces/SaveData";
 import { Track } from "@Interfaces/Track";
 import saveAs from "file-saver";
+import { ClearHistory } from "./HistoryUtils";
 import { CreatePart } from "./PartUtils";
 import {
     ChangeTracksBpm,
@@ -17,25 +20,37 @@ import {
 } from "./TrackUtils";
 
 export const SetProjectName = (name: string) => {
-    useStore.setState({
-        projectName: name,
-    });
+    SetStoreState(
+        {
+            projectName: name,
+        },
+        "Change project name"
+    );
 };
 
 export const SetProjectLength = (length: number) => {
-    useStore.setState({
-        projectLength: length,
-    });
+    SetStoreState(
+        {
+            projectLength: length,
+        },
+        "Change project length"
+    );
 };
 
 export const CreateNewProject = () => {
     DisposeTracks(useStore.getState().tracks);
 
-    useStore.setState({
-        tracks: [CreateTrackFromIndex(defaultInstrumentIndex)],
-        bpm: defaultBPM,
-        projectName: defaultProjectName,
-    });
+    SetStoreState(
+        {
+            tracks: [CreateTrackFromIndex(defaultInstrumentIndex)],
+            bpm: defaultBPM,
+            projectName: defaultProjectName,
+        },
+        "Create new project",
+        false
+    );
+
+    ClearHistory();
 };
 
 export const SaveProjectToFile = () => {
@@ -79,9 +94,15 @@ export const OpenProjectFromFile = async (file: File) => {
     ChangeTracksBpm(newTracks, saveData.bpm, useStore.getState().bpm);
 
     // pendingBpmUpdateRef.current = saveData.bpm;
-    useStore.setState({
-        tracks: newTracks,
-        bpm: saveData.bpm,
-        projectName: saveData.name,
-    });
+    SetStoreState(
+        {
+            tracks: newTracks,
+            bpm: saveData.bpm,
+            projectName: saveData.name,
+        },
+        "Open project",
+        false
+    );
+
+    ClearHistory();
 };

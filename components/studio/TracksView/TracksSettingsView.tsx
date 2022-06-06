@@ -1,35 +1,13 @@
-import {
-    HStack,
-    ButtonGroup,
-    Icon,
-    useDisclosure,
-    Menu,
-    Text,
-    MenuButton,
-    MenuDivider,
-    MenuItem,
-    MenuList,
-    MenuOptionGroup,
-    NumberDecrementStepper,
-    NumberIncrementStepper,
-    NumberInput,
-    NumberInputField,
-    NumberInputStepper,
-} from "@chakra-ui/react";
-import FileUploader from "@Components/FIleUploader";
+import { HStack, Icon, useDisclosure } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
-import { noteLengthOptions } from "@Data/Constants";
+import { useStore } from "@Data/Store";
 import {
-    selectAddInstrumentTrack,
-    selectClearSelectedTrack,
-    selectDuplicateSelectedTrack,
-    useStore,
-} from "@Data/Store";
+    AddTrackFromInstrumentIndex,
+    DuplicateSelectedTrack,
+} from "@Utility/TrackUtils";
 import React from "react";
 import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
-import { IoMdSave } from "react-icons/io";
-import { RiFileAddLine } from "react-icons/ri";
 import { TiFolderOpen, TiPlus } from "react-icons/ti";
 import SnapSettings from "../SnapSettings";
 import { AddTrackModal } from "./AddTrackModal";
@@ -43,9 +21,6 @@ interface TracksSettingsViewProps {
 
 const TracksSettingsView = (props: TracksSettingsViewProps) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-
-    const addInstrumentTrack = useStore(selectAddInstrumentTrack);
-    const duplicateSelectedTrack = useStore(selectDuplicateSelectedTrack);
 
     return (
         <>
@@ -70,7 +45,7 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
                 />
                 <TooltipButton
                     aria-label="Duplicate track"
-                    onClick={duplicateSelectedTrack}
+                    onClick={DuplicateSelectedTrack}
                     label=""
                     icon={<Icon as={BiDuplicate} />}
                     tooltip="Duplicate selected track"
@@ -93,7 +68,7 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
             <AddTrackModal
                 onClose={onClose}
                 isOpen={isOpen}
-                onSubmit={addInstrumentTrack}
+                onSubmit={AddTrackFromInstrumentIndex}
             />
         </>
     );

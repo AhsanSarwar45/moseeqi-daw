@@ -5,6 +5,16 @@ export enum SelectionType {
     Track,
 }
 
+export namespace SelectionType {
+    export function toString(selectionType: SelectionType): string {
+        return SelectionType[selectionType];
+    }
+
+    export function fromString(selectionType: string): SelectionType {
+        return (SelectionType as any)[selectionType];
+    }
+}
+
 export interface NoteSelectionIndex {
     noteIndex: number;
     partIndex: number;

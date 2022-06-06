@@ -12,6 +12,8 @@ export const defaultKeymap: Keymap = {
     DELETE_TRACKS: { key: "delete", scope: Panel.TracksInfoView },
     DELETE_PARTS: { key: "delete", scope: Panel.SequenceView },
     DELETE_NOTES: { key: "delete", scope: Panel.PianoRoll },
+    UNDO: { key: "ctrl+z", scope: Panel.None },
+    REDO: { key: "ctrl+shift+z", scope: Panel.None },
 };
 
 // export const defaultKeyMaps: Array<KeyMap> = [

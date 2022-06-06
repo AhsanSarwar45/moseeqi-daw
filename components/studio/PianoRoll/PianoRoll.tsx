@@ -19,30 +19,19 @@ import {
     wholeNoteDivisions,
 } from "@Data/Constants";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import {
-    EighthNoteIcon,
-    HalfNoteIcon,
-    QuarterNoteIcon,
-    WholeNoteIcon,
-} from "@Components/icons/Notes";
+
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import PianoRollPartView from "./PianoRollPartView";
 import { SnapDown } from "@Utility/SnapUtils";
 import { KeysView } from "./KeysView";
 import { Row } from "./Row";
 import { Timeline } from "./Timeline";
-import TooltipButton from "@Components/TooltipButton";
-import {
-    selectAddNoteToSelectedTrack,
-    selectProjectLength,
-    selectTrackCount,
-    useStore,
-} from "@Data/Store";
+import { selectProjectLength, selectTrackCount, useStore } from "@Data/Store";
 import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
 import {
+    AddNoteToSelectedTrack,
     ClearSelectedNotesIndices,
     DeleteSelectedNotes,
 } from "@Utility/NoteUtils";
@@ -71,13 +60,9 @@ const PianoRoll = (props: PianoRollProps) => {
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
     const [selectedDrawLengthIndex, setSelectedDrawLengthIndex] = useState(2);
 
-    const addNoteToSelectedTrack = useStore(selectAddNoteToSelectedTrack);
-
     // const trackCount = 1;
     const trackCount = useStore(selectTrackCount);
     const projectLength = useStore(selectProjectLength);
-
-    useKeyMap("DELETE_NOTES", DeleteSelectedNotes);
 
     const hasScrolledRef = useRef(false);
     const clickAreaRef = useRef<any>(null);
@@ -262,7 +247,7 @@ const PianoRoll = (props: PianoRollProps) => {
                                                 x = SnapDown(x, columnWidth);
                                             }
 
-                                            addNoteToSelectedTrack(
+                                            AddNoteToSelectedTrack(
                                                 x /
                                                     GetPixelsPerSecond(
                                                         basePixelsPerSecond

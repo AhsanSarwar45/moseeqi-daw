@@ -2,22 +2,13 @@ import React, { useState } from "react";
 import { Heading, VStack, Flex } from "@chakra-ui/react";
 
 import KnobControl from "@Components/Knob";
-import {
-    selectSelectedTrack,
-    selectSetSelectedTrackAttack,
-    selectSetSelectedTrackRelease,
-    selectTrackCount,
-    useStore,
-} from "@Data/Store";
+import { selectSelectedTrack, selectTrackCount, useStore } from "@Data/Store";
 
 interface PropertiesPanelProps {}
 
-export const PropertiesPanel = (props: PropertiesPanelProps) => {
+const PropertiesPanel = (props: PropertiesPanelProps) => {
     const trackCount = useStore(selectTrackCount);
     const selectedTrack = useStore(selectSelectedTrack);
-
-    const setSelectedTrackAttack = useStore(selectSetSelectedTrackAttack);
-    const setSelectedTrackRelease = useStore(selectSetSelectedTrackRelease);
 
     return (
         <VStack
@@ -39,14 +30,14 @@ export const PropertiesPanel = (props: PropertiesPanelProps) => {
                         <KnobControl
                             size={50}
                             label="Attack"
-                            setValue={(value) => setSelectedTrackAttack(value)}
+                            setValue={() => {}}
                             defaultVal={selectedTrack.sampler.attack as number}
                             //defaultVal={0}
                         />
                         <KnobControl
                             size={50}
                             label="Release"
-                            setValue={(value) => setSelectedTrackRelease(value)}
+                            setValue={() => {}}
                             defaultVal={selectedTrack.sampler.release as number}
                             //defaultVal={1}
                         />
@@ -56,3 +47,5 @@ export const PropertiesPanel = (props: PropertiesPanelProps) => {
         </VStack>
     );
 };
+
+export default PropertiesPanel;

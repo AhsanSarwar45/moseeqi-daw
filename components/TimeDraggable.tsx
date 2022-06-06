@@ -21,10 +21,12 @@ import {
 import { Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
 import {
-    selectSelectedNoteIndices,
-    selectSelectedPartIndices,
-    useStore,
-} from "@Data/Store";
+    DisableUndoHistory,
+    EnableUndoHistory,
+    SetStoreState,
+} from "@Data/SetStoreState";
+import { GetTracksCopy } from "@Utility/TrackUtils";
+import { Track } from "@Interfaces/Track";
 
 // const [addMouseUpListener, removeMouseUpListener] = Listener();
 
@@ -40,6 +42,7 @@ interface DraggableProps {
     height: Dimension;
     top: Dimension;
     setRow: (
+        tracks: Array<Track>,
         row: number,
         selectionRowOffsets: Array<number>,
         selectionRowStartIndex: number
@@ -76,22 +79,25 @@ const TimeDraggable = (props: DraggableProps) => {
 
     const partRef = useRef<HTMLElement>(null);
 
+    const hasChanged = useRef(false);
+
     const width = props.timeBlock.duration * props.pixelsPerSecond;
     const left = props.timeBlock.startTime * props.pixelsPerSecond;
 
     const HandleMouseMove = useCallback(
         (event: MouseEvent) => {
-            // console.log(event.clientX);
             if (isDraggingRef.current) {
                 let posX = event.clientX - dragOffset.current.x;
-                // console.log(posX);
                 posX = Snap(posX, props.snapWidth);
 
                 const startTime = posX / props.pixelsPerSecond;
-                // console.log(event.clientX, dragOffset.current.x, startTime);
 
-                if (startTime !== props.timeBlock.startTime) {
+                const tracksCopy = GetTracksCopy();
+                const hasTimeChanged = startTime !== props.timeBlock.startTime;
+
+                if (hasTimeChanged) {
                     SetSelectedStartTime(
+                        tracksCopy,
                         startTime,
                         selectionTimeOffsets.current,
                         selectionStartIndex.current,
@@ -105,29 +111,51 @@ const TimeDraggable = (props: DraggableProps) => {
                 posY = Math.max(0, posY);
 
                 const rowIndex = Math.floor(posY / props.rowHeight);
+                const hasRowChanged = rowIndex !== prevRow.current;
 
-                if (rowIndex !== prevRow.current) {
+                if (hasRowChanged) {
                     props.setRow(
+                        tracksCopy,
                         rowIndex,
                         selectionRowOffsets.current,
                         selectionRowStartIndex.current
                     );
+                    prevRow.current = rowIndex;
                 }
-                prevRow.current = rowIndex;
+
+                if (hasTimeChanged || hasRowChanged) {
+                    hasChanged.current = true;
+                    SetStoreState(
+                        { tracks: tracksCopy },
+                        `Drag  ${SelectionType.toString(
+                            props.selectionType
+                        ).toLowerCase()}`,
+                        false
+                    );
+                }
             } else if (isResizingLeftRef.current) {
                 let pos = event.clientX + resizeOffset.current;
                 pos = Snap(pos, props.snapWidth);
-                // pos = Math.max(0, pos);
-                // pos = Math.max(pos, left + minWidth);
-
                 const startTime = pos / props.pixelsPerSecond;
 
                 if (startTime !== props.timeBlock.startTime) {
+                    const tracksCopy = GetTracksCopy();
+
                     SetSelectedStartTime(
+                        tracksCopy,
                         startTime,
                         selectionTimeOffsets.current,
                         selectionStartIndex.current,
                         props.selectionType,
+                        false
+                    );
+
+                    hasChanged.current = true;
+                    SetStoreState(
+                        { tracks: tracksCopy },
+                        `Resize ${SelectionType.toString(
+                            props.selectionType
+                        ).toLowerCase()}`,
                         false
                     );
                 }
@@ -139,6 +167,7 @@ const TimeDraggable = (props: DraggableProps) => {
                 const stopTime = pos / props.pixelsPerSecond;
 
                 if (stopTime !== props.timeBlock.stopTime) {
+                    hasChanged.current = true;
                     SetSelectedStopTime(
                         stopTime,
                         selectionTimeOffsets.current,
@@ -181,11 +210,7 @@ const TimeDraggable = (props: DraggableProps) => {
     const HandleDrag = useCallback(
         (event: MouseEvent) => {
             if (event.button === 0) {
-                if (
-                    isDraggingRef.current ||
-                    isResizingLeftRef.current ||
-                    isResizingRightRef.current
-                ) {
+                if (hasChanged.current) {
                     CommitSelectionUpdate(props.selectionType);
                 }
 
@@ -193,6 +218,7 @@ const TimeDraggable = (props: DraggableProps) => {
                 isResizingLeftRef.current = false;
                 isResizingRightRef.current = false;
                 window.removeEventListener("mousemove", HandleMouseMove);
+                hasChanged.current = false;
             }
         },
         [HandleMouseMove, props.selectionType]
@@ -204,6 +230,11 @@ const TimeDraggable = (props: DraggableProps) => {
             window.removeEventListener("mouseup", HandleDrag);
         };
     }, [HandleDrag]);
+
+    const StartDrag = () => {
+        hasChanged.current = false;
+        window.addEventListener("mousemove", HandleMouseMove);
+    };
 
     return (
         <Box
@@ -248,7 +279,7 @@ const TimeDraggable = (props: DraggableProps) => {
                             y: event.clientY - StrDimToNum(props.top),
                         };
 
-                        window.addEventListener("mousemove", HandleMouseMove);
+                        StartDrag();
                     }
                     return false;
                 }}
@@ -280,7 +311,7 @@ const TimeDraggable = (props: DraggableProps) => {
                         isResizingRightRef.current = true;
                         resizeOffset.current = left + width - event.clientX;
 
-                        window.addEventListener("mousemove", HandleMouseMove);
+                        StartDrag();
                     }
                     return false;
                 }}
@@ -302,7 +333,7 @@ const TimeDraggable = (props: DraggableProps) => {
                         isResizingLeftRef.current = true;
                         resizeOffset.current = left - event.clientX;
 
-                        window.addEventListener("mousemove", HandleMouseMove);
+                        StartDrag();
                     }
                     return false;
                 }}

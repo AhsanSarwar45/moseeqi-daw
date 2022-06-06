@@ -15,20 +15,17 @@ import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import { noteLengthOptions, secondsPerWholeNote } from "@Data/Constants";
 
-import {
-    selectDeleteSelectedParts,
-    selectProjectLength,
-    selectTrackCount,
-    useStore,
-} from "@Data/Store";
+import { selectProjectLength, selectTrackCount, useStore } from "@Data/Store";
 import SequenceView from "./SequenceView";
 import TracksInfoView from "./TracksInfoView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
-import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
-import { DeleteSelectedTrack } from "@Utility/TrackUtils";
+import {
+    ClearSelectedPartsIndices,
+    DeleteSelectedParts,
+} from "@Utility/PartUtils";
 
 interface TracksViewProps {}
 
@@ -49,11 +46,6 @@ const TracksView = (props: TracksViewProps) => {
 
     const trackCount = useStore(selectTrackCount);
     const projectLength = useStore(selectProjectLength);
-
-    const deleteSelectedParts = useStore(selectDeleteSelectedParts);
-
-    useKeyMap("DELETE_TRACKS", DeleteSelectedTrack);
-    useKeyMap("DELETE_PARTS", deleteSelectedParts);
 
     const HandleWindowResize = () => {
         scaleGridTop.current?.resize();

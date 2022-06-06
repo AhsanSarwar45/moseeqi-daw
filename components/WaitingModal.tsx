@@ -11,7 +11,7 @@ import {
 import { selectIsLoading, useLoadingStore } from "@Data/IsLoadingStore";
 import { useEffect } from "react";
 
-export const WaitingModal = () => {
+const WaitingModal = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(
@@ -58,3 +58,5 @@ export const WaitingModal = () => {
         </Modal>
     );
 };
+
+export default WaitingModal;

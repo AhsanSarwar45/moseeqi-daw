@@ -2,15 +2,20 @@ import * as Tone from "tone";
 
 import { wholeNoteDivisions } from "@Data/Constants";
 import { Note } from "@Interfaces/Note";
-import { GetPartNote } from "./NoteUtils";
+import { CreateNote, GetPartNote } from "./NoteUtils";
 import { getPartId } from "@Data/Id";
 import { GetSecondsPerDivision } from "./TimeUtils";
 import { Part } from "@Interfaces/Part";
 import { Track } from "@Interfaces/Track";
-import { useStore } from "@Data/Store";
+import { StoreState, useStore } from "@Data/Store";
 import { MapTimeBlock } from "./TimeBlockUtils";
+import { IsSelected } from "./SelectionUtils";
+import { SelectionType } from "@Interfaces/Selection";
+import { SetStoreState } from "@Data/SetStoreState";
+import { PartSaveData } from "@Interfaces/SaveData";
+import produce, { Draft } from "immer";
 
-export const CreateTonePart = (sampler: Tone.Sampler) => {
+export const CreateTonePart = (sampler: Draft<Tone.Sampler>) => {
     return new Tone.Part((time, value: any) => {
         sampler.triggerAttackRelease(
             value.note,
@@ -24,7 +29,7 @@ export const CreateTonePart = (sampler: Tone.Sampler) => {
 export const CreatePart = (
     startTime: number,
     stopTime: number,
-    sampler: Tone.Sampler,
+    sampler: Draft<Tone.Sampler>,
     notes: Array<Note> = []
 ): Part => {
     const tonePart = CreateTonePart(sampler).start(startTime).stop(stopTime);
@@ -39,7 +44,9 @@ export const CreatePart = (
         startTime: startTime,
         stopTime: stopTime,
         duration: stopTime - startTime,
-        notes: notes,
+        notes: notes.map((note) =>
+            CreateNote(note.startTime, note.duration, note.keyIndex)
+        ),
     };
 };
 
@@ -111,5 +118,48 @@ export const GetExtendedPartStopTime = (noteStopTime: number) => {
 };
 
 export const ClearSelectedPartsIndices = () => {
-    useStore.setState({ selectedPartIndices: [] });
+    if (useStore.getState().selectedPartIndices.length === 0) return;
+    SetStoreState({ selectedPartIndices: [] }, "Deselect all parts");
+};
+
+export const DeleteSelectedParts = () => {
+    const baseState = useStore.getState();
+
+    SetStoreState(
+        produce(baseState, (draftState) => {
+            draftState.tracks.forEach((track, trackIndex) => {
+                track.parts = track.parts.filter((part, partIndex) => {
+                    if (
+                        IsSelected(
+                            {
+                                containerIndex: trackIndex,
+                                selectionIndex: partIndex,
+                            },
+                            SelectionType.Part
+                        )
+                    ) {
+                        part.tonePart.cancel(0);
+                        return false;
+                    }
+                    return true;
+                });
+                return track;
+            });
+
+            baseState.selectedPartIndices = [];
+            baseState.selectedPartIndices = [];
+        }),
+        "Delete parts"
+    );
+};
+
+export const GetPartsSaveData = (parts: Array<Part>): Array<PartSaveData> => {
+    return parts.map((part) => {
+        return {
+            startTime: part.startTime,
+            stopTime: part.stopTime,
+            duration: part.duration,
+            notes: [...part.notes],
+        };
+    });
 };

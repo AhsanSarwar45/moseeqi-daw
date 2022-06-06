@@ -1,5 +1,6 @@
 import { PianoKeys } from "@Data/Constants";
 import { getNoteId } from "@Data/Id";
+import { SetStoreState } from "@Data/SetStoreState";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
@@ -8,6 +9,7 @@ import { Track } from "@Interfaces/Track";
 import { ExtendPart } from "./PartUtils";
 import { IsSelected } from "./SelectionUtils";
 import { MapTimeBlock } from "./TimeBlockUtils";
+import { DivisorToDuration } from "./TimeUtils";
 import { AddNoteToTrack, GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
 
 export const CreateNote = (
@@ -122,6 +124,7 @@ export const GetNoteSelectionRowStartIndex = (
 };
 
 export const SetNoteSelectionRow = (
+    tracks: Array<Track>,
     newRow: number,
     selectionRowOffsets: Array<number>,
     selectionStartRow: number
@@ -131,26 +134,26 @@ export const SetNoteSelectionRow = (
         const delta = startRowOffset - newRow;
         newRow += delta;
     }
-    const tracksCopy = GetTracksCopy();
     const selectedIndices = useStore.getState().selectedNoteIndices;
 
     // console.log(selectedIndices);
 
     selectedIndices.forEach(({ containerIndex, selectionIndex }, index) => {
         const note =
-            GetSelectedTrack().parts[containerIndex].notes[selectionIndex];
+            GetSelectedTrack(tracks).parts[containerIndex].notes[
+                selectionIndex
+            ];
         const offset = selectionRowOffsets[index];
         const row = newRow - offset;
 
         note.keyIndex = row;
         note.key = PianoKeys[row];
     });
-
-    useStore.setState({ tracks: tracksCopy });
 };
 
 export const ClearSelectedNotesIndices = () => {
-    useStore.setState({ selectedNoteIndices: [] });
+    if (useStore.getState().selectedNoteIndices.length === 0) return;
+    SetStoreState({ selectedNoteIndices: [] }, "Deselect all notes");
 };
 
 export const IsNoteDisabled = (note: Note, part: Part) => {
@@ -177,10 +180,13 @@ export const DeleteNote = (partIndex: number, noteIndex: number) => {
 
     UpdatePartNotes(part);
 
-    useStore.setState({
-        tracks: tracksCopy,
-        selectedNoteIndices: [],
-    });
+    SetStoreState(
+        {
+            tracks: tracksCopy,
+            selectedNoteIndices: [],
+        },
+        "Delete note"
+    );
 };
 
 export const DeleteSelectedNotes = () => {
@@ -207,8 +213,32 @@ export const DeleteSelectedNotes = () => {
             return part;
         });
 
-    useStore.setState({
-        tracks: tracksCopy,
-        selectedNoteIndices: [],
-    });
+    SetStoreState(
+        {
+            tracks: tracksCopy,
+            selectedNoteIndices: [],
+        },
+        "Delete notes"
+    );
+};
+
+export const AddNoteToSelectedTrack = (
+    startTime: number,
+    row: number,
+    divisor: number
+) => {
+    const duration = DivisorToDuration(divisor);
+    const note = CreateNote(startTime, duration, row);
+    const tracksCopy = GetTracksCopy();
+    const selectedTrack = GetSelectedTrack(tracksCopy);
+    AddNoteToTrack(selectedTrack, note);
+    PlayNote(selectedTrack, note);
+
+    SetStoreState(
+        {
+            tracks: tracksCopy,
+            selectedNoteIndices: [],
+        },
+        "Add note"
+    );
 };

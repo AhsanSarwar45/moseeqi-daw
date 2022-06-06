@@ -1,24 +1,30 @@
 import { IsAudioContextStarted, StartAudioContext } from "@Data/AudioContext";
+import { usePlaybackStore } from "@Data/PlaybackStore";
 import { useStore } from "@Data/Store";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 
+export const SetSeek = (seek: number) => {
+    if (!IsAudioContextStarted()) StartAudioContext();
+    usePlaybackStore.setState({
+        seek: seek,
+    });
+};
+
 export const SetPlaybackState = (playbackState: PlaybackState) => {
     if (!IsAudioContextStarted()) StartAudioContext();
-    useStore.setState({
+    usePlaybackStore.setState({
         playbackState: playbackState,
     });
 };
 
 export const TogglePlayback = () => {
     if (!IsAudioContextStarted()) StartAudioContext();
-    const prevPlaybackState = useStore.getState().playbackState;
-
-    useStore.setState({
+    usePlaybackStore.setState((prev) => ({
         playbackState:
-            prevPlaybackState === PlaybackState.Playing
+            prev.playbackState === PlaybackState.Playing
                 ? PlaybackState.Paused
-                : prevPlaybackState === PlaybackState.Paused
+                : prev.playbackState === PlaybackState.Paused
                 ? PlaybackState.Playing
                 : PlaybackState.Stopped,
-    });
+    }));
 };

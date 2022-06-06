@@ -3,13 +3,13 @@ import { Sampler, Meter } from "tone";
 import { Part } from "./Part";
 
 export interface Track {
-    id: number;
-    name: string;
-    instrument: Instrument;
-    parts: Array<Part>;
-    sampler: Sampler;
-    meter: Meter;
-    muted: boolean;
-    soloed: boolean;
-    soloMuted: boolean;
+    readonly id: number;
+    readonly name: string;
+    readonly instrument: Instrument;
+    readonly parts: Array<Part>;
+    readonly sampler: Sampler;
+    readonly meter: Meter;
+    readonly muted: boolean;
+    readonly soloed: boolean;
+    readonly soloMuted: boolean;
 }

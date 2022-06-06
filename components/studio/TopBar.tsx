@@ -31,9 +31,19 @@ import { selectProjectName, useStore } from "@Data/Store";
 
 interface TopBarProps {}
 
-export const TopBar = (props: TopBarProps) => {
-    const projectName = useStore(selectProjectName);
+const TopBar = (props: TopBarProps) => {
+    const [localProjectName, setLocalProjectName] = useState(
+        useStore.getState().projectName
+    );
     const fileInputRef = useRef<any>(null);
+
+    useEffect(
+        () =>
+            useStore.subscribe(selectProjectName, (projectName) => {
+                setLocalProjectName(projectName);
+            }),
+        []
+    );
 
     return (
         <HStack
@@ -140,8 +150,9 @@ export const TopBar = (props: TopBarProps) => {
             <Input
                 width="20%"
                 variant="unstyled"
-                value={projectName}
-                onChange={(event) => SetProjectName(event.target.value)}
+                value={localProjectName}
+                onChange={(event) => setLocalProjectName(event.target.value)}
+                onBlur={() => SetProjectName(localProjectName)}
                 textColor="white"
                 size="lg"
                 borderRadius="sm"
@@ -154,3 +165,5 @@ export const TopBar = (props: TopBarProps) => {
         </HStack>
     );
 };
+
+export default TopBar;

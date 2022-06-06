@@ -1,17 +1,16 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
 import { useState, useEffect, Fragment } from "react";
 import { SplitDirection } from "@devbookhq/splitter";
-import { useHotkeys } from "react-hotkeys-hook";
 
-import { PlayBackController } from "@Components/studio/PlaybackController";
+import PlayBackController from "@Components/studio/PlaybackController";
 import PianoRoll from "@Components/studio/PianoRoll/PianoRoll";
 import TracksView from "@Components/studio/TracksView/TracksView";
-import { PropertiesPanel } from "@Components/studio/PropertiesPanel";
-import { WaitingModal } from "@Components/WaitingModal";
-
+import PropertiesPanel from "@Components/studio/PropertiesPanel";
+import WaitingModal from "@Components/WaitingModal";
 import Splitter from "@Components/Splitter";
 
-import { TopBar } from "./TopBar";
+import TopBar from "./TopBar";
+import Hotkeys from "./Hotkeys";
 
 const Studio = () => {
     return (
@@ -46,7 +45,7 @@ const Studio = () => {
                 </Flex>
                 <PlayBackController />
             </Flex>
-
+            <Hotkeys />
             <WaitingModal />
         </Fragment>
     );

@@ -1,4 +1,5 @@
 import { defaultMinPartDuration } from "@Data/Defaults";
+import { SetStoreState } from "@Data/SetStoreState";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
@@ -8,19 +9,32 @@ import { isHotkeyPressed } from "react-hotkeys-hook";
 import { UpdateNote } from "./NoteUtils";
 import { SetPartTime, UpdatePart } from "./PartUtils";
 import { SetTimeBlockTime } from "./TimeBlockUtils";
-import { GetSelectedTrack } from "./TrackUtils";
+import { GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
 
 export const SetSelectedIndices = (
     selectionType: SelectionType,
     indices: Array<SubSelectionIndex>
 ) => {
-    useStore.setState(
-        selectionType === SelectionType.Part
-            ? {
-                  selectedPartIndices: indices,
-              }
-            : { selectedNoteIndices: indices }
-    );
+    switch (selectionType) {
+        case SelectionType.Part:
+            SetStoreState(
+                {
+                    selectedPartIndices: indices,
+                },
+                "Select part"
+            );
+            break;
+        case SelectionType.Note:
+            SetStoreState(
+                {
+                    selectedNoteIndices: indices,
+                },
+                "Select note"
+            );
+            break;
+        default:
+            break;
+    }
 };
 
 export const Select = (
@@ -54,6 +68,8 @@ export const Select = (
         // If selection does not contain this object, then reset selected object to only this object
         if (selectedIndex < 0) {
             newSelectedIndices = [{ containerIndex, selectionIndex }];
+        } else {
+            return newSelectedIndices;
         }
     }
 
@@ -196,17 +212,20 @@ export const CommitSelectionUpdate = (selectionType: SelectionType) => {
     selectedIndices.forEach((subSelectionIndex) => {
         UpdateTimeObject(selectionType, subSelectionIndex, tracksCopy);
     });
-    useStore.setState({ tracks: tracksCopy });
+    SetStoreState(
+        { tracks: tracksCopy },
+        `Modify ${SelectionType.toString(selectionType).toLowerCase()}`
+    );
 };
 
 export const SetSelectedStartTime = (
+    tracks: Array<Track>,
     newStartTime: number,
     selectionOffsets: Array<number>,
     selectionStartIndex: number,
     selectionType: SelectionType,
     keepDuration: boolean = false
 ) => {
-    const tracksCopy = [...useStore.getState().tracks];
     const selectedIndices = GetSelectedIndices(selectionType);
 
     // console.log(newStartTime, selectionOffsets[selectionStartIndex]);
@@ -230,7 +249,7 @@ export const SetSelectedStartTime = (
         const timeBlock = GetSubSelectionTime(
             selectionType,
             subSelectionIndex,
-            tracksCopy
+            tracks
         );
 
         const offset = selectionOffsets[index];
@@ -248,14 +267,14 @@ export const SetSelectedStartTime = (
 
     // console.log(tracksCopy);
 
-    useStore.setState({ tracks: tracksCopy });
+    // SetStoreState({ tracks: tracksCopy }, "Set start time", false);
 };
 export const SetSelectedStopTime = (
     newStopTime: number,
     selectionOffsets: Array<number>,
     selectionType: SelectionType
 ) => {
-    const tracksCopy = [...useStore.getState().tracks];
+    const tracksCopy = GetTracksCopy();
     const selectedIndices = GetSelectedIndices(selectionType);
 
     selectedIndices.forEach((selectionIndex, index) => {
@@ -273,5 +292,9 @@ export const SetSelectedStopTime = (
         SetTimeBlockTime(timeBlock, timeBlock.startTime, stopTime);
     });
 
-    useStore.setState({ tracks: tracksCopy });
+    SetStoreState(
+        { tracks: tracksCopy },
+        `Resize ${SelectionType.toString(selectionType).toLowerCase()}`,
+        false
+    );
 };

@@ -1,12 +1,16 @@
-import { Meter } from "tone";
 import { Instrument } from "./Instrument";
+import { Note } from "./Note";
 import { Part } from "./Part";
+import { TimeBlock } from "./TimeBlock";
+
+export interface PartSaveData extends TimeBlock {
+    notes: Array<Note>;
+}
 
 export interface TrackSaveData {
-    id: number;
     name: string;
     instrument: Instrument;
-    parts: Array<Part>;
+    parts: Array<PartSaveData>;
     muted: boolean;
     soloed: boolean;
     soloMuted: boolean;

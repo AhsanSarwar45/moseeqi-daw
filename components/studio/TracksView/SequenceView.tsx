@@ -1,16 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-
-import {
-    selectProjectLength,
-    selectSetSelectedTrackIndex,
-    selectTracks,
-    useStore,
-} from "@Data/Store";
+import { selectProjectLength, selectTracks, useStore } from "@Data/Store";
 import { Box } from "@chakra-ui/react";
 import { Track } from "@Interfaces/Track";
 import PartView from "./PartView";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
+import { SetSelectedTrackIndex } from "@Utility/TrackUtils";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -19,7 +13,6 @@ interface SequenceViewProps {
 
 const SequenceView = (props: SequenceViewProps) => {
     const tracks = useStore(selectTracks);
-    const setSelectedTrackIndex = useStore(selectSetSelectedTrackIndex);
     const projectLength = useStore(selectProjectLength);
 
     return (
@@ -34,7 +27,7 @@ const SequenceView = (props: SequenceViewProps) => {
                     onMouseDown={(event) => {
                         if (event.currentTarget === event.target) {
                             ClearSelectedPartsIndices();
-                            setSelectedTrackIndex(trackIndex);
+                            SetSelectedTrackIndex(trackIndex);
                         }
                     }}
                     borderBottom="1px solid gray"

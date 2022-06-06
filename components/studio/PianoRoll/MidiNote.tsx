@@ -66,8 +66,9 @@ export const MidiNote = (props: MidiNoteProps) => {
                 GetNoteSelectionRowOffsets(props.note, selectionIndices)
             }
             getSelectionRowStartIndex={GetNoteSelectionRowStartIndex}
-            setRow={(row, selectionRowOffsets, selectionStartIndex) => {
+            setRow={(tracks, row, selectionRowOffsets, selectionStartIndex) => {
                 SetNoteSelectionRow(
+                    tracks,
                     row,
                     selectionRowOffsets,
                     selectionStartIndex

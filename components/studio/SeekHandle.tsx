@@ -1,8 +1,13 @@
 import { Box } from "@chakra-ui/react";
-import { selectPlaybackState, selectSeek, useStore } from "@Data/Store";
+import {
+    selectPlaybackState,
+    selectSeek,
+    usePlaybackStore,
+} from "@Data/PlaybackStore";
+import { useStore } from "@Data/Store";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { Dimension } from "@Types/Types";
-import { SetSeek } from "@Utility/SeekUtils";
+import { SetSeek } from "@Utility/PlaybackUtils";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
@@ -23,7 +28,7 @@ const SeekHandle = (props: SeekHandleProps) => {
     const seekHandleRef = useRef(null);
     const dragging = useRef(false);
 
-    const seek = useStore(selectSeek);
+    const seek = usePlaybackStore(selectSeek);
 
     const HandleDrag = (event: DraggableEvent, data: DraggableData) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
@@ -37,7 +42,7 @@ const SeekHandle = (props: SeekHandleProps) => {
 
     useEffect(
         () =>
-            useStore.subscribe(selectPlaybackState, (playbackState) => {
+            usePlaybackStore.subscribe(selectPlaybackState, (playbackState) => {
                 if (playbackState === PlaybackState.Stopped) {
                     SetSeek(0);
                     cancelAnimationFrame(seekAnimationRef.current);
