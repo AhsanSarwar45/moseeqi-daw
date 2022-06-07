@@ -28,3 +28,10 @@ export const MapTimeBlock = (
     timeBlock.stopTime = mapper(timeBlock.stopTime);
     timeBlock.duration = timeBlock.stopTime - timeBlock.startTime;
 };
+
+export const CopyTimeBlock = (to: Draft<TimeBlock>, from: Draft<TimeBlock>) => {
+    to.startTime = from.startTime;
+    to.stopTime = from.stopTime;
+    to.duration = from.duration;
+    to.rowIndex = from.rowIndex;
+};

@@ -62,13 +62,21 @@ export const selectProjectName = (state: StoreState) => state.projectName;
 export const selectProjectLength = (state: StoreState) => state.projectLength;
 
 let isUndoHistoryEnabled = true;
+let stateBeforeHistoryDisabled: StoreState = { ...useStore.getState() };
+let historyRecentlyEnabled = false;
 
 export const DisableUndoHistory = () => {
     isUndoHistoryEnabled = false;
+    stateBeforeHistoryDisabled = useStore.getState();
 };
 
-export const EnableUndoHistory = () => {
+export const EnableUndoHistory = (): StoreState => {
+    if (!isUndoHistoryEnabled) {
+        historyRecentlyEnabled = true;
+    }
     isUndoHistoryEnabled = true;
+
+    return useStore.getState();
 };
 
 enablePatches();
@@ -79,8 +87,15 @@ export const SetState = (
     addToUndoHistory: boolean = true
 ) => {
     console.log(actionName);
+
+    const prevState = historyRecentlyEnabled
+        ? stateBeforeHistoryDisabled
+        : useStore.getState();
+
+    historyRecentlyEnabled = false;
+
     useStore.setState(
-        produce(useStore.getState(), recipe, (patches, inversePatches) => {
+        produce(prevState, recipe, (patches, inversePatches) => {
             if (isUndoHistoryEnabled && addToUndoHistory) {
                 useUndoStore.setState(
                     produce(useUndoStore.getState(), (draftState) => {
@@ -89,6 +104,7 @@ export const SetState = (
                             inversePatches: inversePatches,
                             actionName,
                         };
+                        console.log(state);
                         draftState.pastStates.push(state);
                         draftState.futureStates = [];
                     })

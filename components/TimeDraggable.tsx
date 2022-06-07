@@ -19,6 +19,7 @@ import {
 } from "@Utility/SelectionUtils";
 import { Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
+import { DisableUndoHistory, EnableUndoHistory } from "@Data/Store";
 
 // const [addMouseUpListener, removeMouseUpListener] = Listener();
 type ModifyHandler = (
@@ -182,8 +183,9 @@ const TimeDraggable = (props: TimeDraggableProps) => {
     const HandleMouseUp = useCallback(
         (event: MouseEvent) => {
             if (event.button === 0) {
+                const newState = EnableUndoHistory();
                 if (hasChanged.current) {
-                    CommitSelectionUpdate(props.selectionType);
+                    CommitSelectionUpdate(props.selectionType, newState.tracks);
                     hasChanged.current = false;
                 }
                 if (isDraggingRef.current) {
@@ -205,7 +207,6 @@ const TimeDraggable = (props: TimeDraggableProps) => {
                     );
                     isResizingRightRef.current = false;
                 }
-
                 window.removeEventListener("mousemove", HandleMouseMove);
             }
         },
@@ -223,6 +224,7 @@ const TimeDraggable = (props: TimeDraggableProps) => {
     const StartDrag = () => {
         hasChanged.current = false;
         initialTimeBlock.current = props.timeBlock;
+        DisableUndoHistory();
         window.addEventListener("mousemove", HandleMouseMove);
     };
 

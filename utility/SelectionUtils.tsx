@@ -189,19 +189,23 @@ export const GetSelectedIndices = (
 const UpdateTimeObject = (
     selectionType: SelectionType,
     selectionIndex: SubSelectionIndex,
-    tracks: Draft<Track>[]
+    prevTracks: Draft<Track>[],
+    nextTracks: Draft<Track>[]
 ) => {
     if (selectionType === SelectionType.Note) {
+        const selectedTrackIndex = useStore.getState().selectedTrackIndex;
         UpdateNote(
             selectionIndex.containerIndex,
             selectionIndex.selectionIndex,
-            tracks[useStore.getState().selectedTrackIndex]
+            prevTracks[selectedTrackIndex],
+            nextTracks[selectedTrackIndex]
         );
     } else if (selectionType === SelectionType.Part) {
         UpdatePart(
             selectionIndex.containerIndex,
             selectionIndex.selectionIndex,
-            tracks
+            prevTracks,
+            nextTracks
         );
     }
 };
@@ -221,14 +225,18 @@ export const GetAbsoluteTime = (
     }
 };
 
-export const CommitSelectionUpdate = (selectionType: SelectionType) => {
+export const CommitSelectionUpdate = (
+    selectionType: SelectionType,
+    updatedTracks: Track[]
+) => {
     SetState((draftState) => {
         const selectedIndices = GetSelectedIndices(selectionType);
         selectedIndices.forEach((subSelectionIndex) => {
             UpdateTimeObject(
                 selectionType,
                 subSelectionIndex,
-                draftState.tracks
+                draftState.tracks,
+                updatedTracks
             );
         });
     }, `Modify ${SelectionType.toString(selectionType).toLowerCase()}`);

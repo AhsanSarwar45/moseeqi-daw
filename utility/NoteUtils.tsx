@@ -9,7 +9,7 @@ import { Track } from "@Interfaces/Track";
 import produce, { Draft } from "immer";
 import { ExtendPart, SynchronizePartNotes } from "./PartUtils";
 import { IsSelected } from "./SelectionUtils";
-import { MapTimeBlock } from "./TimeBlockUtils";
+import { CopyTimeBlock, MapTimeBlock } from "./TimeBlockUtils";
 import { DivisorToDuration } from "./TimeUtils";
 import { AddNoteToTrack, GetSelectedTrack } from "./TrackUtils";
 
@@ -75,10 +75,14 @@ export const MakeNotePartRelative = (note: Draft<Note>, part: Draft<Part>) => {
 export const UpdateNote = (
     partIndex: number,
     noteIndex: number,
-    track: Draft<Track>
+    prevTracks: Draft<Track>,
+    nextTracks: Draft<Track>
 ) => {
-    const part = track.parts[partIndex];
+    const part = prevTracks.parts[partIndex];
     const note = part.notes[noteIndex];
+    const nextNote = nextTracks.parts[partIndex].notes[noteIndex];
+
+    CopyTimeBlock(note, nextNote);
 
     note.startTime += part.startTime;
     note.stopTime += part.startTime;
@@ -94,7 +98,7 @@ export const UpdateNote = (
     } else {
         // Remove the note from the current part
         part.notes.splice(noteIndex, 1);
-        AddNoteToTrack(track, note);
+        AddNoteToTrack(prevTracks, note);
     }
 
     SynchronizePartNotes(part);
