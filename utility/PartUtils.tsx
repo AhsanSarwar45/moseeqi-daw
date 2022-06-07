@@ -11,7 +11,7 @@ import { StoreState, useStore } from "@Data/Store";
 import { MapTimeBlock } from "./TimeBlockUtils";
 import { IsSelected } from "./SelectionUtils";
 import { SelectionType } from "@Interfaces/Selection";
-import { SetState } from "@Data/SetStoreState";
+import { SetState } from "@Data/Store";
 import { PartSaveData } from "@Interfaces/SaveData";
 import produce, { Draft } from "immer";
 

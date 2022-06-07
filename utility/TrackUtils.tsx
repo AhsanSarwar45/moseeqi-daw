@@ -1,6 +1,6 @@
 import { getTrackId } from "@Data/Id";
 import { useLoadingStore } from "@Data/IsLoadingStore";
-import { SetState } from "@Data/SetStoreState";
+import { SetState } from "@Data/Store";
 import { StoreState, useStore } from "@Data/Store";
 import { Instruments } from "@Instruments/Instruments";
 import { Instrument } from "@Interfaces/Instrument";

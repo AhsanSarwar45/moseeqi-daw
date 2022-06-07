@@ -1,6 +1,6 @@
 import { PianoKeys } from "@Data/Constants";
 import { defaultMinPartDuration } from "@Data/Defaults";
-import { SetState } from "@Data/SetStoreState";
+import { SetState } from "@Data/Store";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";

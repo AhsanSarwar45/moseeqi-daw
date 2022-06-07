@@ -12,6 +12,9 @@ import {
     defaultProjectName,
 } from "./Defaults";
 import { initialSecondsPerDivision } from "./Constants";
+import produce, { enablePatches } from "immer";
+import { Recipe } from "@Interfaces/Recipe";
+import { useUndoStore } from "./UndoStore";
 
 export interface StoreState {
     tracks: Array<Track>;
@@ -57,3 +60,41 @@ export const selectCurrentSecondPerDivision = (state: StoreState) =>
 
 export const selectProjectName = (state: StoreState) => state.projectName;
 export const selectProjectLength = (state: StoreState) => state.projectLength;
+
+let isUndoHistoryEnabled = true;
+
+export const DisableUndoHistory = () => {
+    isUndoHistoryEnabled = false;
+};
+
+export const EnableUndoHistory = () => {
+    isUndoHistoryEnabled = true;
+};
+
+enablePatches();
+
+export const SetState = (
+    recipe: Recipe<StoreState>,
+    actionName: string,
+    addToUndoHistory: boolean = true
+) => {
+    console.log(actionName);
+    useStore.setState(
+        produce(useStore.getState(), recipe, (patches, inversePatches) => {
+            if (isUndoHistoryEnabled && addToUndoHistory) {
+                useUndoStore.setState(
+                    produce(useUndoStore.getState(), (draftState) => {
+                        const state = {
+                            patches: patches,
+                            inversePatches: inversePatches,
+                            actionName,
+                        };
+                        draftState.pastStates.push(state);
+                        draftState.futureStates = [];
+                        console.log(state);
+                    })
+                );
+            }
+        })
+    );
+};

@@ -1,46 +1,36 @@
 import { useStore } from "@Data/Store";
-import { useUndoStore } from "@Data/UndoStore";
+import { SetUndoStoreState, useUndoStore } from "@Data/UndoStore";
+import produce, { applyPatches } from "immer";
 
 export const Undo = () => {
-    useUndoStore.setState((state) => {
-        const pastStatesCopy = [...state.pastStates];
-        const futureStatesCopy = [...state.futureStates];
-        const pastState = pastStatesCopy.pop();
+    SetUndoStoreState((draftState) => {
+        const pastState = draftState.pastStates.pop();
         if (pastState) {
             console.log("undo");
-            useStore.setState(pastState.patch);
-            futureStatesCopy.push(pastState);
+            useStore.setState(
+                applyPatches(useStore.getState(), pastState.inversePatches)
+            );
+            draftState.futureStates.push(pastState);
         }
-
-        return {
-            pastStates: pastStatesCopy,
-            futureStates: futureStatesCopy,
-        };
     });
 };
 
 export const Redo = () => {
-    useUndoStore.setState((state) => {
-        const pastStatesCopy = [...state.pastStates];
-        const futureStatesCopy = [...state.futureStates];
-        const futureState = futureStatesCopy.pop();
+    SetUndoStoreState((draftState) => {
+        const futureState = draftState.futureStates.pop();
         if (futureState) {
             console.log("redo");
-
-            useStore.setState(futureState.patch);
-            pastStatesCopy.push(futureState);
+            useStore.setState(
+                applyPatches(useStore.getState(), futureState.patches)
+            );
+            draftState.pastStates.push(futureState);
         }
-
-        return {
-            pastStates: pastStatesCopy,
-            futureStates: futureStatesCopy,
-        };
     });
 };
 
 export const ClearHistory = () => {
-    useUndoStore.setState({
-        pastStates: [],
-        futureStates: [],
+    SetUndoStoreState((draftState) => {
+        draftState.pastStates = [];
+        draftState.futureStates = [];
     });
 };

@@ -1,6 +1,6 @@
 import { PianoKeys } from "@Data/Constants";
 import { getNoteId } from "@Data/Id";
-import { SetState } from "@Data/SetStoreState";
+import { SetState } from "@Data/Store";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";

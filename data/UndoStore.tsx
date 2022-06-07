@@ -1,8 +1,11 @@
+import { Recipe } from "@Interfaces/Recipe";
+import produce, { Patch } from "immer";
 import create from "zustand";
 import { StoreState } from "./Store";
 
 export interface HistoryState {
-    patch: StoreState;
+    patches: Patch[];
+    inversePatches: Patch[];
     actionName: string;
 }
 
@@ -15,3 +18,7 @@ export const useUndoStore = create<UndoStoreState>()((set) => ({
     pastStates: [],
     futureStates: [],
 }));
+
+export const SetUndoStoreState = (recipe: Recipe<UndoStoreState>) => {
+    useUndoStore.setState(produce(useUndoStore.getState(), recipe));
+};
