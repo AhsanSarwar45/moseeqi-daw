@@ -7,7 +7,7 @@ import { Part } from "@Interfaces/Part";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { Track } from "@Interfaces/Track";
 import produce, { Draft } from "immer";
-import { ExtendPart } from "./PartUtils";
+import { ExtendPart, SynchronizePartNotes } from "./PartUtils";
 import { IsSelected } from "./SelectionUtils";
 import { MapTimeBlock } from "./TimeBlockUtils";
 import { DivisorToDuration } from "./TimeUtils";
@@ -78,14 +78,12 @@ export const UpdateNote = (
     track: Draft<Track>
 ) => {
     const part = track.parts[partIndex];
-    // console.log(part, partIndex, track);
     const note = part.notes[noteIndex];
 
     note.startTime += part.startTime;
     note.stopTime += part.startTime;
     note.key = PianoKeys[note.rowIndex];
 
-    part.tonePart.clear();
     // Check if moved position is within the current part
     if (IsNoteInPart(note, part)) {
         // if the end of the note lies beyond the end of the part, extend the part
@@ -99,10 +97,7 @@ export const UpdateNote = (
         AddNoteToTrack(track, note);
     }
 
-    // Add back all the notes to the part
-    part.notes.forEach((note) => {
-        part.tonePart.add(GetPartNote(note));
-    });
+    SynchronizePartNotes(part);
 };
 
 export const ClearSelectedNotesIndices = () => {
@@ -116,15 +111,6 @@ export const IsNoteDisabled = (note: Note, part: Part) => {
     return note.startTime >= part.duration || note.startTime < 0;
 };
 
-export const UpdatePartNotes = (part: Draft<Part>) => {
-    // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
-    part.tonePart.clear();
-    // Re-add all the notes to the part
-    part.notes.forEach((note) => {
-        part.tonePart.add(GetPartNote(note));
-    });
-};
-
 export const DeleteNote = (partIndex: number, noteIndex: number) => {
     SetState((draftState) => {
         const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
@@ -132,7 +118,7 @@ export const DeleteNote = (partIndex: number, noteIndex: number) => {
         const note = part.notes[noteIndex];
         // Remove the note from the part
         part.notes = part.notes.filter((n) => n.id !== note.id);
-        UpdatePartNotes(part);
+        SynchronizePartNotes(part);
     }, "Delete note");
 };
 
@@ -154,7 +140,7 @@ export const DeleteSelectedNotes = () => {
                 }
                 return true;
             });
-            UpdatePartNotes(part);
+            SynchronizePartNotes(part);
             return part;
         });
 

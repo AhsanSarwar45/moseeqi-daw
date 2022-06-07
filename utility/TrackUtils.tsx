@@ -31,6 +31,7 @@ import CreateSampler from "./SamplerUtils";
 export const DisposeTracks = (tracks: Draft<Track>[]) => {
     tracks.forEach((track) => {
         track.parts.forEach((part) => {
+            part.tonePart.clear(); // TODO: find if necessary
             part.tonePart.dispose();
         });
     });

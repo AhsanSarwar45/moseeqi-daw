@@ -84,6 +84,18 @@ export const AddNoteToPart = (note: Note, part: Draft<Part>) => {
     part.tonePart.add(GetPartNote(note));
 };
 
+export const SynchronizePartNotes = (part: Draft<Part>) => {
+    part.tonePart.clear();
+    part.notes.forEach((note) => {
+        part.tonePart.add(GetPartNote(note));
+    });
+};
+
+export const SynchronizePart = (part: Draft<Part>) => {
+    SynchronizePartNotes(part);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+};
+
 export const ExtendPart = (note: Note, part: Draft<Part>) => {
     part.stopTime = GetExtendedPartStopTime(note.stopTime);
     part.duration = part.stopTime - part.startTime;

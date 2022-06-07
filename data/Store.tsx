@@ -91,7 +91,6 @@ export const SetState = (
                         };
                         draftState.pastStates.push(state);
                         draftState.futureStates = [];
-                        console.log(state);
                     })
                 );
             }
