@@ -38,10 +38,14 @@ interface TimeDraggableProps {
     height: Dimension;
     top: Dimension;
     onMouseDown: MouseEventHandler<HTMLDivElement>;
+    onMouseUp: MouseEventHandler<HTMLDivElement>;
     onDragX: ModifyHandler;
     onDragY: ModifyHandler;
+    onDragStop: ModifyHandler;
     onResizeRight: ModifyHandler;
+    onResizeRightStop: ModifyHandler;
     onResizeLeft: ModifyHandler;
+    onResizeLeftStop: ModifyHandler;
     bgColor: string;
     borderColor: string;
     selectedBorderColor: string;
@@ -180,16 +184,33 @@ const TimeDraggable = (props: TimeDraggableProps) => {
             if (event.button === 0) {
                 if (hasChanged.current) {
                     CommitSelectionUpdate(props.selectionType);
+                    hasChanged.current = false;
+                }
+                if (isDraggingRef.current) {
+                    props.onDragStop(
+                        prevTime.current,
+                        initialTimeBlock.current
+                    );
+                    isDraggingRef.current = false;
+                } else if (isResizingLeftRef.current) {
+                    props.onResizeLeftStop(
+                        prevTime.current,
+                        initialTimeBlock.current
+                    );
+                    isResizingLeftRef.current = false;
+                } else if (isResizingRightRef.current) {
+                    props.onResizeRightStop(
+                        prevTime.current,
+                        initialTimeBlock.current
+                    );
+                    isResizingRightRef.current = false;
                 }
 
-                isDraggingRef.current = false;
-                isResizingLeftRef.current = false;
-                isResizingRightRef.current = false;
                 window.removeEventListener("mousemove", HandleMouseMove);
-                hasChanged.current = false;
             }
         },
-        [HandleMouseMove, props.selectionType]
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [HandleMouseMove]
     );
 
     useEffect(() => {
@@ -214,6 +235,7 @@ const TimeDraggable = (props: TimeDraggableProps) => {
             width={`${width}px`}
             left={`${left}px`}
             onMouseDown={props.onMouseDown}
+            onMouseUp={props.onMouseUp}
             onContextMenu={(event) => {
                 event.preventDefault();
                 return false;
@@ -333,10 +355,14 @@ TimeDraggable.defaultProps = {
     borderRadius: 0,
     height: 0,
     onMouseDown: () => {},
+    onMouseUp: () => {},
     onDragX: () => {},
     onDragY: () => {},
+    onDragStop: () => {},
     onResizeLeft: () => {},
+    onResizeLeftStop: () => {},
     onResizeRight: () => {},
+    onResizeRightStop: () => {},
     // parentRef: null,
 };
 

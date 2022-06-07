@@ -69,15 +69,15 @@ export const MidiNote = (props: MidiNoteProps) => {
             onDragY={(rowIndex) =>
                 PlaySelectedTrackKey(PianoKeys[rowIndex], props.note.duration)
             }
-            onResizeLeft={(startTime, initialTimeBlock) =>
+            onResizeLeftStop={(startTime, initialTimeBlock) =>
                 HandleResize(initialTimeBlock.stopTime - startTime)
             }
-            onResizeRight={(stopTime, initialTimeBlock) =>
+            onResizeRightStop={(stopTime, initialTimeBlock) =>
                 HandleResize(stopTime - initialTimeBlock.startTime)
             }
             onMouseDown={(event) => {
                 if (event.button === 0) PlaySelectedTrackNote(props.note);
-                else if (event.button === 2)
+                if (event.button === 2)
                     DeleteNote(props.partIndex, props.noteIndex);
             }}
         />
