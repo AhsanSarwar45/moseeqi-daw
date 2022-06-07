@@ -1,11 +1,12 @@
 import { PianoKeys } from "@Data/Constants";
 import { getNoteId } from "@Data/Id";
-import { SetStoreState } from "@Data/SetStoreState";
+import { SetState } from "@Data/SetStoreState";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { Track } from "@Interfaces/Track";
+import produce, { Draft } from "immer";
 import { ExtendPart } from "./PartUtils";
 import { IsSelected } from "./SelectionUtils";
 import { MapTimeBlock } from "./TimeBlockUtils";
@@ -21,7 +22,7 @@ export const CreateNote = (
         id: getNoteId(),
         startTime: startTime,
         stopTime: startTime + duration,
-        keyIndex: row,
+        rowIndex: row,
         key: PianoKeys[row],
         duration: duration,
         velocity: 1.0,
@@ -40,7 +41,19 @@ export const GetPartNote = (note: Note) => {
 };
 
 export const PlayNote = (track: Track, note: Note) => {
-    track.sampler.triggerAttackRelease(note.key, note.duration);
+    PlayKey(track, note.key, note.duration);
+};
+export const PlayKey = (track: Track, key: string, duration: number) => {
+    track.sampler.triggerAttackRelease(key, duration);
+};
+
+export const PlaySelectedTrackKey = (key: string, duration: number) => {
+    const selectedTrack = GetSelectedTrack();
+    PlayKey(selectedTrack, key, duration);
+};
+export const PlaySelectedTrackNote = (note: Note) => {
+    const selectedTrack = GetSelectedTrack();
+    PlayNote(selectedTrack, note);
 };
 
 export const MapNoteTime = (
@@ -50,11 +63,11 @@ export const MapNoteTime = (
     MapTimeBlock(note, mapper);
 };
 
-export const IsNoteInPart = (note: Note, part: Part) => {
+export const IsNoteInPart = (note: Note, part: Draft<Part>) => {
     return part.startTime <= note.startTime && part.stopTime > note.startTime;
 };
 
-export const MakeNotePartRelative = (note: Note, part: Part) => {
+export const MakeNotePartRelative = (note: Draft<Note>, part: Draft<Part>) => {
     note.startTime -= part.startTime;
     note.stopTime -= part.startTime;
 };
@@ -62,7 +75,7 @@ export const MakeNotePartRelative = (note: Note, part: Part) => {
 export const UpdateNote = (
     partIndex: number,
     noteIndex: number,
-    track: Track
+    track: Draft<Track>
 ) => {
     const part = track.parts[partIndex];
     // console.log(part, partIndex, track);
@@ -70,6 +83,7 @@ export const UpdateNote = (
 
     note.startTime += part.startTime;
     note.stopTime += part.startTime;
+    note.key = PianoKeys[note.rowIndex];
 
     part.tonePart.clear();
     // Check if moved position is within the current part
@@ -91,76 +105,18 @@ export const UpdateNote = (
     });
 };
 
-export const GetNoteSelectionRowOffsets = (
-    note: Note,
-    noteIndices: Array<SubSelectionIndex>
-): Array<number> => {
-    return noteIndices.map(({ containerIndex, selectionIndex }) => {
-        return (
-            note.keyIndex -
-            GetSelectedTrack().parts[containerIndex].notes[selectionIndex]
-                .keyIndex
-        );
-    });
-};
-
-export const GetNoteSelectionRowStartIndex = (
-    selectedIndices: Array<SubSelectionIndex>
-): number => {
-    let selectionStartRow = 100000;
-    let selectionStartIndex = 0;
-
-    selectedIndices.forEach(({ containerIndex, selectionIndex }, index) => {
-        const keyIndex =
-            GetSelectedTrack().parts[containerIndex].notes[selectionIndex]
-                .keyIndex;
-        if (keyIndex < selectionStartRow) {
-            selectionStartRow = keyIndex;
-            selectionStartIndex = index;
-        }
-    });
-
-    return selectionStartIndex;
-};
-
-export const SetNoteSelectionRow = (
-    tracks: Array<Track>,
-    newRow: number,
-    selectionRowOffsets: Array<number>,
-    selectionStartRow: number
-) => {
-    const startRowOffset = selectionRowOffsets[selectionStartRow];
-    if (newRow - startRowOffset < 0) {
-        const delta = startRowOffset - newRow;
-        newRow += delta;
-    }
-    const selectedIndices = useStore.getState().selectedNoteIndices;
-
-    // console.log(selectedIndices);
-
-    selectedIndices.forEach(({ containerIndex, selectionIndex }, index) => {
-        const note =
-            GetSelectedTrack(tracks).parts[containerIndex].notes[
-                selectionIndex
-            ];
-        const offset = selectionRowOffsets[index];
-        const row = newRow - offset;
-
-        note.keyIndex = row;
-        note.key = PianoKeys[row];
-    });
-};
-
 export const ClearSelectedNotesIndices = () => {
     if (useStore.getState().selectedNoteIndices.length === 0) return;
-    SetStoreState({ selectedNoteIndices: [] }, "Deselect all notes");
+    SetState((draftState) => {
+        selectedNoteIndices: [];
+    }, "Deselect all notes");
 };
 
 export const IsNoteDisabled = (note: Note, part: Part) => {
     return note.startTime >= part.duration || note.startTime < 0;
 };
 
-export const UpdatePartNotes = (part: Part) => {
+export const UpdatePartNotes = (part: Draft<Part>) => {
     // Tone doesn't allow us to remove single notes, so we need to clear the part and then re-add all the notes except the removed one
     part.tonePart.clear();
     // Re-add all the notes to the part
@@ -170,31 +126,20 @@ export const UpdatePartNotes = (part: Part) => {
 };
 
 export const DeleteNote = (partIndex: number, noteIndex: number) => {
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-    const part = selectedTrack.parts[partIndex];
-    const note = part.notes[noteIndex];
-
-    // Remove the note from the part
-    part.notes = part.notes.filter((n) => n.id !== note.id);
-
-    UpdatePartNotes(part);
-
-    SetStoreState(
-        {
-            tracks: tracksCopy,
-            selectedNoteIndices: [],
-        },
-        "Delete note"
-    );
+    SetState((draftState) => {
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        const part = selectedTrack.parts[partIndex];
+        const note = part.notes[noteIndex];
+        // Remove the note from the part
+        part.notes = part.notes.filter((n) => n.id !== note.id);
+        UpdatePartNotes(part);
+    }, "Delete note");
 };
 
 export const DeleteSelectedNotes = () => {
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-
-    tracksCopy[useStore.getState().selectedTrackIndex].parts =
-        selectedTrack.parts.map((part, partIndex) => {
+    SetState((draftState) => {
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        selectedTrack.parts = selectedTrack.parts.map((part, partIndex) => {
             part.notes = part.notes.filter((note, noteIndex) => {
                 if (
                     IsSelected(
@@ -213,13 +158,8 @@ export const DeleteSelectedNotes = () => {
             return part;
         });
 
-    SetStoreState(
-        {
-            tracks: tracksCopy,
-            selectedNoteIndices: [],
-        },
-        "Delete notes"
-    );
+        draftState.selectedNoteIndices = [];
+    }, "Delete notes");
 };
 
 export const AddNoteToSelectedTrack = (
@@ -227,18 +167,11 @@ export const AddNoteToSelectedTrack = (
     row: number,
     divisor: number
 ) => {
-    const duration = DivisorToDuration(divisor);
-    const note = CreateNote(startTime, duration, row);
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-    AddNoteToTrack(selectedTrack, note);
-    PlayNote(selectedTrack, note);
-
-    SetStoreState(
-        {
-            tracks: tracksCopy,
-            selectedNoteIndices: [],
-        },
-        "Add note"
-    );
+    SetState((draftState) => {
+        const duration = DivisorToDuration(divisor);
+        const note = CreateNote(startTime, duration, row);
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        AddNoteToTrack(selectedTrack, note);
+        PlayNote(GetSelectedTrack(), note);
+    }, "Add note");
 };

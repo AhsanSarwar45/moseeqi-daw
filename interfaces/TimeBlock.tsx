@@ -1,5 +1,6 @@
 export interface TimeBlock {
-    startTime: number;
-    stopTime: number;
-    duration: number;
+    readonly startTime: number;
+    readonly stopTime: number;
+    readonly duration: number;
+    readonly rowIndex: number;
 }

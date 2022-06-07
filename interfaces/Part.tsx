@@ -3,7 +3,7 @@ import { Note } from "./Note";
 import { TimeBlock } from "./TimeBlock";
 
 export interface Part extends TimeBlock {
-    id: number;
-    tonePart: Tone.Part;
-    notes: Array<Note>;
+    readonly id: number;
+    readonly tonePart: Tone.Part;
+    readonly notes: Note[];
 }

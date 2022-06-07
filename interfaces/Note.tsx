@@ -1,8 +1,7 @@
 import { TimeBlock } from "./TimeBlock";
 
 export interface Note extends TimeBlock {
-    id: number;
-    keyIndex: number;
-    key: string;
-    velocity: number;
+    readonly id: number;
+    readonly key: string;
+    readonly velocity: number;
 }

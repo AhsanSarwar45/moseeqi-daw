@@ -39,15 +39,15 @@ export const GetObjectIntersection = (object1: any, object2: any): any => {
     }, {});
 };
 
-export const GetSaveState = (state: StoreState): any => {
-    const { tracks, ...restState } = state;
-    return { ...restState, tracks: GetTracksSaveData(tracks) };
-};
+// export const GetSaveState = (state: StoreState): any => {
+//     const { tracks, ...restState } = state;
+//     return { ...restState, tracks: GetTracksSaveData(tracks) };
+// };
 
-export const GetSaveStateDiff = (
-    prevState: StoreState,
-    nextState: Partial<StoreState>
-): any => {
-    const prevSaveState = GetSaveState(prevState);
-    return GetObjectIntersection(prevSaveState, nextState);
-};
+// export const GetSaveStateDiff = (
+//     prevState: StoreState,
+//     nextState: Partial<StoreState>
+// ): any => {
+//     const prevSaveState = GetSaveState(prevState);
+//     return GetObjectIntersection(prevSaveState, nextState);
+// };

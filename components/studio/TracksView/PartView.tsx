@@ -31,9 +31,6 @@ const PartView = (props: PartViewProps) => {
             selectedBorderColor="secondary.500"
             bgColor="rgb(0,0,0,0.4)"
             height="full"
-            getSelectionRowOffsets={() => []}
-            getSelectionRowStartIndex={() => 0}
-            setRow={(row, selectionRowOffsets) => {}}
         >
             {props.part.notes.map((note, index) => (
                 <Box
@@ -45,7 +42,7 @@ const PartView = (props: PartViewProps) => {
                             : "secondary.500"
                     }
                     position="absolute"
-                    top={`${note.keyIndex + 1}px`}
+                    top={`${note.rowIndex + 1}px`}
                     left={`${note.startTime * props.pixelsPerSecond}px`}
                     width={`${note.duration * props.pixelsPerSecond}px`}
                     height="1px"

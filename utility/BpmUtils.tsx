@@ -2,7 +2,7 @@ import * as Tone from "tone";
 
 import { useStore } from "@Data/Store";
 import { ChangeTracksBpm, GetTracksCopy } from "./TrackUtils";
-import { SetStoreState } from "@Data/SetStoreState";
+import { SetState } from "@Data/SetStoreState";
 
 export const SetBpm = (bpm: number) => {
     const tracks = GetTracksCopy();
@@ -11,11 +11,8 @@ export const SetBpm = (bpm: number) => {
     Tone.Transport.bpm.value = bpm;
 
     ChangeTracksBpm(tracks, prevBpm, bpm);
-    SetStoreState(
-        {
-            tracks: tracks,
-            bpm: bpm,
-        },
-        "Change BPM"
-    );
+    SetState((draftState) => {
+        draftState.tracks = tracks;
+        draftState.bpm = bpm;
+    }, "Change BPM");
 };

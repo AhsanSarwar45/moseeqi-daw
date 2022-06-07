@@ -1,14 +1,16 @@
+import { PianoKeys } from "@Data/Constants";
 import { defaultMinPartDuration } from "@Data/Defaults";
-import { SetStoreState } from "@Data/SetStoreState";
+import { SetState } from "@Data/SetStoreState";
 import { useStore } from "@Data/Store";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { TimeBlock } from "@Interfaces/TimeBlock";
 import { Track } from "@Interfaces/Track";
+import { Draft } from "immer";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { UpdateNote } from "./NoteUtils";
 import { SetPartTime, UpdatePart } from "./PartUtils";
-import { SetTimeBlockTime } from "./TimeBlockUtils";
+import { SetTimeBlock, SetTimeBlockRowIndex } from "./TimeBlockUtils";
 import { GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
 
 export const SetSelectedIndices = (
@@ -17,20 +19,14 @@ export const SetSelectedIndices = (
 ) => {
     switch (selectionType) {
         case SelectionType.Part:
-            SetStoreState(
-                {
-                    selectedPartIndices: indices,
-                },
-                "Select part"
-            );
+            SetState((draftState) => {
+                draftState.selectedPartIndices = indices;
+            }, "Select part");
             break;
         case SelectionType.Note:
-            SetStoreState(
-                {
-                    selectedNoteIndices: indices,
-                },
-                "Select note"
-            );
+            SetState((draftState) => {
+                draftState.selectedNoteIndices = indices;
+            }, "Select note");
             break;
         default:
             break;
@@ -92,46 +88,63 @@ export const FindSelectionIndex = (
     );
 };
 
-export const GetSubSelectionTime = (
+export const GetTimeBlock = (
     type: SelectionType,
     subSelectionIndex: SubSelectionIndex,
-    tracks: Array<Track> = useStore.getState().tracks
-): TimeBlock => {
+    tracks: Draft<Track>[]
+): Draft<TimeBlock> => {
     return type === SelectionType.Part
         ? tracks[subSelectionIndex.containerIndex].parts[
               subSelectionIndex.selectionIndex
           ]
-        : GetSelectedTrack(tracks).parts[subSelectionIndex.containerIndex]
-              .notes[subSelectionIndex.selectionIndex];
+        : tracks[useStore.getState().selectedTrackIndex].parts[
+              subSelectionIndex.containerIndex
+          ].notes[subSelectionIndex.selectionIndex];
 };
 
-export const GetSelectionStartTime = (
+export const GetReadonlyTimeBlock = (
+    type: SelectionType,
+    subSelectionIndex: SubSelectionIndex
+): TimeBlock => {
+    const tracks = useStore.getState().tracks;
+    return type === SelectionType.Part
+        ? tracks[subSelectionIndex.containerIndex].parts[
+              subSelectionIndex.selectionIndex
+          ]
+        : tracks[useStore.getState().selectedTrackIndex].parts[
+              subSelectionIndex.containerIndex
+          ].notes[subSelectionIndex.selectionIndex];
+};
+
+export const GetSelectionStartValue = (
     selectedIndices: Array<SubSelectionIndex>,
-    type: SelectionType
+    type: SelectionType,
+    property: "startTime" | "rowIndex"
 ): number => {
-    let selectionStartTime = 100000;
+    let selectionStartValue = 100000;
 
     selectedIndices.forEach((index) => {
-        selectionStartTime = Math.min(
-            selectionStartTime,
-            GetSubSelectionTime(type, index).startTime
+        selectionStartValue = Math.min(
+            selectionStartValue,
+            GetReadonlyTimeBlock(type, index)[property]
         );
     });
 
-    return selectionStartTime;
+    return selectionStartValue;
 };
 
 export const GetSelectionStartIndex = (
     selectedIndices: Array<SubSelectionIndex>,
-    type: SelectionType
+    type: SelectionType,
+    property: "startTime" | "rowIndex"
 ): number => {
-    let selectionStartTime = 100000;
+    let selectionStartValue = 100000;
     let selectionStartIndex = 0;
 
     selectedIndices.forEach((selectionIndex, index) => {
-        const startTime = GetSubSelectionTime(type, selectionIndex).startTime;
-        if (startTime < selectionStartTime) {
-            selectionStartTime = startTime;
+        const value = GetReadonlyTimeBlock(type, selectionIndex)[property];
+        if (value < selectionStartValue) {
+            selectionStartValue = value;
             selectionStartIndex = index;
         }
     });
@@ -139,14 +152,16 @@ export const GetSelectionStartIndex = (
     return selectionStartIndex;
 };
 
-export const GetSelectionTimeOffsets = (
+export const GetSelectionOffsets = (
     timeBlock: TimeBlock,
     selectedIndices: Array<SubSelectionIndex>,
     type: SelectionType,
-    timeMark: "startTime" | "stopTime" = "startTime"
+    property: "startTime" | "stopTime" | "rowIndex"
 ): Array<number> => {
     return selectedIndices.map((index) => {
-        return timeBlock[timeMark] - GetSubSelectionTime(type, index)[timeMark];
+        return (
+            timeBlock[property] - GetReadonlyTimeBlock(type, index)[property]
+        );
     });
 };
 
@@ -174,13 +189,13 @@ export const GetSelectedIndices = (
 const UpdateTimeObject = (
     selectionType: SelectionType,
     selectionIndex: SubSelectionIndex,
-    tracks: Array<Track>
+    tracks: Draft<Track>[]
 ) => {
     if (selectionType === SelectionType.Note) {
         UpdateNote(
             selectionIndex.containerIndex,
             selectionIndex.selectionIndex,
-            GetSelectedTrack(tracks)
+            tracks[useStore.getState().selectedTrackIndex]
         );
     } else if (selectionType === SelectionType.Part) {
         UpdatePart(
@@ -207,94 +222,194 @@ export const GetAbsoluteTime = (
 };
 
 export const CommitSelectionUpdate = (selectionType: SelectionType) => {
-    const tracksCopy = [...useStore.getState().tracks];
-    const selectedIndices = GetSelectedIndices(selectionType);
-    selectedIndices.forEach((subSelectionIndex) => {
-        UpdateTimeObject(selectionType, subSelectionIndex, tracksCopy);
-    });
-    SetStoreState(
-        { tracks: tracksCopy },
-        `Modify ${SelectionType.toString(selectionType).toLowerCase()}`
-    );
+    SetState((draftState) => {
+        const selectedIndices = GetSelectedIndices(selectionType);
+        selectedIndices.forEach((subSelectionIndex) => {
+            UpdateTimeObject(
+                selectionType,
+                subSelectionIndex,
+                draftState.tracks
+            );
+        });
+    }, `Modify ${SelectionType.toString(selectionType).toLowerCase()}`);
 };
 
-export const SetSelectedStartTime = (
-    tracks: Array<Track>,
+export const ClampSelectionStart = (
+    value: number,
+    offsets: number[],
+    startIndex: number
+) => {
+    const startRowOffset = offsets[startIndex];
+    return value - startRowOffset < 0 ? startRowOffset - value : 0;
+};
+
+export const DragSelection = (
     newStartTime: number,
-    selectionOffsets: Array<number>,
-    selectionStartIndex: number,
+    newRowIndex: number,
+    offsetsX: Array<number>,
+    offsetsY: Array<number>,
+    startIndexX: number,
+    startIndexY: number,
     selectionType: SelectionType,
     keepDuration: boolean = false
 ) => {
+    SetState(
+        (draftState) => {
+            SetSelectedStartTime(
+                draftState.tracks,
+                newStartTime,
+                offsetsX,
+                startIndexX,
+                selectionType,
+                keepDuration
+            );
+            SetSelectionRowIndex(
+                draftState.tracks,
+                newRowIndex,
+                offsetsY,
+                startIndexY,
+                selectionType
+            );
+        },
+        `Drag ${SelectionType.toString(selectionType).toLowerCase()}`,
+        false
+    );
+};
+
+export const LeftResizeSelection = (
+    newStartTime: number,
+    offsetsX: Array<number>,
+    startIndexX: number,
+    selectionType: SelectionType,
+    keepDuration: boolean = false
+) => {
+    SetState(
+        (draftState) => {
+            SetSelectedStartTime(
+                draftState.tracks,
+                newStartTime,
+                offsetsX,
+                startIndexX,
+                selectionType,
+                keepDuration
+            );
+        },
+        `Resize ${SelectionType.toString(selectionType).toLowerCase()}`,
+        false
+    );
+};
+
+export const RightResizeSelection = (
+    newStopTime: number,
+    offsetsX: Array<number>,
+    selectionType: SelectionType
+) => {
+    SetState(
+        (draftState) => {
+            SetSelectedStopTime(
+                draftState.tracks,
+                newStopTime,
+                offsetsX,
+                selectionType
+            );
+        },
+        `Resize ${SelectionType.toString(selectionType).toLowerCase()}`,
+        false
+    );
+};
+
+export const ModifySelectedTimeBlocks = (
+    tracks: Draft<Track>[],
+    newValue: number,
+    offsets: number[],
+    selectionType: SelectionType,
+    recipe: (value: number, timeBlock: Draft<TimeBlock>) => void
+) => {
     const selectedIndices = GetSelectedIndices(selectionType);
 
-    // console.log(newStartTime, selectionOffsets[selectionStartIndex]);
-    const absoluteSelectionStartTime = GetAbsoluteTime(
-        newStartTime,
-        selectedIndices[selectionStartIndex],
-        selectionType
-    );
-    if (
-        absoluteSelectionStartTime - selectionOffsets[selectionStartIndex] <
-        0
-    ) {
-        const delta =
-            selectionOffsets[selectionStartIndex] - absoluteSelectionStartTime;
-        newStartTime += delta;
-    }
-
-    // console.log(selectedIndices);
-
     selectedIndices.forEach((subSelectionIndex, index) => {
-        const timeBlock = GetSubSelectionTime(
+        const timeBlock = GetTimeBlock(
             selectionType,
             subSelectionIndex,
             tracks
         );
-
-        const offset = selectionOffsets[index];
-        let startTime = newStartTime - offset;
-
-        let stopTime = keepDuration
-            ? startTime + timeBlock.duration
-            : timeBlock.stopTime;
-        stopTime = Math.max(stopTime, startTime + defaultMinPartDuration);
-
-        SetTimeBlockTime(timeBlock, startTime, stopTime);
-
-        // UpdateSelection(selectionType, subSelectionIndex, tracksCopy);
+        const offset = offsets[index];
+        let value = newValue - offset;
+        recipe(value, timeBlock);
     });
+};
 
-    // console.log(tracksCopy);
+export const SetSelectedStartTime = (
+    tracks: Draft<Track>[],
+    newStartTime: number,
+    offsetsX: Array<number>,
+    startIndexX: number,
+    selectionType: SelectionType,
+    keepDuration: boolean = false
+) => {
+    const selectedIndices = GetSelectedIndices(selectionType);
+    const absoluteSelectionStartTime = GetAbsoluteTime(
+        newStartTime,
+        selectedIndices[startIndexX],
+        selectionType
+    );
 
-    // SetStoreState({ tracks: tracksCopy }, "Set start time", false);
+    newStartTime += ClampSelectionStart(
+        absoluteSelectionStartTime,
+        offsetsX,
+        startIndexX
+    );
+
+    ModifySelectedTimeBlocks(
+        tracks,
+        newStartTime,
+        offsetsX,
+        selectionType,
+        (startTime, timeBlock) => {
+            let stopTime = keepDuration
+                ? startTime + timeBlock.duration
+                : timeBlock.stopTime;
+            stopTime = Math.max(stopTime, startTime + defaultMinPartDuration);
+            SetTimeBlock(timeBlock, startTime, stopTime);
+        }
+    );
 };
 export const SetSelectedStopTime = (
+    tracks: Draft<Track>[],
     newStopTime: number,
-    selectionOffsets: Array<number>,
+    offsetsX: Array<number>,
     selectionType: SelectionType
 ) => {
-    const tracksCopy = GetTracksCopy();
-    const selectedIndices = GetSelectedIndices(selectionType);
+    ModifySelectedTimeBlocks(
+        tracks,
+        newStopTime,
+        offsetsX,
+        selectionType,
+        (stopTime, timeBlock) => {
+            stopTime = Math.max(
+                stopTime,
+                timeBlock.startTime + defaultMinPartDuration
+            );
+            SetTimeBlock(timeBlock, timeBlock.startTime, stopTime);
+        }
+    );
+};
 
-    selectedIndices.forEach((selectionIndex, index) => {
-        const timeBlock = GetSubSelectionTime(
-            selectionType,
-            selectionIndex,
-            tracksCopy
-        );
-        const offset = selectionOffsets[index];
-        let stopTime = newStopTime - offset;
-        stopTime = Math.max(
-            stopTime,
-            timeBlock.startTime + defaultMinPartDuration
-        );
-        SetTimeBlockTime(timeBlock, timeBlock.startTime, stopTime);
-    });
-
-    SetStoreState(
-        { tracks: tracksCopy },
-        `Resize ${SelectionType.toString(selectionType).toLowerCase()}`,
-        false
+export const SetSelectionRowIndex = (
+    tracks: Draft<Track>[],
+    newRowIndex: number,
+    offsetsY: number[],
+    startIndexY: number,
+    selectionType: SelectionType
+) => {
+    newRowIndex += ClampSelectionStart(newRowIndex, offsetsY, startIndexY);
+    ModifySelectedTimeBlocks(
+        tracks,
+        newRowIndex,
+        offsetsY,
+        selectionType,
+        (rowIndex, timeBlock) => {
+            SetTimeBlockRowIndex(timeBlock, rowIndex);
+        }
     );
 };

@@ -1,6 +1,6 @@
 import { getTrackId } from "@Data/Id";
 import { useLoadingStore } from "@Data/IsLoadingStore";
-import { SetStoreState } from "@Data/SetStoreState";
+import { SetState } from "@Data/SetStoreState";
 import { StoreState, useStore } from "@Data/Store";
 import { Instruments } from "@Instruments/Instruments";
 import { Instrument } from "@Interfaces/Instrument";
@@ -28,7 +28,7 @@ import {
 } from "./PartUtils";
 import CreateSampler from "./SamplerUtils";
 
-export const DisposeTracks = (tracks: Array<Track>) => {
+export const DisposeTracks = (tracks: Draft<Track>[]) => {
     tracks.forEach((track) => {
         track.parts.forEach((part) => {
             part.tonePart.dispose();
@@ -57,7 +57,7 @@ export const SetTrackSoloMute = (track: Draft<Track>, muted: boolean) => {
 
 export const SetTrackSolo = (
     track: Draft<Track>,
-    allTracks: Array<Track>,
+    allTracks: Draft<Track>[],
     soloed: boolean
 ) => {
     track.soloed = soloed;
@@ -82,17 +82,15 @@ export const SetTrackSolo = (
     }
 };
 
-export const SetTrackRelease = (track: Track, value: number) => {
+export const SetTrackRelease = (track: Draft<Track>, value: number) => {
     track.sampler.release = value;
 };
 
-export const SetTrackAttack = (track: Track, value: number) => {
+export const SetTrackAttack = (track: Draft<Track>, value: number) => {
     track.sampler.attack = value;
 };
 
-export const GetTracksSaveData = (
-    tracks: Array<Track>
-): Array<TrackSaveData> => {
+export const GetTracksSaveData = (tracks: Track[]): TrackSaveData[] => {
     // the sampler property makes the save data circular so we remove it
     // we also remove the meter property as it is not needed
     return tracks.map((track) => {
@@ -128,13 +126,13 @@ export const ChangeTracksBpm = (
     });
 };
 
-export const StopTrackParts = (track: Track) => {
+export const StopTrackParts = (track: Draft<Track>) => {
     track.parts.forEach((part) => {
         part.tonePart.stop();
     });
 };
 
-export const ClearTrack = (track: Track) => {
+export const ClearTrack = (track: Draft<Track>) => {
     track.parts.forEach((part) => {
         part.tonePart.clear();
         part.notes = [];
@@ -174,7 +172,7 @@ export const GetTracksCopy = () => {
     return [...useStore.getState().tracks];
 };
 
-export const AddNoteToTrack = (track: Track, note: Note) => {
+export const AddNoteToTrack = (track: Draft<Track>, note: Draft<Note>) => {
     // console.log("add");
     // Check which part the note is in
     const currentPartIndex = track.parts.findIndex((part) =>
@@ -225,98 +223,78 @@ export const CopyParts = (
     });
 };
 
-export const GetSelectedTrack = (
-    tracks: Array<Track> = useStore.getState().tracks
-): Track => {
-    return tracks[useStore.getState().selectedTrackIndex];
+export const DeleteTrackAtIndex = (index: number) => {
+    SetState((draftState) => {
+        const trackToDelete = draftState.tracks[index];
+        StopTrackParts(trackToDelete);
+        (draftState.tracks = draftState.tracks.filter(
+            (tracks) => tracks.id !== trackToDelete.id
+        )),
+            (draftState.selectedTrackIndex =
+                draftState.selectedTrackIndex > 0
+                    ? draftState.selectedTrackIndex - 1
+                    : 0);
+        draftState.selectedPartIndices = [];
+        draftState.selectedNoteIndices = [];
+        draftState.trackCount--;
+    }, "Delete track");
 };
 
-export const DeleteTrack = (trackToDelete: Track) => {
-    const tracks = useStore.getState().tracks;
-    const selectedTrackIndex = useStore.getState().selectedTrackIndex;
-
-    if (tracks.length === 0) return;
-
-    StopTrackParts(trackToDelete);
-    SetStoreState(
-        {
-            tracks: tracks.filter((tracks) => tracks.id !== trackToDelete.id),
-            selectedTrackIndex:
-                selectedTrackIndex > 0 ? selectedTrackIndex - 1 : 0,
-            selectedPartIndices: [],
-            selectedNoteIndices: [],
-            trackCount: tracks.length - 1,
-        },
-        "Delete track"
-    );
+export const GetSelectedTrack = () => {
+    return useStore.getState().tracks[useStore.getState().selectedTrackIndex];
 };
 
 export const DeleteSelectedTrack = () => {
-    const selectedTrack = GetSelectedTrack();
-    DeleteTrack(selectedTrack);
+    DeleteTrackAtIndex(useStore.getState().selectedTrackIndex);
 };
 
 export const SetSelectedTrackAttack = (attack: number) => {
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-    SetTrackAttack(selectedTrack, attack);
-    SetStoreState({ tracks: tracksCopy }, "Set track attack");
+    SetState((draftState) => {
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        SetTrackAttack(selectedTrack, attack);
+    }, "Set track attack");
 };
 
 export const SetSelectedTrackRelease = (release: number) => {
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-    SetTrackRelease(selectedTrack, release);
-    SetStoreState({ tracks: tracksCopy }, "Set track release");
+    SetState((draftState) => {
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        SetTrackRelease(selectedTrack, release);
+    }, "Set track release");
 };
 
 export const DuplicateSelectedTrack = () => {
     const selectedTrack = GetSelectedTrack();
     const newTrack = CreateTrack(selectedTrack.instrument);
     CopyParts(selectedTrack, newTrack);
-    SetStoreState(
-        (prev) => ({
-            tracks: [...prev.tracks, newTrack],
-        }),
-        "Duplicate track"
-    );
+    AddTrack(newTrack);
 };
 
 export const ClearSelectedTrack = () => {
-    const tracksCopy = GetTracksCopy();
-    const selectedTrack = GetSelectedTrack(tracksCopy);
-    ClearTrack(selectedTrack);
-    SetStoreState({ tracks: tracksCopy }, "Clear track");
+    SetState((draftState) => {
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        ClearTrack(selectedTrack);
+    }, "Clear track");
 };
 
 export const ToggleTrackMute = (trackIndex: number) => {
-    SetStoreState(
-        produce((state: StoreState) => {
-            const track = state.tracks[trackIndex];
-            SetTrackMute(track, !track.muted);
-        }),
-        "Mute track"
-    );
+    SetState((draftState) => {
+        const track = draftState.tracks[trackIndex];
+        SetTrackMute(track, !track.muted);
+    }, "Mute track");
 };
 
 export const ToggleTrackSolo = (trackIndex: number) => {
-    SetStoreState(
-        produce((state: StoreState) => {
-            const track = state.tracks[trackIndex];
-            SetTrackSolo(track, state.tracks, !track.soloed);
-        }),
-        "Solo track"
-    );
+    SetState((draftState) => {
+        const track = draftState.tracks[trackIndex];
+        SetTrackSolo(track, draftState.tracks, !track.soloed);
+    }, "Solo track");
 };
 
-export const AddTrack = (track: Track) => {
-    SetStoreState(
-        (prev) => ({
-            tracks: [...prev.tracks, track],
-            trackCount: prev.trackCount + 1,
-        }),
-        "Add track"
-    );
+export const AddTrack = (track: Draft<Track>) => {
+    SetState((draftState) => {
+        draftState.tracks.push(track);
+        draftState.trackCount++;
+    }, "Add track");
 };
 
 export const AddInstrumentTrack = (instrument: Instrument) => {
@@ -330,29 +308,23 @@ export const AddTrackFromInstrumentIndex = (instrumentIndex: number) => {
 };
 
 export const DeleteAllTracks = () => {
-    const tracks = useStore.getState().tracks;
-
-    tracks.forEach((track) => {
-        // TODO: maybe we should clear parts
-        StopTrackParts(track);
-    });
-
-    SetStoreState(
-        (prev) => ({
-            tracks: [],
-            trackCount: 0,
-            selectedTrackIndex: 0,
-            selectedPartIndices: [],
-            selectedNoteIndices: [],
-        }),
-        "Delete all tracks"
-    );
+    SetState((draftState) => {
+        draftState.tracks.forEach((track) => {
+            // TODO: maybe we should clear parts
+            StopTrackParts(track);
+        });
+        draftState.tracks = [];
+        draftState.trackCount = 0;
+        draftState.selectedTrackIndex = 0;
+        draftState.selectedPartIndices = [];
+        draftState.selectedNoteIndices = [];
+    }, "Delete all tracks");
 };
 
 export const SetSelectedTrackIndex = (trackIndex: number) => {
     if (trackIndex === useStore.getState().selectedTrackIndex) return;
-    SetStoreState(
-        { selectedTrackIndex: trackIndex, selectedNoteIndices: [] },
-        "Select track"
-    );
+    SetState((draftState) => {
+        draftState.selectedTrackIndex = trackIndex;
+        draftState.selectedNoteIndices = [];
+    }, "Select track");
 };

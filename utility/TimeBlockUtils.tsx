@@ -1,21 +1,27 @@
 import { TimeBlock } from "@Interfaces/TimeBlock";
+import { Draft } from "immer";
 
-export const SetTimeBlockTime = (
-    timeBlock: TimeBlock,
+export const SetTimeBlock = (
+    timeBlock: Draft<TimeBlock>,
     startTime: number,
     stopTime: number
     // row: number
 ) => {
-    // note.key = PianoKeys[row];
-    // note.keyIndex = row;
     timeBlock.startTime = startTime;
     timeBlock.stopTime = stopTime;
     timeBlock.duration = stopTime - startTime;
-    return;
+};
+
+export const SetTimeBlockRowIndex = (
+    timeBlock: Draft<TimeBlock>,
+    rowIndex: number
+) => {
+    timeBlock.rowIndex = rowIndex;
+    // console.log(rowIndex);
 };
 
 export const MapTimeBlock = (
-    timeBlock: TimeBlock,
+    timeBlock: Draft<TimeBlock>,
     mapper: (startTime: number) => number
 ) => {
     timeBlock.startTime = mapper(timeBlock.startTime);

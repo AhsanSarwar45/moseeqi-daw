@@ -6,7 +6,7 @@ export interface Track {
     readonly id: number;
     readonly name: string;
     readonly instrument: Instrument;
-    readonly parts: Array<Part>;
+    readonly parts: Part[];
     readonly sampler: Sampler;
     readonly meter: Meter;
     readonly muted: boolean;

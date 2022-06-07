@@ -9,13 +9,15 @@ import TimeDraggable from "@Components/TimeDraggable";
 import { SelectionType } from "@Interfaces/Selection";
 import {
     DeleteNote,
-    GetNoteSelectionRowOffsets,
-    GetNoteSelectionRowStartIndex,
     IsNoteDisabled,
+    PlayKey,
     PlayNote,
-    SetNoteSelectionRow,
+    PlaySelectedTrackKey,
+    PlaySelectedTrackNote,
 } from "@Utility/NoteUtils";
 import { IsSelected } from "@Utility/SelectionUtils";
+import { useEffect } from "react";
+import { PianoKeys } from "@Data/Constants";
 
 interface MidiNoteProps {
     note: Note;
@@ -30,7 +32,6 @@ interface MidiNoteProps {
 }
 
 export const MidiNote = (props: MidiNoteProps) => {
-    const selectedTrack = useStore(selectSelectedTrack);
     const selectedNoteIndices = useStore(selectSelectedNoteIndices);
 
     const subSelectionIndex = {
@@ -38,8 +39,11 @@ export const MidiNote = (props: MidiNoteProps) => {
         selectionIndex: props.noteIndex,
     };
 
+    const HandleResize = (duration: number) => {
+        PlaySelectedTrackKey(PianoKeys[props.note.rowIndex], duration);
+    };
+
     return (
-        // <></>
         <TimeDraggable
             timeBlock={props.note}
             selectionType={SelectionType.Note}
@@ -61,22 +65,18 @@ export const MidiNote = (props: MidiNoteProps) => {
             }
             borderRadius="sm"
             height={`${props.cellHeight}px`}
-            top={`${props.note.keyIndex * props.cellHeight}px`}
-            getSelectionRowOffsets={(selectionIndices) =>
-                GetNoteSelectionRowOffsets(props.note, selectionIndices)
+            top={`${props.note.rowIndex * props.cellHeight}px`}
+            onDragY={(rowIndex) =>
+                PlaySelectedTrackKey(PianoKeys[rowIndex], props.note.duration)
             }
-            getSelectionRowStartIndex={GetNoteSelectionRowStartIndex}
-            setRow={(tracks, row, selectionRowOffsets, selectionStartIndex) => {
-                SetNoteSelectionRow(
-                    tracks,
-                    row,
-                    selectionRowOffsets,
-                    selectionStartIndex
-                );
-                PlayNote(selectedTrack, props.note);
-            }}
+            onResizeLeft={(startTime, initialTimeBlock) =>
+                HandleResize(initialTimeBlock.stopTime - startTime)
+            }
+            onResizeRight={(stopTime, initialTimeBlock) =>
+                HandleResize(stopTime - initialTimeBlock.startTime)
+            }
             onMouseDown={(event) => {
-                if (event.button === 0) PlayNote(selectedTrack, props.note);
+                if (event.button === 0) PlaySelectedTrackNote(props.note);
                 else if (event.button === 2)
                     DeleteNote(props.partIndex, props.noteIndex);
             }}

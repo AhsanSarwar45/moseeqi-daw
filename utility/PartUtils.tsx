@@ -11,7 +11,7 @@ import { StoreState, useStore } from "@Data/Store";
 import { MapTimeBlock } from "./TimeBlockUtils";
 import { IsSelected } from "./SelectionUtils";
 import { SelectionType } from "@Interfaces/Selection";
-import { SetStoreState } from "@Data/SetStoreState";
+import { SetState } from "@Data/SetStoreState";
 import { PartSaveData } from "@Interfaces/SaveData";
 import produce, { Draft } from "immer";
 
@@ -43,9 +43,10 @@ export const CreatePart = (
         tonePart: tonePart,
         startTime: startTime,
         stopTime: stopTime,
+        rowIndex: 0,
         duration: stopTime - startTime,
         notes: notes.map((note) =>
-            CreateNote(note.startTime, note.duration, note.keyIndex)
+            CreateNote(note.startTime, note.duration, note.rowIndex)
         ),
     };
 };
@@ -59,7 +60,7 @@ export const MapPartTime = (
 };
 
 export const SetPartTime = (
-    part: Part,
+    part: Draft<Part>,
     startTime: number,
     stopTime: number
 ) => {
@@ -72,23 +73,21 @@ export const SetPartTime = (
 export const UpdatePart = (
     trackIndex: number,
     partIndex: number,
-    tracksCopy: Array<Track>
+    tracksCopy: Draft<Track>[]
 ) => {
     const part = tracksCopy[trackIndex].parts[partIndex];
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const AddNoteToPart = (note: Note, part: Part) => {
+export const AddNoteToPart = (note: Note, part: Draft<Part>) => {
     part.notes.push(note);
     part.tonePart.add(GetPartNote(note));
 };
 
-export const ExtendPart = (note: Note, part: Part): Part => {
+export const ExtendPart = (note: Note, part: Draft<Part>) => {
     part.stopTime = GetExtendedPartStopTime(note.stopTime);
     part.duration = part.stopTime - part.startTime;
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
-
-    return part;
 };
 
 export const GetNewPartStartTime = (noteStartTime: number) => {
@@ -119,46 +118,46 @@ export const GetExtendedPartStopTime = (noteStopTime: number) => {
 
 export const ClearSelectedPartsIndices = () => {
     if (useStore.getState().selectedPartIndices.length === 0) return;
-    SetStoreState({ selectedPartIndices: [] }, "Deselect all parts");
+    SetState((draftState) => {
+        draftState.selectedPartIndices = [];
+    }, "Deselect all parts");
 };
 
 export const DeleteSelectedParts = () => {
     const baseState = useStore.getState();
 
-    SetStoreState(
-        produce(baseState, (draftState) => {
-            draftState.tracks.forEach((track, trackIndex) => {
-                track.parts = track.parts.filter((part, partIndex) => {
-                    if (
-                        IsSelected(
-                            {
-                                containerIndex: trackIndex,
-                                selectionIndex: partIndex,
-                            },
-                            SelectionType.Part
-                        )
-                    ) {
-                        part.tonePart.cancel(0);
-                        return false;
-                    }
-                    return true;
-                });
-                return track;
+    SetState((draftState) => {
+        draftState.tracks.forEach((track, trackIndex) => {
+            track.parts = track.parts.filter((part, partIndex) => {
+                if (
+                    IsSelected(
+                        {
+                            containerIndex: trackIndex,
+                            selectionIndex: partIndex,
+                        },
+                        SelectionType.Part
+                    )
+                ) {
+                    part.tonePart.cancel(0);
+                    return false;
+                }
+                return true;
             });
+            return track;
+        });
 
-            baseState.selectedPartIndices = [];
-            baseState.selectedPartIndices = [];
-        }),
-        "Delete parts"
-    );
+        baseState.selectedPartIndices = [];
+        baseState.selectedNoteIndices = [];
+    }, "Delete parts");
 };
 
-export const GetPartsSaveData = (parts: Array<Part>): Array<PartSaveData> => {
+export const GetPartsSaveData = (parts: readonly Part[]): PartSaveData[] => {
     return parts.map((part) => {
         return {
             startTime: part.startTime,
             stopTime: part.stopTime,
             duration: part.duration,
+            rowIndex: part.rowIndex,
             notes: [...part.notes],
         };
     });
