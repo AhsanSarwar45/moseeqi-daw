@@ -11,7 +11,7 @@ import { isHotkeyPressed } from "react-hotkeys-hook";
 import { UpdateNote } from "./NoteUtils";
 import { SetPartTime, UpdatePart } from "./PartUtils";
 import { SetTimeBlock, SetTimeBlockRowIndex } from "./TimeBlockUtils";
-import { GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
+import { GetSelectedTrack } from "./TrackUtils";
 
 export const SetSelectedIndices = (
     selectionType: SelectionType,
@@ -180,7 +180,7 @@ export const IsSelected = (
 
 export const GetSelectedIndices = (
     type: SelectionType
-): Array<SubSelectionIndex> => {
+): SubSelectionIndex[] => {
     return type === SelectionType.Part
         ? useStore.getState().selectedPartIndices
         : useStore.getState().selectedNoteIndices;

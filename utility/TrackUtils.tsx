@@ -106,7 +106,7 @@ export const GetTracksSaveData = (tracks: Track[]): TrackSaveData[] => {
 };
 
 export const ChangeTracksBpm = (
-    tracks: Array<Track>,
+    tracks: Draft<Track>[],
     oldBpm: number,
     newBpm: number
 ) => {
@@ -166,10 +166,6 @@ export const CreateTrack = (instrument: Instrument): Track => {
 export const CreateTrackFromIndex = (instrumentIndex: number): Track => {
     const instrument = Instruments[instrumentIndex];
     return CreateTrack(instrument);
-};
-
-export const GetTracksCopy = () => {
-    return [...useStore.getState().tracks];
 };
 
 export const AddNoteToTrack = (track: Draft<Track>, note: Draft<Note>) => {

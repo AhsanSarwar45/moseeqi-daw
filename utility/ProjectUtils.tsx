@@ -32,10 +32,10 @@ export const SetProjectLength = (length: number) => {
 };
 
 export const CreateNewProject = () => {
-    DisposeTracks(useStore.getState().tracks);
-
     SetState(
         (draftState) => {
+            DisposeTracks(draftState.tracks);
+
             draftState.tracks = [CreateTrackFromIndex(defaultInstrumentIndex)];
             draftState.bpm = defaultBPM;
             draftState.projectName = defaultProjectName;

@@ -11,7 +11,7 @@ import { ExtendPart } from "./PartUtils";
 import { IsSelected } from "./SelectionUtils";
 import { MapTimeBlock } from "./TimeBlockUtils";
 import { DivisorToDuration } from "./TimeUtils";
-import { AddNoteToTrack, GetSelectedTrack, GetTracksCopy } from "./TrackUtils";
+import { AddNoteToTrack, GetSelectedTrack } from "./TrackUtils";
 
 export const CreateNote = (
     startTime: number,
@@ -108,7 +108,7 @@ export const UpdateNote = (
 export const ClearSelectedNotesIndices = () => {
     if (useStore.getState().selectedNoteIndices.length === 0) return;
     SetState((draftState) => {
-        selectedNoteIndices: [];
+        draftState.selectedNoteIndices = [];
     }, "Deselect all notes");
 };
 

@@ -52,7 +52,7 @@ export const CreatePart = (
 };
 
 export const MapPartTime = (
-    part: Part,
+    part: Draft<Part>,
     mapper: (startTime: number) => number
 ) => {
     MapTimeBlock(part, mapper);
@@ -73,9 +73,9 @@ export const SetPartTime = (
 export const UpdatePart = (
     trackIndex: number,
     partIndex: number,
-    tracksCopy: Draft<Track>[]
+    tracks: Draft<Track>[]
 ) => {
-    const part = tracksCopy[trackIndex].parts[partIndex];
+    const part = tracks[trackIndex].parts[partIndex];
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
@@ -124,8 +124,6 @@ export const ClearSelectedPartsIndices = () => {
 };
 
 export const DeleteSelectedParts = () => {
-    const baseState = useStore.getState();
-
     SetState((draftState) => {
         draftState.tracks.forEach((track, trackIndex) => {
             track.parts = track.parts.filter((part, partIndex) => {
@@ -146,8 +144,8 @@ export const DeleteSelectedParts = () => {
             return track;
         });
 
-        baseState.selectedPartIndices = [];
-        baseState.selectedNoteIndices = [];
+        draftState.selectedPartIndices = [];
+        draftState.selectedNoteIndices = [];
     }, "Delete parts");
 };
 

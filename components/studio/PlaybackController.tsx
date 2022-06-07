@@ -91,8 +91,6 @@ const PlayBackController = (props: PlayBackControllerProps) => {
         []
     );
 
-    const FormatBpm = (bpm: number) => bpm + " BPM";
-
     return (
         <HStack
             // height="20px"
