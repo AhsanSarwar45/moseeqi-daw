@@ -19,12 +19,17 @@ export const SetPlaybackState = (playbackState: PlaybackState) => {
 
 export const TogglePlayback = () => {
     if (!IsAudioContextStarted()) StartAudioContext();
-    usePlaybackStore.setState((prev) => ({
-        playbackState:
-            prev.playbackState === PlaybackState.Playing
-                ? PlaybackState.Paused
-                : prev.playbackState === PlaybackState.Paused
-                ? PlaybackState.Playing
-                : PlaybackState.Stopped,
-    }));
+    usePlaybackStore.setState((prev) => {
+        let nextPlaybackState = PlaybackState.Stopped;
+        if (prev.playbackState === PlaybackState.Playing) {
+            nextPlaybackState = PlaybackState.Paused;
+        } else if (prev.playbackState === PlaybackState.Paused) {
+            nextPlaybackState = PlaybackState.Playing;
+        } else if (prev.playbackState === PlaybackState.Stopped) {
+            nextPlaybackState = PlaybackState.Playing;
+        }
+        return {
+            playbackState: nextPlaybackState,
+        };
+    });
 };
