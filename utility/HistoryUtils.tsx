@@ -11,15 +11,16 @@ export const AddToHistory = (
 ) => {
     const historyState = useHistoryState.getState();
     if (historyState.isHistoryEnabled && addToUndoHistory) {
-        // If history had been disabled before this update, we need to apply the patches that were
-        // made while history was disabled.
+        // If history had been disabled before this update, we need to cumulate the patches that were
+        // made while history was disabled
         if (!historyState.prevHistoryEnabledState) {
             // Add the latest patches too
             const patchesWhileDisabled = [
                 ...historyState.patchesWhileDisabled,
                 ...patches,
             ];
-            // Cumulate all patches that were applied while disabled
+            // Apply all the patches to the state of the store before history was disabled
+            // We do this to get the inverse patches too
             produce(
                 historyState.stateBeforeDisabled,
                 (draftState) => {
@@ -35,7 +36,7 @@ export const AddToHistory = (
             const state = {
                 patches: patches,
                 inversePatches: inversePatches,
-                actionName,
+                actionName: actionName,
             };
             draftState.pastStates.push(state);
             // Clearing redo states on a new state change is standard practice
