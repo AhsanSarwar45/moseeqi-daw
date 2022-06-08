@@ -80,28 +80,33 @@ const Canvas = (props: CanvasProps) => {
             ref={clickAreaRef}
             width="full"
             height="full"
-            onDoubleClick={(event) => {
-                const mouseCoords = GetRelativeMouseCoords(event);
-
-                if (props.isSnappingOn) {
-                    mouseCoords.x = SnapDown(mouseCoords.x, props.columnWidth);
-                }
-
-                AddNoteToSelectedTrack(
-                    mouseCoords.x /
-                        GetPixelsPerSecond(props.basePixelsPerSecond),
-                    Math.floor(mouseCoords.y / props.gridCellHeight),
-                    noteLengthOptions[props.selectedDrawLengthIndex].divisor
-                );
-            }}
             onMouseDown={(event) => {
-                if (event.currentTarget === event.target) {
-                    ClearSelectedNotesIndices();
-                    setIsDragSelecting(true);
-                    dragSelectStart.current = GetRelativeMouseCoords(event);
-                    dragSelectCurrent.current = dragSelectStart.current;
-                    UpdateBounds();
-                    window.addEventListener("mouseup", HandleMouseUp);
+                if (event.detail === 2) {
+                    console.log("hello");
+                    const mouseCoords = GetRelativeMouseCoords(event);
+
+                    if (props.isSnappingOn) {
+                        mouseCoords.x = SnapDown(
+                            mouseCoords.x,
+                            props.columnWidth
+                        );
+                    }
+
+                    AddNoteToSelectedTrack(
+                        mouseCoords.x /
+                            GetPixelsPerSecond(props.basePixelsPerSecond),
+                        Math.floor(mouseCoords.y / props.gridCellHeight),
+                        noteLengthOptions[props.selectedDrawLengthIndex].divisor
+                    );
+                } else {
+                    if (event.currentTarget === event.target) {
+                        ClearSelectedNotesIndices();
+                        setIsDragSelecting(true);
+                        dragSelectStart.current = GetRelativeMouseCoords(event);
+                        dragSelectCurrent.current = dragSelectStart.current;
+                        UpdateBounds();
+                        window.addEventListener("mouseup", HandleMouseUp);
+                    }
                 }
             }}
             onMouseMove={(event) => {
