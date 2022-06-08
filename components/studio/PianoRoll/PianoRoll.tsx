@@ -1,16 +1,6 @@
-import {
-    useState,
-    useEffect,
-    useRef,
-    useCallback,
-    useContext,
-    ReactNode,
-} from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HStack, Icon, Box, Flex, VStack, ButtonGroup } from "@chakra-ui/react";
 import Ruler from "@scena/react-ruler";
-
-import { BiMagnet, BiTrash } from "react-icons/bi";
-
 import { noteLengthOptions, PianoKeys } from "@Data/Constants";
 import ToggleButton from "@Components/ToggleButton";
 import {
@@ -35,7 +25,8 @@ import {
     ClearSelectedNotesIndices,
     DeleteSelectedNotes,
 } from "@Utility/NoteUtils";
-import useKeyMap from "@Hooks/useKeyMap";
+import { Coordinate } from "@Interfaces/Coordinate";
+import Canvas from "./Canvas";
 
 interface PianoRollProps {}
 
@@ -65,7 +56,6 @@ const PianoRoll = (props: PianoRollProps) => {
     const projectLength = useStore(selectProjectLength);
 
     const hasScrolledRef = useRef(false);
-    const clickAreaRef = useRef<any>(null);
     // const scaleGridTop = useRef<Ruler>(null);
     // const scaleGridMain = useRef<Ruler>(null);
     const scaleGridMinor = useRef<Ruler>(null);
@@ -214,6 +204,17 @@ const PianoRoll = (props: PianoRollProps) => {
                                         return false;
                                     }}
                                 >
+                                    <Canvas
+                                        gridCellHeight={gridCellHeight}
+                                        isSnappingOn={isSnappingOn}
+                                        basePixelsPerSecond={
+                                            basePixelsPerSecond
+                                        }
+                                        columnWidth={columnWidth}
+                                        selectedDrawLengthIndex={
+                                            selectedDrawLengthIndex
+                                        }
+                                    />
                                     <GridView
                                         basePixelsPerSecond={
                                             basePixelsPerSecond
@@ -230,42 +231,6 @@ const PianoRoll = (props: PianoRollProps) => {
                                                   ].divisor
                                                 : 1
                                         }
-                                    />
-
-                                    <Box
-                                        ref={clickAreaRef}
-                                        width="full"
-                                        height="full"
-                                        onClick={(event) => {
-                                            const rect =
-                                                clickAreaRef.current?.getBoundingClientRect();
-
-                                            let x = event.clientX - rect?.left;
-                                            const y = event.clientY - rect?.top;
-
-                                            if (isSnappingOn) {
-                                                x = SnapDown(x, columnWidth);
-                                            }
-
-                                            AddNoteToSelectedTrack(
-                                                x /
-                                                    GetPixelsPerSecond(
-                                                        basePixelsPerSecond
-                                                    ),
-                                                Math.floor(y / gridCellHeight),
-                                                noteLengthOptions[
-                                                    selectedDrawLengthIndex
-                                                ].divisor
-                                            );
-                                        }}
-                                        onMouseDown={(event) => {
-                                            if (
-                                                event.currentTarget ===
-                                                event.target
-                                            ) {
-                                                ClearSelectedNotesIndices();
-                                            }
-                                        }}
                                     />
                                 </Box>
                             </Box>
