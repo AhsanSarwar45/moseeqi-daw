@@ -1,6 +1,6 @@
 import { PianoKeys } from "@Data/Constants";
 import { defaultMinPartDuration } from "@Data/Defaults";
-import { SetState } from "@Data/Store";
+import { SetState, StoreState } from "@Data/Store";
 import { useStore } from "@Data/Store";
 import { BoxBounds } from "@Interfaces/Box";
 import { Note } from "@Interfaces/Note";
@@ -20,7 +20,7 @@ import { GetSelectedTrack } from "./TrackUtils";
 
 export const SetSelectedIndices = (
     selectionType: SelectionType,
-    indices: Array<SubSelectionIndex>
+    indices: SubSelectionIndex[]
 ) => {
     switch (selectionType) {
         case SelectionType.Part:
@@ -38,15 +38,15 @@ export const SetSelectedIndices = (
 
 export const Select = (
     containerIndex: number,
-    selectionIndex: number,
+    subContainerIndex: number,
     selectionType: SelectionType
-): Array<SubSelectionIndex> => {
+): SubSelectionIndex[] => {
     const selectedIndices = GetSelectedIndices(selectionType);
 
     const selectedIndex = FindSelectionIndex(
         selectedIndices,
         containerIndex,
-        selectionIndex
+        subContainerIndex
     );
 
     let newSelectedIndices = selectedIndices;
@@ -60,19 +60,17 @@ export const Select = (
         } else {
             newSelectedIndices = [
                 ...newSelectedIndices,
-                { containerIndex, selectionIndex },
+                { containerIndex, subContainerIndex },
             ];
         }
     } else {
         // If selection does not contain this object, then reset selected object to only this object
         if (selectedIndex < 0) {
-            newSelectedIndices = [{ containerIndex, selectionIndex }];
+            newSelectedIndices = [{ containerIndex, subContainerIndex }];
         } else {
             return newSelectedIndices;
         }
     }
-
-    // console.log("newSelectedIndices", newSelectedIndices);
 
     SetSelectedIndices(selectionType, newSelectedIndices);
 
@@ -87,42 +85,68 @@ const DoBoxesIntersect = (a: BoxBounds, b: BoxBounds) => {
     );
 };
 
-export const DragSelectNotes = (
+export const GetContainer = (selectionType: SelectionType): any[] => {
+    switch (selectionType) {
+        case SelectionType.Part:
+            return useStore.getState().tracks;
+        case SelectionType.Note:
+            return GetSelectedTrack().parts;
+        default:
+            return [];
+    }
+};
+
+export const GetSubContainer = (
+    selectionType: SelectionType,
+    container: any
+): TimeBlock[] => {
+    switch (selectionType) {
+        case SelectionType.Part:
+            return container.parts;
+        case SelectionType.Note:
+            return container.notes;
+        default:
+            return [];
+    }
+};
+
+export const DragSelect = (
     selectionBounds: BoxBounds,
     pixelsPerSecond: number,
-    pixelsPerRow: number
+    pixelsPerRow: number,
+    selectionType: SelectionType
 ) => {
-    SetState((draftState) => {
-        const selectedIndices: SubSelectionIndex[] = [];
-        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
-        selectedTrack.parts.forEach((part, partIndex) => {
-            part.notes.forEach((note, noteIndex) => {
-                const noteBounds = GetTimeBlockBounds(
-                    note,
-                    pixelsPerSecond,
-                    pixelsPerRow
-                );
-                if (DoBoxesIntersect(selectionBounds, noteBounds)) {
-                    selectedIndices.push({
-                        containerIndex: partIndex,
-                        selectionIndex: noteIndex,
-                    });
-                }
-            });
+    const selectedIndices: SubSelectionIndex[] = [];
+    const containers = GetContainer(selectionType);
+    containers?.forEach((container, containerIndex) => {
+        const subContainer = GetSubContainer(selectionType, container);
+        subContainer.forEach((timeBlock: TimeBlock, subContainerIndex) => {
+            const noteBounds = GetTimeBlockBounds(
+                timeBlock,
+                pixelsPerSecond,
+                pixelsPerRow
+            );
+            if (DoBoxesIntersect(selectionBounds, noteBounds)) {
+                selectedIndices.push({
+                    containerIndex: containerIndex,
+                    subContainerIndex: subContainerIndex,
+                });
+            }
         });
-        draftState.selectedNoteIndices = selectedIndices;
-    }, "Drag select notes");
+    });
+    // console.log(selectionType, selectedIndices);
+    SetSelectedIndices(selectionType, selectedIndices);
 };
 
 export const FindSelectionIndex = (
-    indices: Array<SubSelectionIndex>,
+    indices: SubSelectionIndex[],
     containerIndex: number,
     selectionIndex: number
 ): number => {
     return indices.findIndex(
         (index) =>
             index.containerIndex === containerIndex &&
-            index.selectionIndex === selectionIndex
+            index.subContainerIndex === selectionIndex
     );
 };
 
@@ -133,11 +157,11 @@ export const GetTimeBlock = (
 ): Draft<TimeBlock> => {
     return type === SelectionType.Part
         ? tracks[subSelectionIndex.containerIndex].parts[
-              subSelectionIndex.selectionIndex
+              subSelectionIndex.subContainerIndex
           ]
         : tracks[useStore.getState().selectedTrackIndex].parts[
               subSelectionIndex.containerIndex
-          ].notes[subSelectionIndex.selectionIndex];
+          ].notes[subSelectionIndex.subContainerIndex];
 };
 
 export const GetReadonlyTimeBlock = (
@@ -147,15 +171,15 @@ export const GetReadonlyTimeBlock = (
     const tracks = useStore.getState().tracks;
     return type === SelectionType.Part
         ? tracks[subSelectionIndex.containerIndex].parts[
-              subSelectionIndex.selectionIndex
+              subSelectionIndex.subContainerIndex
           ]
         : tracks[useStore.getState().selectedTrackIndex].parts[
               subSelectionIndex.containerIndex
-          ].notes[subSelectionIndex.selectionIndex];
+          ].notes[subSelectionIndex.subContainerIndex];
 };
 
 export const GetSelectionStartValue = (
-    selectedIndices: Array<SubSelectionIndex>,
+    selectedIndices: SubSelectionIndex[],
     type: SelectionType,
     property: "startTime" | "rowIndex"
 ): number => {
@@ -172,7 +196,7 @@ export const GetSelectionStartValue = (
 };
 
 export const GetSelectionStartIndex = (
-    selectedIndices: Array<SubSelectionIndex>,
+    selectedIndices: SubSelectionIndex[],
     type: SelectionType,
     property: "startTime" | "rowIndex"
 ): number => {
@@ -192,7 +216,7 @@ export const GetSelectionStartIndex = (
 
 export const GetSelectionOffsets = (
     timeBlock: TimeBlock,
-    selectedIndices: Array<SubSelectionIndex>,
+    selectedIndices: SubSelectionIndex[],
     type: SelectionType,
     property: "startTime" | "stopTime" | "rowIndex"
 ): Array<number> => {
@@ -210,7 +234,7 @@ export const IsSelected = (
     const selectedIndices = GetSelectedIndices(selectionType);
     return selectedIndices.some((index) => {
         return (
-            index.selectionIndex === subSelectionIndex.selectionIndex &&
+            index.subContainerIndex === subSelectionIndex.subContainerIndex &&
             index.containerIndex === subSelectionIndex.containerIndex
         );
     });
@@ -233,13 +257,13 @@ const UpdateTimeObject = (
         const selectedTrackIndex = useStore.getState().selectedTrackIndex;
         UpdateNote(
             selectionIndex.containerIndex,
-            selectionIndex.selectionIndex,
+            selectionIndex.subContainerIndex,
             tracks[selectedTrackIndex]
         );
     } else if (selectionType === SelectionType.Part) {
         UpdatePart(
             selectionIndex.containerIndex,
-            selectionIndex.selectionIndex,
+            selectionIndex.subContainerIndex,
             tracks
         );
     }

@@ -14,6 +14,7 @@ import { SelectionType } from "@Interfaces/Selection";
 import { SetState } from "@Data/Store";
 import { PartSaveData } from "@Interfaces/SaveData";
 import produce, { Draft } from "immer";
+import { SnapDown, SnapUp } from "./SnapUtils";
 
 export const CreateTonePart = (sampler: Draft<Tone.Sampler>) => {
     return new Tone.Part((time, value: any) => {
@@ -79,6 +80,18 @@ export const UpdatePart = (
     part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
+export const AddPartToTrack = (
+    startTime: number,
+    stopTime: number,
+    trackIndex: number
+) => {
+    SetState((draftState) => {
+        const track = draftState.tracks[trackIndex];
+        const part = CreatePart(startTime, stopTime, track.sampler);
+        track.parts.push(part);
+    }, "Add part");
+};
+
 export const AddNoteToPart = (note: Note, part: Draft<Part>) => {
     part.notes.push(note);
     part.tonePart.add(GetPartNote(note));
@@ -104,22 +117,14 @@ export const ExtendPart = (note: Note, part: Draft<Part>) => {
 
 export const GetNewPartStartTime = (noteStartTime: number) => {
     const secondsPerDivision = GetSecondsPerDivision();
-    const noteStartColumn = Math.floor(noteStartTime / secondsPerDivision);
-    return (
-        Math.floor(noteStartColumn / wholeNoteDivisions) *
-        wholeNoteDivisions *
-        secondsPerDivision
-    );
+    // const noteStartColumn = Math.floor(noteStartTime / secondsPerDivision);
+    return SnapDown(noteStartTime, wholeNoteDivisions * secondsPerDivision);
 };
 
 export const GetNewPartStopTime = (noteStopTime: number) => {
     const secondsPerDivision = GetSecondsPerDivision();
-    const noteStopColumn = Math.floor(noteStopTime / secondsPerDivision);
-    return (
-        Math.ceil(noteStopColumn / wholeNoteDivisions) *
-        wholeNoteDivisions *
-        secondsPerDivision
-    );
+    // const noteStopColumn = Math.floor(noteStopTime / secondsPerDivision);
+    return SnapUp(noteStopTime, wholeNoteDivisions * secondsPerDivision);
 };
 
 export const GetExtendedPartStopTime = (noteStopTime: number) => {
@@ -143,7 +148,7 @@ export const DeleteSelectedParts = () => {
                     IsSelected(
                         {
                             containerIndex: trackIndex,
-                            selectionIndex: partIndex,
+                            subContainerIndex: partIndex,
                         },
                         SelectionType.Part
                     )

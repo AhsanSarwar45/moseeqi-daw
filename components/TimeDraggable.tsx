@@ -157,10 +157,10 @@ const TimeDraggable = (props: TimeDraggableProps) => {
         [props.snapWidth, props.rowHeight, props.pixelsPerSecond]
     );
 
-    const SetupSelection = (): Array<SubSelectionIndex> => {
+    const SetupSelection = (): SubSelectionIndex[] => {
         const newSelectedPartIndices = Select(
             props.subSelectionIndex.containerIndex,
-            props.subSelectionIndex.selectionIndex,
+            props.subSelectionIndex.subContainerIndex,
             props.selectionType
         );
 
@@ -300,7 +300,7 @@ const TimeDraggable = (props: TimeDraggableProps) => {
                     if (event.button === 0) {
                         const newSelectedIndices = Select(
                             props.subSelectionIndex.containerIndex,
-                            props.subSelectionIndex.selectionIndex,
+                            props.subSelectionIndex.subContainerIndex,
                             props.selectionType
                         );
 

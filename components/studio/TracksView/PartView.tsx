@@ -14,6 +14,7 @@ interface PartViewProps {
     subSelectionIndex: SubSelectionIndex;
     pixelsPerSecond: number;
     snapWidth: number;
+    height: number;
 }
 
 const PartView = (props: PartViewProps) => {
@@ -30,7 +31,7 @@ const PartView = (props: PartViewProps) => {
             borderColor="white"
             selectedBorderColor="secondary.500"
             bgColor="rgb(0,0,0,0.4)"
-            height="full"
+            height={`${props.height}px`}
         >
             {props.part.notes.map((note, index) => (
                 <Box

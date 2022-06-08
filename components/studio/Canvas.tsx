@@ -1,23 +1,14 @@
-import { Box } from "@chakra-ui/react";
-import { noteLengthOptions } from "@Data/Constants";
+import { Box, useControllableState } from "@chakra-ui/react";
 import { useEvent } from "@Hooks/useEvent";
 import { BoxBounds } from "@Interfaces/Box";
 import { Coordinate } from "@Interfaces/Coordinate";
-import {
-    AddNoteToSelectedTrack,
-    ClearSelectedNotesIndices,
-} from "@Utility/NoteUtils";
-import { DragSelectNotes } from "@Utility/SelectionUtils";
-import { SnapDown } from "@Utility/SnapUtils";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+import { DragSelect } from "@Utility/SelectionUtils";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface CanvasProps {
-    pixelsPerSecond: number;
-    pixelsPerRow: number;
-    columnWidth: number;
-    isSnappingOn: boolean;
-    selectedDrawLengthIndex: number;
+    onDoubleClick: (mousePos: Coordinate) => void;
+    onClick: (mousePos: Coordinate) => void;
+    onDragStop: (bounds: BoxBounds) => void;
 }
 
 const Canvas = (props: CanvasProps) => {
@@ -46,36 +37,33 @@ const Canvas = (props: CanvasProps) => {
         });
     };
 
+    // console.log(clickAreaRef);
+
     const HandleMouseUp = useCallback(() => {
         if (isDragSelecting.current) {
             if (!IsSelectionZero()) {
-                DragSelectNotes(
-                    selectionBounds,
-                    props.pixelsPerSecond,
-                    props.pixelsPerRow
-                );
+                props.onDragStop(selectionBounds);
             }
             isDragSelecting.current = false;
             ResetSelectionBounds();
+            window.removeEventListener("mousemove", HandleMouseMove);
         }
-    }, [
-        props.pixelsPerRow,
-        props.pixelsPerSecond,
-        IsSelectionZero,
-        selectionBounds,
-    ]);
+    }, [IsSelectionZero, props.onDragStop, selectionBounds]);
 
     useEvent("mouseup", HandleMouseUp);
 
-    const GetRelativeMouseCoords = (
-        event: React.MouseEvent<HTMLElement>
+    const HandleMouseMove = useCallback((event: MouseEvent) => {
+        if (isDragSelecting.current) {
+            dragSelectCurrent.current = GetRelativeMousePos(event);
+            UpdateBounds();
+        }
+    }, []);
+
+    const GetRelativeMousePos = (
+        event: React.MouseEvent<HTMLElement> | MouseEvent
     ): Coordinate => {
         const rect = clickAreaRef.current?.getBoundingClientRect();
-
-        let x = event.clientX - rect?.left;
-        const y = event.clientY - rect?.top;
-
-        return { x, y };
+        return { x: event.clientX - rect?.left, y: event.clientY - rect?.top };
     };
 
     const UpdateBounds = () => {
@@ -113,37 +101,20 @@ const Canvas = (props: CanvasProps) => {
             width="full"
             height="full"
             onMouseDown={(event) => {
+                // console.log("click");
                 // Check if this is a double click
                 // This is a workaround for the fact that "mouseup" event listener disables onDoubleClick
                 if (event.detail === 2) {
-                    const mouseCoords = GetRelativeMouseCoords(event);
-
-                    if (props.isSnappingOn) {
-                        mouseCoords.x = SnapDown(
-                            mouseCoords.x,
-                            props.columnWidth
-                        );
-                    }
-
-                    AddNoteToSelectedTrack(
-                        mouseCoords.x / props.pixelsPerSecond,
-                        Math.floor(mouseCoords.y / props.pixelsPerRow),
-                        noteLengthOptions[props.selectedDrawLengthIndex].divisor
-                    );
+                    props.onDoubleClick(GetRelativeMousePos(event));
                 } else {
                     if (event.currentTarget === event.target) {
-                        ClearSelectedNotesIndices();
+                        props.onClick(GetRelativeMousePos(event));
                         isDragSelecting.current = true;
-                        dragSelectStart.current = GetRelativeMouseCoords(event);
+                        dragSelectStart.current = GetRelativeMousePos(event);
                         dragSelectCurrent.current = dragSelectStart.current;
+                        window.addEventListener("mousemove", HandleMouseMove);
                         UpdateBounds();
                     }
-                }
-            }}
-            onMouseMove={(event) => {
-                if (isDragSelecting.current) {
-                    dragSelectCurrent.current = GetRelativeMouseCoords(event);
-                    UpdateBounds();
                 }
             }}
         >

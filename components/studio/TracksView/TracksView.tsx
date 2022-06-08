@@ -23,13 +23,24 @@ import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
 import {
+    AddPartToTrack,
     ClearSelectedPartsIndices,
     DeleteSelectedParts,
+    GetNewPartStartTime,
+    GetNewPartStopTime,
 } from "@Utility/PartUtils";
+import Canvas from "../Canvas";
+import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+import { DragSelect } from "@Utility/SelectionUtils";
+import { BoxBounds } from "@Interfaces/Box";
+import { SelectionType } from "@Interfaces/Selection";
+import { Coordinate } from "@Interfaces/Coordinate";
 
 interface TracksViewProps {}
 
 const TracksView = (props: TracksViewProps) => {
+    const sequenceHeight = 90;
+    const pixelsPerRow = sequenceHeight;
     const baseWholeNoteWidth = 40;
     const basePixelsPerSecond = baseWholeNoteWidth / secondsPerWholeNote;
     // const snapDivisions = 8;
@@ -46,6 +57,10 @@ const TracksView = (props: TracksViewProps) => {
 
     const trackCount = useStore(selectTrackCount);
     const projectLength = useStore(selectProjectLength);
+
+    const pixelsPerSecond = GetPixelsPerSecond(basePixelsPerSecond);
+
+    const sequenceViewHeight = trackCount * sequenceHeight;
 
     const HandleWindowResize = () => {
         scaleGridTop.current?.resize();
@@ -101,19 +116,6 @@ const TracksView = (props: TracksViewProps) => {
                             zIndex={9300}
                         />
                         <TracksInfoView />
-                        {/* <HStack
-                            color="white"
-                            paddingY={2}
-                            paddingX={2}
-                            width={200}
-                            height={90}
-                            boxSizing="border-box"
-                            // borderBottomWidth={1}
-                            borderColor={"gray.500"}
-                            // height={200}
-                            position="relative"
-                            alignItems="flex-start"
-                        ></HStack> */}
                     </FocusArea>
                 </VStack>
 
@@ -126,7 +128,7 @@ const TracksView = (props: TracksViewProps) => {
                         top={0}
                         zIndex={400}
                     >
-                        <SeekHandle height={30 + 90 * trackCount} />
+                        <SeekHandle height={30 + sequenceViewHeight} />
                         <Ruler
                             type="horizontal"
                             unit={1}
@@ -138,7 +140,7 @@ const TracksView = (props: TracksViewProps) => {
                     </Box>
                     <FocusArea
                         panel={Panel.SequenceView}
-                        height={90 * trackCount}
+                        height={sequenceViewHeight}
                         padding="0px"
                         width={projectLength * basePixelsPerSecond}
                         marginTop="30px"
@@ -152,14 +154,42 @@ const TracksView = (props: TracksViewProps) => {
                             backgroundColor={theme.colors.primary[400]}
                             segment={4}
                             mainLineSize={0}
-                            shortLineSize={90 * trackCount}
-                            longLineSize={90 * trackCount}
-                            height={90 * trackCount}
+                            shortLineSize={sequenceViewHeight}
+                            longLineSize={sequenceViewHeight}
+                            height={sequenceViewHeight}
                             lineColor="rgba(255,255,255,0.1)"
                             textColor="rgba(0,0,0,0)"
                         />
+                        <Canvas
+                            onDoubleClick={(mousePos: Coordinate) => {
+                                const partStartTime = GetNewPartStartTime(
+                                    mousePos.x / pixelsPerSecond
+                                );
+                                const partStopTime = GetNewPartStopTime(
+                                    (mousePos.x + 1) / pixelsPerSecond
+                                );
+                                AddPartToTrack(
+                                    partStartTime,
+                                    partStopTime,
+                                    Math.floor(mousePos.y / pixelsPerRow)
+                                );
+                            }}
+                            onClick={() => {
+                                ClearSelectedPartsIndices();
+                                // SetSelectedTrackIndex(props.trackIndex);
+                            }}
+                            onDragStop={(bounds: BoxBounds) =>
+                                DragSelect(
+                                    bounds,
+                                    pixelsPerSecond,
+                                    pixelsPerRow,
+                                    SelectionType.Part
+                                )
+                            }
+                        />
                         <SequenceView
                             basePixelsPerSecond={basePixelsPerSecond}
+                            sequenceHeight={sequenceHeight}
                             snapWidth={
                                 isSnappingOn
                                     ? baseWholeNoteWidth /

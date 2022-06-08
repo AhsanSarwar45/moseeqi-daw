@@ -10,6 +10,7 @@ interface SequenceProps {
     trackIndex: number;
     basePixelsPerSecond: number;
     snapWidth: number;
+    height: number;
 }
 
 const Sequence = (props: SequenceProps) => {
@@ -18,18 +19,21 @@ const Sequence = (props: SequenceProps) => {
 
     return (
         <Box
+            top={props.height * props.trackIndex}
             key={props.trackIndex}
-            height="90px"
-            width={projectLength * props.basePixelsPerSecond}
+            // height={props.height}
+            // width={projectLength * props.basePixelsPerSecond}
             position="relative"
             padding="0px"
-            onMouseDown={(event) => {
-                if (event.currentTarget === event.target) {
-                    ClearSelectedPartsIndices();
-                    SetSelectedTrackIndex(props.trackIndex);
-                }
-            }}
-            borderBottom="1px solid gray"
+            // onMouseDown={(event) => {
+            //     if (event.currentTarget === event.target) {
+            //         ClearSelectedPartsIndices();
+            //         SetSelectedTrackIndex(props.trackIndex);
+            //     }
+            // }}
+            // borderBottomWidth={1}
+            // borderColor={"gray.500"}
+            // boxSizing="border-box"
         >
             {parts.map((part, partIndex) => (
                 <PartView
@@ -37,12 +41,13 @@ const Sequence = (props: SequenceProps) => {
                     part={part}
                     subSelectionIndex={{
                         containerIndex: props.trackIndex,
-                        selectionIndex: partIndex,
+                        subContainerIndex: partIndex,
                     }}
                     pixelsPerSecond={GetPixelsPerSecond(
                         props.basePixelsPerSecond
                     )}
                     snapWidth={props.snapWidth}
+                    height={props.height}
                 />
             ))}
         </Box>

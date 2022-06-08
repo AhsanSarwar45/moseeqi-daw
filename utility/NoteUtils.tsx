@@ -131,7 +131,7 @@ export const DeleteSelectedNotes = () => {
                     IsSelected(
                         {
                             containerIndex: partIndex,
-                            selectionIndex: noteIndex,
+                            subContainerIndex: noteIndex,
                         },
                         SelectionType.Note
                     )

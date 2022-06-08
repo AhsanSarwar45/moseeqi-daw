@@ -10,6 +10,7 @@ import Sequence from "./Sequence";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
+    sequenceHeight: number;
     snapWidth: number;
 }
 
@@ -26,6 +27,7 @@ const SequenceView = (props: SequenceViewProps) => {
                         trackIndex={index}
                         basePixelsPerSecond={props.basePixelsPerSecond}
                         snapWidth={props.snapWidth}
+                        height={props.sequenceHeight}
                     />
                 );
             })}

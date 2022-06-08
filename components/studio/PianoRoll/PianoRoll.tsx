@@ -18,7 +18,16 @@ import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
-import Canvas from "./Canvas";
+import Canvas from "@Components/studio/Canvas";
+import {
+    AddNoteToSelectedTrack,
+    ClearSelectedNotesIndices,
+} from "@Utility/NoteUtils";
+import { SnapDown } from "@Utility/SnapUtils";
+import { Coordinate } from "@Interfaces/Coordinate";
+import { BoxBounds } from "@Interfaces/Box";
+import { DragSelect } from "@Utility/SelectionUtils";
+import { SelectionType } from "@Interfaces/Selection";
 
 interface PianoRollProps {}
 
@@ -33,11 +42,13 @@ const PianoRoll = (props: PianoRollProps) => {
     ).length;
     const gridHeight = numWhiteNotes * whiteKeyHeight;
     const gridCellHeight = blackKeyHeightModifier * whiteKeyHeight;
+    const pixelsPerRow = gridCellHeight;
 
     // console.log(numNotes, gridCellHeight);
 
     const baseWholeNoteWidth = columnWidth * wholeNoteDivisions;
     const basePixelsPerSecond = baseWholeNoteWidth / secondsPerWholeNote;
+    const pixelsPerSecond = GetPixelsPerSecond(basePixelsPerSecond);
 
     const [isSnappingOn, setIsSnappingOn] = useState(true);
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
@@ -197,14 +208,36 @@ const PianoRoll = (props: PianoRollProps) => {
                                     }}
                                 >
                                     <Canvas
-                                        pixelsPerRow={gridCellHeight}
-                                        isSnappingOn={isSnappingOn}
-                                        pixelsPerSecond={GetPixelsPerSecond(
-                                            basePixelsPerSecond
-                                        )}
-                                        columnWidth={columnWidth}
-                                        selectedDrawLengthIndex={
-                                            selectedDrawLengthIndex
+                                        onDoubleClick={(
+                                            mousePos: Coordinate
+                                        ) => {
+                                            if (isSnappingOn) {
+                                                mousePos.x = SnapDown(
+                                                    mousePos.x,
+                                                    columnWidth
+                                                );
+                                            }
+
+                                            AddNoteToSelectedTrack(
+                                                mousePos.x / pixelsPerSecond,
+                                                Math.floor(
+                                                    mousePos.y / pixelsPerRow
+                                                ),
+                                                noteLengthOptions[
+                                                    selectedDrawLengthIndex
+                                                ].divisor
+                                            );
+                                        }}
+                                        onClick={() =>
+                                            ClearSelectedNotesIndices()
+                                        }
+                                        onDragStop={(bounds: BoxBounds) =>
+                                            DragSelect(
+                                                bounds,
+                                                pixelsPerSecond,
+                                                pixelsPerRow,
+                                                SelectionType.Note
+                                            )
                                         }
                                     />
                                     <GridView

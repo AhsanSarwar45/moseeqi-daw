@@ -6,7 +6,7 @@ import {
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
-import { SelectionType } from "@Interfaces/Selection";
+import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import {
     DeleteNote,
     IsNoteDisabled,
@@ -34,9 +34,9 @@ interface MidiNoteProps {
 export const MidiNote = (props: MidiNoteProps) => {
     const selectedNoteIndices = useStore(selectSelectedNoteIndices);
 
-    const subSelectionIndex = {
+    const subSelectionIndex: SubSelectionIndex = {
         containerIndex: props.partIndex,
-        selectionIndex: props.noteIndex,
+        subContainerIndex: props.noteIndex,
     };
 
     const HandleResize = (duration: number) => {

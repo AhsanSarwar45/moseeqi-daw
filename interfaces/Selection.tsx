@@ -31,7 +31,7 @@ export interface TrackSelectionIndex {
 
 export interface SubSelectionIndex {
     readonly containerIndex: number;
-    readonly selectionIndex: number;
+    readonly subContainerIndex: number;
 }
 
 export interface Selection {

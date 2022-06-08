@@ -6,7 +6,6 @@ export const useEvent = (
     element: any = window
 ) => {
     useEffect(() => {
-        console.log("added");
         element.addEventListener(event, callback);
         return () => element.removeEventListener(event, callback);
     }, [event, callback, element]);

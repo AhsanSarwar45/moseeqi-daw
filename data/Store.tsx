@@ -20,8 +20,8 @@ export interface StoreState {
     readonly tracks: Array<Track>;
     readonly trackCount: number;
     readonly selectedTrackIndex: number;
-    readonly selectedPartIndices: Array<SubSelectionIndex>;
-    readonly selectedNoteIndices: Array<SubSelectionIndex>;
+    readonly selectedPartIndices: SubSelectionIndex[];
+    readonly selectedNoteIndices: SubSelectionIndex[];
 
     readonly bpm: number;
 
