@@ -75,14 +75,10 @@ export const MakeNotePartRelative = (note: Draft<Note>, part: Draft<Part>) => {
 export const UpdateNote = (
     partIndex: number,
     noteIndex: number,
-    prevTracks: Draft<Track>,
-    nextTracks: Draft<Track>
+    prevTracks: Draft<Track>
 ) => {
     const part = prevTracks.parts[partIndex];
     const note = part.notes[noteIndex];
-    const nextNote = nextTracks.parts[partIndex].notes[noteIndex];
-
-    CopyTimeBlock(note, nextNote);
 
     note.startTime += part.startTime;
     note.stopTime += part.startTime;

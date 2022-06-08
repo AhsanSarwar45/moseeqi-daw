@@ -19,7 +19,7 @@ import {
 } from "@Utility/SelectionUtils";
 import { Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
-import { DisableUndoHistory, EnableUndoHistory } from "@Data/Store";
+import { DisableHistory, EnableHistory } from "@Utility/HistoryUtils";
 
 // const [addMouseUpListener, removeMouseUpListener] = Listener();
 type ModifyHandler = (
@@ -183,9 +183,9 @@ const TimeDraggable = (props: TimeDraggableProps) => {
     const HandleMouseUp = useCallback(
         (event: MouseEvent) => {
             if (event.button === 0) {
-                const newState = EnableUndoHistory();
+                EnableHistory();
                 if (hasChanged.current) {
-                    CommitSelectionUpdate(props.selectionType, newState.tracks);
+                    CommitSelectionUpdate(props.selectionType);
                     hasChanged.current = false;
                 }
                 if (isDraggingRef.current) {
@@ -224,7 +224,8 @@ const TimeDraggable = (props: TimeDraggableProps) => {
     const StartDrag = () => {
         hasChanged.current = false;
         initialTimeBlock.current = props.timeBlock;
-        DisableUndoHistory();
+        // We don't want to add all teh intermediate movements to undo history
+        DisableHistory();
         window.addEventListener("mousemove", HandleMouseMove);
     };
 

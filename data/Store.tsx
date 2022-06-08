@@ -14,19 +14,19 @@ import {
 import { initialSecondsPerDivision } from "./Constants";
 import produce, { enablePatches } from "immer";
 import { Recipe } from "@Interfaces/Recipe";
-import { useUndoStore } from "./UndoStore";
+import { AddToHistory } from "@Utility/HistoryUtils";
 
 export interface StoreState {
-    tracks: Array<Track>;
-    trackCount: number;
-    selectedTrackIndex: number;
-    selectedPartIndices: Array<SubSelectionIndex>;
-    selectedNoteIndices: Array<SubSelectionIndex>;
+    readonly tracks: Array<Track>;
+    readonly trackCount: number;
+    readonly selectedTrackIndex: number;
+    readonly selectedPartIndices: Array<SubSelectionIndex>;
+    readonly selectedNoteIndices: Array<SubSelectionIndex>;
 
-    bpm: number;
+    readonly bpm: number;
 
-    projectName: string;
-    projectLength: number;
+    readonly projectName: string;
+    readonly projectLength: number;
 }
 
 export const useStore = create<StoreState>()(
@@ -61,24 +61,6 @@ export const selectCurrentSecondPerDivision = (state: StoreState) =>
 export const selectProjectName = (state: StoreState) => state.projectName;
 export const selectProjectLength = (state: StoreState) => state.projectLength;
 
-let isUndoHistoryEnabled = true;
-let stateBeforeHistoryDisabled: StoreState = { ...useStore.getState() };
-let historyRecentlyEnabled = false;
-
-export const DisableUndoHistory = () => {
-    isUndoHistoryEnabled = false;
-    stateBeforeHistoryDisabled = useStore.getState();
-};
-
-export const EnableUndoHistory = (): StoreState => {
-    if (!isUndoHistoryEnabled) {
-        historyRecentlyEnabled = true;
-    }
-    isUndoHistoryEnabled = true;
-
-    return useStore.getState();
-};
-
 enablePatches();
 
 export const SetState = (
@@ -88,28 +70,9 @@ export const SetState = (
 ) => {
     console.log(actionName);
 
-    const prevState = historyRecentlyEnabled
-        ? stateBeforeHistoryDisabled
-        : useStore.getState();
-
-    historyRecentlyEnabled = false;
-
     useStore.setState(
-        produce(prevState, recipe, (patches, inversePatches) => {
-            if (isUndoHistoryEnabled && addToUndoHistory) {
-                useUndoStore.setState(
-                    produce(useUndoStore.getState(), (draftState) => {
-                        const state = {
-                            patches: patches,
-                            inversePatches: inversePatches,
-                            actionName,
-                        };
-                        console.log(state);
-                        draftState.pastStates.push(state);
-                        draftState.futureStates = [];
-                    })
-                );
-            }
-        })
+        produce(useStore.getState(), recipe, (patches, inversePatches) =>
+            AddToHistory(patches, inversePatches, actionName, addToUndoHistory)
+        )
     );
 };

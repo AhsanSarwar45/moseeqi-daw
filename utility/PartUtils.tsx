@@ -73,12 +73,10 @@ export const SetPartTime = (
 export const UpdatePart = (
     trackIndex: number,
     partIndex: number,
-    prevTracks: Draft<Track>[],
-    nextTracks: Draft<Track>[]
+    prevTracks: Draft<Track>[]
 ) => {
-    const prevPart = prevTracks[trackIndex].parts[partIndex];
-    const nextPart = nextTracks[trackIndex].parts[partIndex];
-    SetPartTime(prevPart, nextPart.startTime, nextPart.stopTime);
+    const part = prevTracks[trackIndex].parts[partIndex];
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const AddNoteToPart = (note: Note, part: Draft<Part>) => {
