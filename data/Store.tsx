@@ -45,7 +45,7 @@ export const useStore = create<StoreState>()(
 export const selectTracks = (state: StoreState) => state.tracks;
 export const selectSelectedTrack = (state: StoreState) =>
     state.tracks[state.selectedTrackIndex];
-export const selectTrackCount = (state: StoreState) => state.trackCount;
+export const selectTrackCount = (state: StoreState) => state.tracks.length;
 export const selectSelectedPartIndices = (state: StoreState) =>
     state.selectedPartIndices;
 export const selectSelectedNoteIndices = (state: StoreState) =>

@@ -1,5 +1,4 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
-import { useState, useEffect, Fragment } from "react";
 import { SplitDirection } from "@devbookhq/splitter";
 
 import PlayBackController from "@Components/studio/PlaybackController";
@@ -14,7 +13,7 @@ import Hotkeys from "./Hotkeys";
 
 const Studio = () => {
     return (
-        <Fragment>
+        <>
             <Flex
                 height="100vh"
                 width="full"
@@ -28,26 +27,26 @@ const Studio = () => {
                     flexDirection="row"
                     overflow="hidden"
                 >
-                    <Splitter initialSizes={[80, 20]}>
-                        <Flex
-                            height="100%"
-                            overflow="hidden"
-                            flexDirection="column"
-                            flexGrow={3}
-                        >
-                            <Splitter direction={SplitDirection.Vertical}>
-                                <TracksView />
-                                <PianoRoll />
-                            </Splitter>
-                        </Flex>
-                        <PropertiesPanel />
-                    </Splitter>
+                    {/* <Splitter initialSizes={[80, 20]}> */}
+                    <Flex
+                        height="100%"
+                        overflow="hidden"
+                        flexDirection="column"
+                        flexGrow={3}
+                    >
+                        <Splitter direction={SplitDirection.Vertical}>
+                            <TracksView />
+                            <PianoRoll />
+                        </Splitter>
+                    </Flex>
+                    {/* <PropertiesPanel /> */}
+                    {/* </Splitter> */}
                 </Flex>
                 <PlayBackController />
             </Flex>
             <Hotkeys />
             <WaitingModal />
-        </Fragment>
+        </>
     );
 };
 

@@ -1,10 +1,12 @@
-import { selectProjectLength, selectTracks, useStore } from "@Data/Store";
+import {
+    selectProjectLength,
+    selectTrackCount,
+    selectTracks,
+    useStore,
+} from "@Data/Store";
 import { Box } from "@chakra-ui/react";
 import { Track } from "@Interfaces/Track";
-import PartView from "./PartView";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
-import { SetSelectedTrackIndex } from "@Utility/TrackUtils";
+import Sequence from "./Sequence";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -12,42 +14,21 @@ interface SequenceViewProps {
 }
 
 const SequenceView = (props: SequenceViewProps) => {
-    const tracks = useStore(selectTracks);
-    const projectLength = useStore(selectProjectLength);
+    const trackCount = useStore(selectTrackCount);
 
     return (
         <Box position="absolute" top={0} left={0}>
-            {tracks.map((track: Track, trackIndex: number) => (
-                <Box
-                    key={trackIndex}
-                    height="90px"
-                    width={projectLength * props.basePixelsPerSecond}
-                    position="relative"
-                    padding="0px"
-                    onMouseDown={(event) => {
-                        if (event.currentTarget === event.target) {
-                            ClearSelectedPartsIndices();
-                            SetSelectedTrackIndex(trackIndex);
-                        }
-                    }}
-                    borderBottom="1px solid gray"
-                >
-                    {track.parts.map((part, partIndex) => (
-                        <PartView
-                            key={part.id}
-                            part={part}
-                            subSelectionIndex={{
-                                containerIndex: trackIndex,
-                                selectionIndex: partIndex,
-                            }}
-                            pixelsPerSecond={GetPixelsPerSecond(
-                                props.basePixelsPerSecond
-                            )}
-                            snapWidth={props.snapWidth}
-                        />
-                    ))}
-                </Box>
-            ))}
+            {[...Array(trackCount)].map((_, index) => {
+                // console.log(index, trackCount, 4);
+                return (
+                    <Sequence
+                        key={index}
+                        trackIndex={index}
+                        basePixelsPerSecond={props.basePixelsPerSecond}
+                        snapWidth={props.snapWidth}
+                    />
+                );
+            })}
         </Box>
     );
 };

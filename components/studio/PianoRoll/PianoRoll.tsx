@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { HStack, Icon, Box, Flex, VStack, ButtonGroup } from "@chakra-ui/react";
 import Ruler from "@scena/react-ruler";
 import { noteLengthOptions, PianoKeys } from "@Data/Constants";
-import ToggleButton from "@Components/ToggleButton";
 import {
     blackKeyHeightModifier,
     secondsPerWholeNote,
@@ -11,8 +10,7 @@ import {
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import { SnapDown } from "@Utility/SnapUtils";
-import { KeysView } from "./KeysView";
+import KeysView from "./KeysView";
 import { Row } from "./Row";
 import { Timeline } from "./Timeline";
 import { selectProjectLength, selectTrackCount, useStore } from "@Data/Store";
@@ -20,12 +18,6 @@ import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
-import {
-    AddNoteToSelectedTrack,
-    ClearSelectedNotesIndices,
-    DeleteSelectedNotes,
-} from "@Utility/NoteUtils";
-import { Coordinate } from "@Interfaces/Coordinate";
 import Canvas from "./Canvas";
 
 interface PianoRollProps {}

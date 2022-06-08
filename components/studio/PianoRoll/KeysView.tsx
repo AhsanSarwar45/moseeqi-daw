@@ -3,15 +3,14 @@ import { PianoKeys } from "@Data/Constants";
 import { Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
 import { memo } from "react";
-import { Key } from "./Key";
+import Key from "./Key";
 
 interface KeysViewProps {
     width: Dimension;
     stickyHeight: Dimension;
     rowHeight: Dimension;
 }
-
-export const KeysView = memo((props: KeysViewProps) => {
+const KeysView = (props: KeysViewProps) => {
     return (
         <Box
             position="sticky"
@@ -41,6 +40,6 @@ export const KeysView = memo((props: KeysViewProps) => {
             ))}
         </Box>
     );
-});
+};
 
-KeysView.displayName = "KeysView";
+export default memo(KeysView);
