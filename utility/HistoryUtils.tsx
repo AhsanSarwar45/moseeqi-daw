@@ -41,6 +41,7 @@ export const AddToHistory = (
             draftState.pastStates.push(state);
             // Clearing redo states on a new state change is standard practice
             draftState.futureStates = [];
+            draftState.patchesWhileDisabled = [];
             draftState.prevHistoryEnabledState = true;
         });
     } else {
