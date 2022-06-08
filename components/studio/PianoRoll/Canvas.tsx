@@ -1,39 +1,71 @@
 import { Box } from "@chakra-ui/react";
 import { noteLengthOptions } from "@Data/Constants";
+import { useEvent } from "@Hooks/useEvent";
+import { BoxBounds } from "@Interfaces/Box";
 import { Coordinate } from "@Interfaces/Coordinate";
 import {
     AddNoteToSelectedTrack,
     ClearSelectedNotesIndices,
 } from "@Utility/NoteUtils";
+import { DragSelectNotes } from "@Utility/SelectionUtils";
 import { SnapDown } from "@Utility/SnapUtils";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface CanvasProps {
-    basePixelsPerSecond: number;
+    pixelsPerSecond: number;
+    pixelsPerRow: number;
     columnWidth: number;
-    gridCellHeight: number;
     isSnappingOn: boolean;
     selectedDrawLengthIndex: number;
 }
 
 const Canvas = (props: CanvasProps) => {
     const clickAreaRef = useRef<any>(null);
-    const [isDragSelecting, setIsDragSelecting] = useState(false);
+    const isDragSelecting = useRef(false);
     const dragSelectStart = useRef<Coordinate>({ x: 0, y: 0 });
     const dragSelectCurrent = useRef<Coordinate>({ x: 0, y: 0 });
 
-    const [bounds, setBounds] = useState({
-        top: 0,
+    const [selectionBounds, setSelectionBounds] = useState<BoxBounds>({
         left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0,
+        width: 0,
+        height: 0,
     });
 
+    const IsSelectionZero = useCallback(() => {
+        return selectionBounds.width === 0 && selectionBounds.height === 0;
+    }, [selectionBounds]);
+
+    const ResetSelectionBounds = () => {
+        setSelectionBounds({
+            left: 0,
+            top: 0,
+            width: 0,
+            height: 0,
+        });
+    };
+
     const HandleMouseUp = useCallback(() => {
-        setIsDragSelecting(false);
-        window.removeEventListener("mouseup", HandleMouseUp);
-    }, []);
+        if (isDragSelecting.current) {
+            if (!IsSelectionZero()) {
+                DragSelectNotes(
+                    selectionBounds,
+                    props.pixelsPerSecond,
+                    props.pixelsPerRow
+                );
+            }
+            isDragSelecting.current = false;
+            ResetSelectionBounds();
+        }
+    }, [
+        props.pixelsPerRow,
+        props.pixelsPerSecond,
+        IsSelectionZero,
+        selectionBounds,
+    ]);
+
+    useEvent("mouseup", HandleMouseUp);
 
     const GetRelativeMouseCoords = (
         event: React.MouseEvent<HTMLElement>
@@ -64,11 +96,11 @@ const Canvas = (props: CanvasProps) => {
             dragSelectCurrent.current.y
         );
 
-        setBounds({
+        setSelectionBounds({
             top: top,
             left: left,
-            right: right,
-            bottom: bottom,
+            width: right - left,
+            height: bottom - top,
         });
     };
 
@@ -81,8 +113,9 @@ const Canvas = (props: CanvasProps) => {
             width="full"
             height="full"
             onMouseDown={(event) => {
+                // Check if this is a double click
+                // This is a workaround for the fact that "mouseup" event listener disables onDoubleClick
                 if (event.detail === 2) {
-                    console.log("hello");
                     const mouseCoords = GetRelativeMouseCoords(event);
 
                     if (props.isSnappingOn) {
@@ -93,41 +126,37 @@ const Canvas = (props: CanvasProps) => {
                     }
 
                     AddNoteToSelectedTrack(
-                        mouseCoords.x /
-                            GetPixelsPerSecond(props.basePixelsPerSecond),
-                        Math.floor(mouseCoords.y / props.gridCellHeight),
+                        mouseCoords.x / props.pixelsPerSecond,
+                        Math.floor(mouseCoords.y / props.pixelsPerRow),
                         noteLengthOptions[props.selectedDrawLengthIndex].divisor
                     );
                 } else {
                     if (event.currentTarget === event.target) {
                         ClearSelectedNotesIndices();
-                        setIsDragSelecting(true);
+                        isDragSelecting.current = true;
                         dragSelectStart.current = GetRelativeMouseCoords(event);
                         dragSelectCurrent.current = dragSelectStart.current;
                         UpdateBounds();
-                        window.addEventListener("mouseup", HandleMouseUp);
                     }
                 }
             }}
             onMouseMove={(event) => {
-                if (isDragSelecting) {
+                if (isDragSelecting.current) {
                     dragSelectCurrent.current = GetRelativeMouseCoords(event);
                     UpdateBounds();
                 }
             }}
-            // onMouseUp={HandleFinishDragging}
-            // onMouseLeave={HandleFinishDragging}
         >
-            {isDragSelecting && (
+            {!IsSelectionZero() && (
                 <Box
                     bgColor="rgba(0, 0, 0, 0.2)"
                     borderColor="white"
                     borderWidth={1}
                     position="absolute"
-                    top={`${bounds.top}px`}
-                    left={`${bounds.left}px`}
-                    height={`${bounds.bottom - bounds.top}px`}
-                    width={`${bounds.right - bounds.left}px`}
+                    top={`${selectionBounds.top}px`}
+                    left={`${selectionBounds.left}px`}
+                    height={`${selectionBounds.height}px`}
+                    width={`${selectionBounds.width}px`}
                 />
             )}
         </Box>

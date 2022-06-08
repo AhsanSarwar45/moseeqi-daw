@@ -2,6 +2,7 @@ import { PianoKeys } from "@Data/Constants";
 import { defaultMinPartDuration } from "@Data/Defaults";
 import { SetState } from "@Data/Store";
 import { useStore } from "@Data/Store";
+import { BoxBounds } from "@Interfaces/Box";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { TimeBlock } from "@Interfaces/TimeBlock";
@@ -10,7 +11,11 @@ import { Draft } from "immer";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { UpdateNote } from "./NoteUtils";
 import { SetPartTime, UpdatePart } from "./PartUtils";
-import { SetTimeBlock, SetTimeBlockRowIndex } from "./TimeBlockUtils";
+import {
+    GetTimeBlockBounds,
+    SetTimeBlock,
+    SetTimeBlockRowIndex,
+} from "./TimeBlockUtils";
 import { GetSelectedTrack } from "./TrackUtils";
 
 export const SetSelectedIndices = (
@@ -27,8 +32,6 @@ export const SetSelectedIndices = (
             SetState((draftState) => {
                 draftState.selectedNoteIndices = indices;
             }, "Select note");
-            break;
-        default:
             break;
     }
 };
@@ -74,6 +77,41 @@ export const Select = (
     SetSelectedIndices(selectionType, newSelectedIndices);
 
     return newSelectedIndices;
+};
+const DoBoxesIntersect = (a: BoxBounds, b: BoxBounds) => {
+    return (
+        Math.abs(a.left + a.width / 2 - (b.left + b.width / 2)) * 2 <
+            a.width + b.width &&
+        Math.abs(a.top + a.height / 2 - (b.top + b.height / 2)) * 2 <
+            a.height + b.height
+    );
+};
+
+export const DragSelectNotes = (
+    selectionBounds: BoxBounds,
+    pixelsPerSecond: number,
+    pixelsPerRow: number
+) => {
+    SetState((draftState) => {
+        const selectedIndices: SubSelectionIndex[] = [];
+        const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
+        selectedTrack.parts.forEach((part, partIndex) => {
+            part.notes.forEach((note, noteIndex) => {
+                const noteBounds = GetTimeBlockBounds(
+                    note,
+                    pixelsPerSecond,
+                    pixelsPerRow
+                );
+                if (DoBoxesIntersect(selectionBounds, noteBounds)) {
+                    selectedIndices.push({
+                        containerIndex: partIndex,
+                        selectionIndex: noteIndex,
+                    });
+                }
+            });
+        });
+        draftState.selectedNoteIndices = selectedIndices;
+    }, "Drag select notes");
 };
 
 export const FindSelectionIndex = (

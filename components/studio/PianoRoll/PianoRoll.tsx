@@ -205,11 +205,11 @@ const PianoRoll = (props: PianoRollProps) => {
                                     }}
                                 >
                                     <Canvas
-                                        gridCellHeight={gridCellHeight}
+                                        pixelsPerRow={gridCellHeight}
                                         isSnappingOn={isSnappingOn}
-                                        basePixelsPerSecond={
+                                        pixelsPerSecond={GetPixelsPerSecond(
                                             basePixelsPerSecond
-                                        }
+                                        )}
                                         columnWidth={columnWidth}
                                         selectedDrawLengthIndex={
                                             selectedDrawLengthIndex

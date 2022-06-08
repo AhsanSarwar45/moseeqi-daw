@@ -1,3 +1,4 @@
+import { BoxBounds } from "@Interfaces/Box";
 import { TimeBlock } from "@Interfaces/TimeBlock";
 import { Draft } from "immer";
 
@@ -34,4 +35,17 @@ export const CopyTimeBlock = (to: Draft<TimeBlock>, from: Draft<TimeBlock>) => {
     to.stopTime = from.stopTime;
     to.duration = from.duration;
     to.rowIndex = from.rowIndex;
+};
+
+export const GetTimeBlockBounds = (
+    timeBlock: TimeBlock,
+    pixelsPerSecond: number,
+    pixelsPerRow: number
+): BoxBounds => {
+    const top = timeBlock.rowIndex * pixelsPerRow;
+    const left = timeBlock.startTime * pixelsPerSecond;
+    const width = timeBlock.duration * pixelsPerSecond;
+    const height = pixelsPerRow;
+
+    return { top, left, width, height };
 };
