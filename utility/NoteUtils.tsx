@@ -77,8 +77,8 @@ export const UpdateNote = (
     noteIndex: number,
     prevTracks: Draft<Track>
 ) => {
-    const part = prevTracks.parts[partIndex];
-    const note = part.notes[noteIndex];
+    const part = prevTracks.timeBlocks[partIndex] as Draft<Part>;
+    const note = part.timeBlocks[noteIndex] as Draft<Note>;
 
     note.startTime += part.startTime;
     note.stopTime += part.startTime;
@@ -93,7 +93,7 @@ export const UpdateNote = (
         MakeNotePartRelative(note, part);
     } else {
         // Remove the note from the current part
-        part.notes.splice(noteIndex, 1);
+        part.timeBlocks.splice(noteIndex, 1);
         AddNoteToTrack(prevTracks, note);
     }
 
@@ -114,10 +114,10 @@ export const IsNoteDisabled = (note: Note, part: Part) => {
 export const DeleteNote = (partIndex: number, noteIndex: number) => {
     SetState((draftState) => {
         const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
-        const part = selectedTrack.parts[partIndex];
-        const note = part.notes[noteIndex];
+        const part = selectedTrack.timeBlocks[partIndex] as Draft<Part>;
+        const note = part.timeBlocks[noteIndex] as Draft<Note>;
         // Remove the note from the part
-        part.notes = part.notes.filter((n) => n.id !== note.id);
+        part.timeBlocks = part.timeBlocks.filter((n) => n.id !== note.id);
         SynchronizePartNotes(part);
     }, "Delete note");
 };
@@ -125,24 +125,29 @@ export const DeleteNote = (partIndex: number, noteIndex: number) => {
 export const DeleteSelectedNotes = () => {
     SetState((draftState) => {
         const selectedTrack = draftState.tracks[draftState.selectedTrackIndex];
-        selectedTrack.parts = selectedTrack.parts.map((part, partIndex) => {
-            part.notes = part.notes.filter((note, noteIndex) => {
-                if (
-                    IsSelected(
-                        {
-                            containerIndex: partIndex,
-                            subContainerIndex: noteIndex,
-                        },
-                        SelectionType.Note
-                    )
-                ) {
-                    return false;
-                }
-                return true;
-            });
-            SynchronizePartNotes(part);
-            return part;
-        });
+        selectedTrack.timeBlocks = selectedTrack.timeBlocks.map(
+            (partTimeBlock, partIndex) => {
+                const part = partTimeBlock as Draft<Part>;
+                part.timeBlocks = part.timeBlocks.filter(
+                    (noteTimeBlock, noteIndex) => {
+                        if (
+                            IsSelected(
+                                {
+                                    containerIndex: partIndex,
+                                    subContainerIndex: noteIndex,
+                                },
+                                SelectionType.Note
+                            )
+                        ) {
+                            return false;
+                        }
+                        return true;
+                    }
+                );
+                SynchronizePartNotes(part);
+                return part;
+            }
+        );
 
         draftState.selectedNoteIndices = [];
     }, "Delete notes");

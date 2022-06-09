@@ -6,6 +6,7 @@ import { BoxBounds } from "@Interfaces/Box";
 import { Note } from "@Interfaces/Note";
 import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { TimeBlock } from "@Interfaces/TimeBlock";
+import { TimeBlockContainer } from "@Interfaces/TimeBlockContainer";
 import { Track } from "@Interfaces/Track";
 import { Draft } from "immer";
 import { isHotkeyPressed } from "react-hotkeys-hook";
@@ -85,12 +86,14 @@ const DoBoxesIntersect = (a: BoxBounds, b: BoxBounds) => {
     );
 };
 
-export const GetContainer = (selectionType: SelectionType): any[] => {
+export const GetContainer = (
+    selectionType: SelectionType
+): TimeBlockContainer[] => {
     switch (selectionType) {
         case SelectionType.Part:
             return useStore.getState().tracks;
         case SelectionType.Note:
-            return GetSelectedTrack().parts;
+            return GetSelectedTrack().timeBlocks;
         default:
             return [];
     }
