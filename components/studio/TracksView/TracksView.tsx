@@ -23,7 +23,7 @@ import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
 import {
-    AddPartToTrack,
+    CreatePartInTrack,
     ClearSelectedPartsIndices,
     DeleteSelectedParts,
     GetNewPartStartTime,
@@ -31,7 +31,7 @@ import {
 } from "@Utility/PartUtils";
 import Canvas from "../Canvas";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import { DragSelect } from "@Utility/SelectionUtils";
+import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
 import { BoxBounds } from "@Interfaces/Box";
 import { SelectionType } from "@Interfaces/Selection";
 import { Coordinate } from "@Interfaces/Coordinate";
@@ -168,7 +168,7 @@ const TracksView = (props: TracksViewProps) => {
                                 const partStopTime = GetNewPartStopTime(
                                     (mousePos.x + 1) / pixelsPerSecond
                                 );
-                                AddPartToTrack(
+                                CreatePartInTrack(
                                     partStartTime,
                                     partStopTime,
                                     Math.floor(mousePos.y / pixelsPerRow)
@@ -179,7 +179,7 @@ const TracksView = (props: TracksViewProps) => {
                                 // SetSelectedTrackIndex(props.trackIndex);
                             }}
                             onDragStop={(bounds: BoxBounds) =>
-                                DragSelect(
+                                DragSelectTimeBlocks(
                                     bounds,
                                     pixelsPerSecond,
                                     pixelsPerRow,

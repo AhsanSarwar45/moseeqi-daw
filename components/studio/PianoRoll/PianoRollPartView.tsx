@@ -4,10 +4,10 @@ import React, { useEffect, useRef } from "react";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { MidiNote } from "./MidiNote";
-import { IsSelected } from "@Utility/SelectionUtils";
+import { IsIdSelected } from "@Utility/SelectionUtils";
+import { PartRecord } from "@Types/Types";
 
 interface PianoRollProps {
-    partIndex: number;
     part: Part;
     rowHeight: number;
     cellWidth: number;
@@ -23,9 +23,7 @@ const PianoRollPartView = (props: PianoRollProps) => {
     // }, [props.part]);
 
     return (
-        // <Box key={partIndex} >
         <Box
-            key={props.partIndex}
             position="absolute"
             left={`${props.part.startTime * props.pixelsPerSecond}px`}
         >
@@ -39,14 +37,12 @@ const PianoRollPartView = (props: PianoRollProps) => {
                 bgColor="rgba(255,0,0,0.05)"
             />
 
-            {props.part.notes.map((note: Note, noteIndex: number) => (
+            {Array.from(props.part.notes.entries()).map((noteRecord) => (
                 <MidiNote
-                    key={note.id}
-                    note={note}
-                    noteIndex={noteIndex}
+                    key={noteRecord[0]}
+                    noteRecord={noteRecord}
                     part={props.part}
                     isSnappingOn={props.isSnappingOn}
-                    partIndex={props.partIndex}
                     cellHeight={props.rowHeight}
                     cellWidth={props.cellWidth}
                     snapWidth={props.snapWidth}

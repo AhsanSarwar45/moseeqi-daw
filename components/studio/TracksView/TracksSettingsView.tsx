@@ -1,10 +1,10 @@
 import { HStack, Icon, useDisclosure } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
-import { useStore } from "@Data/Store";
+import { AddTestMap, SetTestMap, useStore } from "@Data/Store";
 import {
     AddTrackFromInstrumentIndex,
-    DuplicateSelectedTrack,
+    DuplicateSelectedTracks,
 } from "@Utility/TrackUtils";
 import React from "react";
 import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
@@ -45,7 +45,21 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
                 />
                 <TooltipButton
                     aria-label="Duplicate track"
-                    onClick={DuplicateSelectedTrack}
+                    onClick={DuplicateSelectedTracks}
+                    label=""
+                    icon={<Icon as={BiDuplicate} />}
+                    tooltip="Duplicate selected track"
+                />
+                <TooltipButton
+                    aria-label="Duplicate track"
+                    onClick={AddTestMap}
+                    label=""
+                    icon={<Icon as={BiDuplicate} />}
+                    tooltip="Duplicate selected track"
+                />
+                <TooltipButton
+                    aria-label="Duplicate track"
+                    onClick={SetTestMap}
                     label=""
                     icon={<Icon as={BiDuplicate} />}
                     tooltip="Duplicate selected track"

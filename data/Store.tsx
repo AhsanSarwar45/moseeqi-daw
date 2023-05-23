@@ -1,9 +1,8 @@
-import create from "zustand";
+import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 import { Track } from "@Interfaces/Track";
 import { CreateTrackFromIndex } from "@Utility/TrackUtils";
-import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
 import { BpmToBps, DivisorToDuration } from "@Utility/TimeUtils";
 import {
     defaultBPM,
@@ -12,16 +11,23 @@ import {
     defaultProjectName,
 } from "./Defaults";
 import { initialSecondsPerDivision } from "./Constants";
-import produce, { enablePatches } from "immer";
+import { produce, enableMapSet, enablePatches } from "immer";
 import { Recipe } from "@Interfaces/Recipe";
 import { AddToHistory } from "@Utility/HistoryUtils";
+import { Id, TrackMap } from "@Types/Types";
+import { SelectionSubId } from "@Interfaces/Selection";
+import { GetHistoryState } from "./HistoryStore";
+
+enablePatches();
+enableMapSet();
 
 export interface StoreState {
-    readonly tracks: Array<Track>;
-    readonly trackCount: number;
-    readonly selectedTrackIndex: number;
-    readonly selectedPartIndices: SubSelectionIndex[];
-    readonly selectedNoteIndices: SubSelectionIndex[];
+    readonly tracks: TrackMap;
+
+    readonly selectedTracksId: Id[];
+    readonly selectedPartsId: SelectionSubId[];
+    readonly selectedNotesId: SelectionSubId[];
+    readonly lastSelectedTrackId: Id;
 
     readonly bpm: number;
 
@@ -30,28 +36,33 @@ export interface StoreState {
 }
 
 export const useStore = create<StoreState>()(
-    subscribeWithSelector((set, get) => ({
-        tracks: [CreateTrackFromIndex(defaultInstrumentIndex)],
-        trackCount: 1,
-        selectedTrackIndex: 0,
-        selectedPartIndices: [],
-        selectedNoteIndices: [],
-        bpm: defaultBPM,
-        projectName: defaultProjectName,
-        projectLength: defaultProjectLength,
-    }))
+    subscribeWithSelector(() => {
+        const trackRecord = CreateTrackFromIndex(defaultInstrumentIndex);
+
+        return {
+            tracks: new Map<Id, Track>([trackRecord]),
+            selectedTracksId: new Array<Id>(),
+            selectedPartsId: new Array<SelectionSubId>(),
+            selectedNotesId: new Array<SelectionSubId>(),
+            lastSelectedTrackId: trackRecord[0],
+            bpm: defaultBPM,
+            projectName: defaultProjectName,
+            projectLength: defaultProjectLength,
+        };
+    })
 );
 
 export const selectTracks = (state: StoreState) => state.tracks;
-export const selectSelectedTrack = (state: StoreState) =>
-    state.tracks[state.selectedTrackIndex];
-export const selectTrackCount = (state: StoreState) => state.tracks.length;
-export const selectSelectedPartIndices = (state: StoreState) =>
-    state.selectedPartIndices;
-export const selectSelectedNoteIndices = (state: StoreState) =>
-    state.selectedNoteIndices;
-export const selectSelectedTrackIndex = (state: StoreState) =>
-    state.selectedTrackIndex;
+export const selectTrackCount = (state: StoreState) => state.tracks.size;
+
+export const selectSelectedTracks = (state: StoreState) =>
+    state.selectedTracksId;
+export const selectSelectedParts = (state: StoreState) => state.selectedPartsId;
+export const selectSelectedNotes = (state: StoreState) => state.selectedNotesId;
+export const selectLastSelectedTrack = (state: StoreState) =>
+    state.tracks.get(state.lastSelectedTrackId) as Track;
+export const selectLastSelectedTrackId = (state: StoreState) =>
+    state.lastSelectedTrackId;
 
 export const selectBpm = (state: StoreState) => state.bpm;
 export const selectBps = (state: StoreState) => state.bpm / 60;
@@ -61,9 +72,7 @@ export const selectCurrentSecondPerDivision = (state: StoreState) =>
 export const selectProjectName = (state: StoreState) => state.projectName;
 export const selectProjectLength = (state: StoreState) => state.projectLength;
 
-enablePatches();
-
-export const SetState = (
+export const setState = (
     recipe: Recipe<StoreState>,
     actionName: string,
     addToUndoHistory: boolean = true
@@ -75,4 +84,8 @@ export const SetState = (
             AddToHistory(patches, inversePatches, actionName, addToUndoHistory)
         )
     );
+};
+
+export const getState = () => {
+    return useStore.getState();
 };

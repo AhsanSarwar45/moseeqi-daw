@@ -1,6 +1,6 @@
 // Modified from: https://stackoverflow.com/questions/52063018/intersection-of-two-deep-objects-in-javascript
 
-import { SetState, StoreState } from "@Data/Store";
+import { setState, StoreState } from "@Data/Store";
 import * as Tone from "tone";
 import { SynchronizePart } from "./PartUtils";
 import { DisposeTracks, GetTracksSaveData } from "./TrackUtils";
@@ -43,13 +43,14 @@ export const GetObjectIntersection = (object1: any, object2: any): any => {
 
 export const SynchronizeState = (oldState: StoreState) => {
     DisposeTracks(oldState.tracks);
-    SetState(
+    setState(
         (draftState) => {
             Tone.Transport.bpm.value = draftState.bpm;
             draftState.tracks.forEach((track) => {
                 track.parts.forEach((part) => {
                     SynchronizePart(part);
-                    part.tonePart.mute = track.muted || track.soloMuted;
+                    (part.tonePart as Tone.Part).mute =
+                        track.muted || track.soloMuted;
                 });
                 // TODO: maybe sync sampler
             });

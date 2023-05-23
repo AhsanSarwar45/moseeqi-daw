@@ -1,3 +1,5 @@
+import { Id } from "@Types/Types";
+
 export enum SelectionType {
     None,
     Part,
@@ -15,29 +17,31 @@ export namespace SelectionType {
     }
 }
 
-export interface NoteSelectionIndex {
-    noteIndex: number;
-    partIndex: number;
+// export interface NoteSelectionIndex {
+//     noteIndex: number;
+//     partIndex: number;
+// }
+
+// export interface PartSelectionIndex {
+//     partIndex: number;
+//     trackIndex: number;
+// }
+
+// export interface TrackSelectionIndex {
+//     trackIndex: number;
+// }
+
+export interface SelectionSubId {
+    readonly containerId: Id;
+    readonly entityId: Id;
 }
 
-export interface PartSelectionIndex {
-    partIndex: number;
-    trackIndex: number;
-}
+export type SelectionId = Id | SelectionSubId;
 
-export interface TrackSelectionIndex {
-    trackIndex: number;
-}
-
-export interface SubSelectionIndex {
-    readonly containerIndex: number;
-    readonly subContainerIndex: number;
-}
-
-export interface Selection {
-    type: SelectionType;
-    indices:
-        | Array<NoteSelectionIndex>
-        | Array<PartSelectionIndex>
-        | Array<TrackSelectionIndex>;
-}
+// export interface Selection {
+//     type: SelectionType;
+//     indices:
+//         | Array<NoteSelectionIndex>
+//         | Array<PartSelectionIndex>
+//         | Array<TrackSelectionIndex>;
+// }

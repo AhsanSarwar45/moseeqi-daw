@@ -1,6 +1,6 @@
-import { SetState, useStore } from "@Data/Store";
+import { getState, setState, useStore } from "@Data/Store";
 import { SetHistoryState, useHistoryState } from "@Data/HistoryStore";
-import produce, { applyPatches, Patch } from "immer";
+import { produce, applyPatches, Patch } from "immer";
 import { SynchronizeState } from "./StateUtils";
 
 export const AddToHistory = (
@@ -21,6 +21,7 @@ export const AddToHistory = (
             ];
             // Apply all the patches to the state of the store before history was disabled
             // We do this to get the inverse patches too
+            console.log(patchesWhileDisabled, getState());
             produce(
                 historyState.stateBeforeDisabled,
                 (draftState) => {
@@ -53,12 +54,13 @@ export const AddToHistory = (
 };
 
 export const Undo = () => {
-    const prevState = useStore.getState();
+    const prevState = getState();
     SetHistoryState((draftState) => {
         const pastState = draftState.pastStates.pop();
         if (pastState) {
+            console.log(pastState.inversePatches, getState());
             useStore.setState(
-                applyPatches(useStore.getState(), pastState.inversePatches)
+                applyPatches(getState(), pastState.inversePatches)
             );
             SynchronizeState(prevState);
             draftState.futureStates.push(pastState);
@@ -67,13 +69,11 @@ export const Undo = () => {
 };
 
 export const Redo = () => {
-    const prevState = useStore.getState();
+    const prevState = getState();
     SetHistoryState((draftState) => {
         const futureState = draftState.futureStates.pop();
         if (futureState) {
-            useStore.setState(
-                applyPatches(useStore.getState(), futureState.patches)
-            );
+            useStore.setState(applyPatches(getState(), futureState.patches));
             SynchronizeState(prevState);
             draftState.pastStates.push(futureState);
         }
@@ -90,7 +90,7 @@ export const ClearHistory = () => {
 export const DisableHistory = () => {
     SetHistoryState((draftState) => {
         draftState.isHistoryEnabled = false;
-        draftState.stateBeforeDisabled = useStore.getState();
+        draftState.stateBeforeDisabled = getState();
     });
 };
 

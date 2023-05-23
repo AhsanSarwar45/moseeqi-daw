@@ -4,41 +4,42 @@ import React, { forwardRef } from "react";
 import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
 import { isHotkeyPressed } from "react-hotkeys-hook";
-import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
-import { IsSelected } from "@Utility/SelectionUtils";
-import { selectSelectedPartIndices, useStore } from "@Data/Store";
+import { SelectionType } from "@Interfaces/Selection";
+import { IsIdSelected, IsTimeBlockSelected } from "@Utility/SelectionUtils";
+import { selectSelectedParts, useStore } from "@Data/Store";
 import { IsNoteDisabled } from "@Utility/NoteUtils";
+import { PartRecord } from "@Types/Types";
 
 interface PartViewProps {
-    part: Part;
-    subSelectionIndex: SubSelectionIndex;
+    partRecord: PartRecord;
     pixelsPerSecond: number;
     snapWidth: number;
     height: number;
 }
 
 const PartView = (props: PartViewProps) => {
-    const selectedPartIndices = useStore(selectSelectedPartIndices);
+    const selectedParts = useStore(selectSelectedParts);
+
+    const [partId, part] = props.partRecord;
 
     return (
         <TimeDraggable
-            timeBlock={props.part}
+            timeBlockRecord={props.partRecord}
             selectionType={SelectionType.Part}
             snapWidth={props.snapWidth}
             pixelsPerSecond={props.pixelsPerSecond}
-            subSelectionIndex={props.subSelectionIndex}
-            isSelected={IsSelected(props.subSelectionIndex, SelectionType.Part)}
+            isSelected={IsTimeBlockSelected(props.partRecord, selectedParts)}
             borderColor="white"
             selectedBorderColor="secondary.500"
             bgColor="rgb(0,0,0,0.4)"
             height={`${props.height}px`}
         >
-            {props.part.notes.map((note, index) => (
+            {Array.from(part.notes.entries()).map(([noteId, note]) => (
                 <Box
                     zIndex={200}
-                    key={note.id}
+                    key={noteId}
                     bgColor={
-                        IsNoteDisabled(note, props.part)
+                        IsNoteDisabled(note, part)
                             ? "gray.500"
                             : "secondary.500"
                     }

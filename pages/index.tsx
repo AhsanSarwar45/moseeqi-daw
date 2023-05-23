@@ -25,11 +25,16 @@ const Landing: NextPage = () => {
                 stroke={"brand.secondary"}
                 strokeWidth="0.5rem"
             />
-            <NextLink href={"/studio"}>
-                <Link fontSize={24} textColor="white">
-                    Enter Studio
-                </Link>
-            </NextLink>
+            {/* <NextLink href={"/studio"} passHref> */}
+            <Button
+                as={NextLink}
+                href="/studio"
+                fontSize={24}
+                textColor="white"
+                variant="link"
+            >
+                Enter Studio
+            </Button>
         </VStack>
     );
 };

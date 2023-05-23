@@ -42,6 +42,7 @@ export const GetTimeBlockBounds = (
     pixelsPerSecond: number,
     pixelsPerRow: number
 ): BoxBounds => {
+    console.log(timeBlock.startTime);
     const top = timeBlock.rowIndex * pixelsPerRow;
     const left = timeBlock.startTime * pixelsPerSecond;
     const width = timeBlock.duration * pixelsPerSecond;

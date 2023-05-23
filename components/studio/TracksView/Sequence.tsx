@@ -1,12 +1,13 @@
 import { Box } from "@chakra-ui/react";
 import { selectProjectLength, useStore } from "@Data/Store";
+import { PartMap } from "@Types/Types";
 import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
 import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import { SetSelectedTrackIndex } from "@Utility/TrackUtils";
 import React from "react";
 import PartView from "./PartView";
 
 interface SequenceProps {
+    trackId: number;
     trackIndex: number;
     basePixelsPerSecond: number;
     snapWidth: number;
@@ -14,13 +15,15 @@ interface SequenceProps {
 }
 
 const Sequence = (props: SequenceProps) => {
-    const parts = useStore((state) => state.tracks[props.trackIndex].parts);
+    const parts = useStore(
+        (state) => state.tracks.get(props.trackId)?.parts as PartMap
+    );
     const projectLength = useStore(selectProjectLength);
 
     return (
         <Box
             top={props.height * props.trackIndex}
-            key={props.trackIndex}
+            key={props.trackId}
             // height={props.height}
             // width={projectLength * props.basePixelsPerSecond}
             position="relative"
@@ -35,14 +38,10 @@ const Sequence = (props: SequenceProps) => {
             // borderColor={"gray.500"}
             // boxSizing="border-box"
         >
-            {parts.map((part, partIndex) => (
+            {Array.from(parts.entries()).map((partRecord) => (
                 <PartView
-                    key={part.id}
-                    part={part}
-                    subSelectionIndex={{
-                        containerIndex: props.trackIndex,
-                        subContainerIndex: partIndex,
-                    }}
+                    key={partRecord[0]}
+                    partRecord={partRecord}
                     pixelsPerSecond={GetPixelsPerSecond(
                         props.basePixelsPerSecond
                     )}

@@ -7,6 +7,7 @@ import {
 import { Box } from "@chakra-ui/react";
 import { Track } from "@Interfaces/Track";
 import Sequence from "./Sequence";
+import { GetTrackEntries, GetTrackIds } from "@Utility/TrackUtils";
 
 interface SequenceViewProps {
     basePixelsPerSecond: number;
@@ -19,11 +20,12 @@ const SequenceView = (props: SequenceViewProps) => {
 
     return (
         <Box position="absolute" top={0} left={0}>
-            {[...Array(trackCount)].map((_, index) => {
+            {GetTrackIds().map((trackId, index) => {
                 // console.log(index, trackCount, 4);
                 return (
                     <Sequence
-                        key={index}
+                        key={trackId}
+                        trackId={trackId}
                         trackIndex={index}
                         basePixelsPerSecond={props.basePixelsPerSecond}
                         snapWidth={props.snapWidth}

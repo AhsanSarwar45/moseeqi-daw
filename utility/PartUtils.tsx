@@ -9,12 +9,20 @@ import { Part } from "@Interfaces/Part";
 import { Track } from "@Interfaces/Track";
 import { StoreState, useStore } from "@Data/Store";
 import { MapTimeBlock } from "./TimeBlockUtils";
-import { IsSelected } from "./SelectionUtils";
+import { IsIdSelected } from "./SelectionUtils";
 import { SelectionType } from "@Interfaces/Selection";
-import { SetState } from "@Data/Store";
+import { setState } from "@Data/Store";
 import { PartSaveData } from "@Interfaces/SaveData";
-import produce, { Draft } from "immer";
+import { produce, Draft } from "immer";
 import { SnapDown, SnapUp } from "./SnapUtils";
+import {
+    Id,
+    NoteMap,
+    NoteRecord,
+    PartMap,
+    PartRecord,
+    TrackRecord,
+} from "@Types/Types";
 
 export const CreateTonePart = (sampler: Draft<Tone.Sampler>) => {
     return new Tone.Part((time, value: any) => {
@@ -27,29 +35,39 @@ export const CreateTonePart = (sampler: Draft<Tone.Sampler>) => {
     }, []);
 };
 
+export const AddPartToTrack = (
+    [partId, part]: Draft<PartRecord>,
+    [trackId, track]: Draft<TrackRecord>
+) => {
+    part.tonePart = CreateTonePart(track.sampler);
+    SynchronizePart(part);
+    part.parentId = trackId;
+    part.notes.forEach((note) => (note.trackId = trackId));
+    track.parts.set(partId, part);
+};
+
 export const CreatePart = (
     startTime: number,
     stopTime: number,
-    sampler: Draft<Tone.Sampler>,
-    notes: Array<Note> = []
-): Part => {
-    const tonePart = CreateTonePart(sampler).start(startTime).stop(stopTime);
-
-    notes.forEach((note) => {
-        tonePart.add(GetPartNote(note));
-    });
-
-    return {
-        id: getPartId(),
-        tonePart: tonePart,
-        startTime: startTime,
-        stopTime: stopTime,
-        rowIndex: 0,
-        duration: stopTime - startTime,
-        notes: notes.map((note) =>
-            CreateNote(note.startTime, note.duration, note.rowIndex)
-        ),
-    };
+    rowIndex: number,
+    notes: Draft<NoteMap> = new Map([])
+): PartRecord => {
+    return [
+        getPartId(),
+        {
+            tonePart: undefined,
+            startTime: startTime,
+            stopTime: stopTime,
+            rowIndex: rowIndex,
+            duration: stopTime - startTime,
+            notes: new Map(
+                Array.from(notes, ([id, note]) =>
+                    CreateNote(note.startTime, note.duration, note.rowIndex)
+                )
+            ),
+            parentId: -1,
+        },
+    ];
 };
 
 export const MapPartTime = (
@@ -57,7 +75,7 @@ export const MapPartTime = (
     mapper: (startTime: number) => number
 ) => {
     MapTimeBlock(part, mapper);
-    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const SetPartTime = (
@@ -68,51 +86,55 @@ export const SetPartTime = (
     part.startTime = startTime;
     part.stopTime = stopTime;
     part.duration = part.stopTime - part.startTime;
-    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const UpdatePart = (
-    trackIndex: number,
-    partIndex: number,
-    prevTracks: Draft<Track>[]
-) => {
-    const part = prevTracks[trackIndex].parts[partIndex];
-    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+export const UpdatePart = ([partId, part]: Draft<PartRecord>) => {
+    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const AddPartToTrack = (
+export const CreatePartInTrack = (
     startTime: number,
     stopTime: number,
     trackIndex: number
 ) => {
-    SetState((draftState) => {
-        const track = draftState.tracks[trackIndex];
-        const part = CreatePart(startTime, stopTime, track.sampler);
-        track.parts.push(part);
+    setState((draftState) => {
+        const trackRecord = Array.from(draftState.tracks.entries())[trackIndex];
+        const partRecord = CreatePart(startTime, stopTime, trackIndex);
+        const [partId, part] = partRecord;
+        const [trackId, track] = trackRecord;
+        AddPartToTrack(partRecord, trackRecord);
+        track.parts.set(partId, part);
     }, "Add part");
 };
 
-export const AddNoteToPart = (note: Note, part: Draft<Part>) => {
-    part.notes.push(note);
-    part.tonePart.add(GetPartNote(note));
+export const AddNoteToPart = (
+    [noteId, note]: Draft<NoteRecord>,
+    [partId, part]: Draft<PartRecord>
+) => {
+    note.parentId = partId;
+    note.trackId = part.parentId;
+    part.notes.set(noteId, note);
+    part.tonePart?.add(GetPartNote(note));
+    console.log(part.tonePart);
 };
 
 export const SynchronizePartNotes = (part: Draft<Part>) => {
-    part.tonePart.clear();
+    part.tonePart?.clear();
     part.notes.forEach((note) => {
-        part.tonePart.add(GetPartNote(note));
+        part.tonePart?.add(GetPartNote(note));
     });
 };
 
 export const SynchronizePart = (part: Draft<Part>) => {
     SynchronizePartNotes(part);
-    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const ExtendPart = (note: Note, part: Draft<Part>) => {
+export const ExtendPart = (note: Draft<Note>, part: Draft<Part>) => {
     part.stopTime = GetExtendedPartStopTime(note.stopTime);
     part.duration = part.stopTime - part.startTime;
-    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const GetNewPartStartTime = (noteStartTime: number) => {
@@ -134,46 +156,34 @@ export const GetExtendedPartStopTime = (noteStopTime: number) => {
 };
 
 export const ClearSelectedPartsIndices = () => {
-    if (useStore.getState().selectedPartIndices.length === 0) return;
-    SetState((draftState) => {
-        draftState.selectedPartIndices = [];
+    if (useStore.getState().selectedPartsId.length) return;
+    setState((draftState) => {
+        draftState.selectedPartsId = [];
     }, "Deselect all parts");
 };
 
 export const DeleteSelectedParts = () => {
-    SetState((draftState) => {
-        draftState.tracks.forEach((track, trackIndex) => {
-            track.parts = track.parts.filter((part, partIndex) => {
-                if (
-                    IsSelected(
-                        {
-                            containerIndex: trackIndex,
-                            subContainerIndex: partIndex,
-                        },
-                        SelectionType.Part
-                    )
-                ) {
-                    part.tonePart.cancel(0);
-                    return false;
-                }
-                return true;
-            });
-            return track;
+    setState((draftState) => {
+        draftState.selectedPartsId.forEach(({ containerId, entityId }) => {
+            const track = draftState.tracks.get(containerId);
+            const part = track?.parts.get(entityId);
+            part?.tonePart?.cancel(0);
+            track?.parts.delete(entityId);
         });
 
-        draftState.selectedPartIndices = [];
-        draftState.selectedNoteIndices = [];
+        draftState.selectedPartsId = [];
+        draftState.selectedNotesId = [];
     }, "Delete parts");
 };
 
-export const GetPartsSaveData = (parts: readonly Part[]): PartSaveData[] => {
-    return parts.map((part) => {
+export const GetPartsSaveData = (parts: PartMap): PartSaveData[] => {
+    return Array.from(parts, ([id, part]) => {
         return {
             startTime: part.startTime,
             stopTime: part.stopTime,
             duration: part.duration,
             rowIndex: part.rowIndex,
-            notes: [...part.notes],
+            notes: Array.from(part.notes.values()),
         };
     });
 };

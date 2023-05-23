@@ -3,7 +3,7 @@ import {
     defaultInstrumentIndex,
     defaultProjectName,
 } from "@Data/Defaults";
-import { SetState } from "@Data/Store";
+import { setState } from "@Data/Store";
 import { useStore } from "@Data/Store";
 import { useUndoStore } from "@Data/UndoStore";
 import { SaveData } from "@Interfaces/SaveData";
@@ -20,19 +20,19 @@ import {
 } from "./TrackUtils";
 
 export const SetProjectName = (name: string) => {
-    SetState((draftState) => {
+    setState((draftState) => {
         draftState.projectName = name;
     }, "Change project name");
 };
 
 export const SetProjectLength = (length: number) => {
-    SetState((draftState) => {
+    setState((draftState) => {
         draftState.projectLength = length;
     }, "Change project length");
 };
 
 export const CreateNewProject = () => {
-    SetState(
+    setState(
         (draftState) => {
             DisposeTracks(draftState.tracks);
 
@@ -66,22 +66,23 @@ export const SaveProjectToFile = () => {
 export const OpenProjectFromFile = async (file: File) => {
     const saveData: SaveData = JSON.parse(await file.text());
     // pendingBpmUpdateRef.current = saveData.bpm;
-    SetState(
+    setState(
         (draftState) => {
             DisposeTracks(draftState.tracks);
 
             const newTracks: Array<Track> = [];
 
-            saveData.tracks.forEach((track) => {
-                const newTrack = CreateTrack(track.instrument);
+            saveData.tracks.forEach((trackSaveData, index) => {
+                const newTrack = CreateTrack(trackSaveData.instrument);
 
-                track.parts.forEach((part) => {
+                trackSaveData.parts.forEach((part) => {
                     newTrack.parts.push(
                         CreatePart(
                             part.startTime,
                             part.stopTime,
-                            newTrack.sampler,
-                            [...part.notes]
+                            index,
+                            [...part.notes],
+                            newTrack
                         )
                     );
                 });

@@ -1,27 +1,40 @@
 import { HStack, VStack, Text } from "@chakra-ui/react";
+import * as Tone from "tone";
+
 import ToggleButton from "@Components/ToggleButton";
 import Meter from "./Meter";
 import {
-    SetSelectedTrackIndex,
+    SetLastSelectedTrackId,
     ToggleTrackMute,
     ToggleTrackSolo,
 } from "@Utility/TrackUtils";
 import React, { useEffect } from "react";
-import { selectSelectedTrackIndex, useStore } from "@Data/Store";
+import { selectLastSelectedTrackId, useStore } from "@Data/Store";
+import { Id } from "@Types/Types";
+import { Select } from "@Utility/SelectionUtils";
+import { SelectionType } from "@Interfaces/Selection";
 
 interface TrackInfoProps {
-    index: number;
+    trackId: Id;
 }
 
 const TrackInfo = (props: TrackInfoProps) => {
-    const selectedTrackIndex = useStore(selectSelectedTrackIndex);
-    const isTrackMuted = useStore((state) => state.tracks[props.index].muted);
-    const isTrackSoloMuted = useStore(
-        (state) => state.tracks[props.index].soloMuted
+    const selectedTrackId = useStore(selectLastSelectedTrackId);
+    const isTrackMuted = useStore(
+        (state) => state.tracks.get(props.trackId)?.muted as boolean
     );
-    const isTrackSoloed = useStore((state) => state.tracks[props.index].soloed);
-    const trackName = useStore((state) => state.tracks[props.index].name);
-    const trackMeter = useStore((state) => state.tracks[props.index].meter);
+    const isTrackSoloMuted = useStore(
+        (state) => state.tracks.get(props.trackId)?.soloMuted as boolean
+    );
+    const isTrackSoloed = useStore(
+        (state) => state.tracks.get(props.trackId)?.soloed as boolean
+    );
+    const trackName = useStore(
+        (state) => state.tracks.get(props.trackId)?.name as string
+    );
+    const trackMeter = useStore(
+        (state) => state.tracks.get(props.trackId)?.meter as Tone.Meter
+    );
 
     return (
         <HStack
@@ -31,7 +44,7 @@ const TrackInfo = (props: TrackInfoProps) => {
             width={200}
             height={90}
             bgColor={
-                selectedTrackIndex === props.index
+                selectedTrackId === props.trackId
                     ? "primary.700"
                     : "primary.500"
             }
@@ -39,7 +52,8 @@ const TrackInfo = (props: TrackInfoProps) => {
             borderBottomWidth={1}
             borderColor={"gray.500"}
             onMouseDown={(event) => {
-                SetSelectedTrackIndex(props.index);
+                Select(props.trackId, SelectionType.Track);
+                SetLastSelectedTrackId(props.trackId);
             }}
             // height={200}
             position="relative"
@@ -51,7 +65,7 @@ const TrackInfo = (props: TrackInfoProps) => {
                 <HStack>
                     <ToggleButton
                         tooltipLabel={"Mute"}
-                        onClick={() => ToggleTrackMute(props.index)}
+                        onClick={() => ToggleTrackMute(props.trackId)}
                         isToggled={isTrackMuted}
                         label="M"
                         borderWidth={1}
@@ -60,7 +74,7 @@ const TrackInfo = (props: TrackInfoProps) => {
                     />
                     <ToggleButton
                         tooltipLabel={"Solo"}
-                        onClick={() => ToggleTrackSolo(props.index)}
+                        onClick={() => ToggleTrackSolo(props.trackId)}
                         isToggled={isTrackSoloed}
                         label="S"
                         borderWidth={1}

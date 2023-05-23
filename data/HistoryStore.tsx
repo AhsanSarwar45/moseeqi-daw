@@ -1,6 +1,6 @@
 import { Recipe } from "@Interfaces/Recipe";
-import produce, { Patch } from "immer";
-import create from "zustand";
+import { produce, Patch } from "immer";
+import { create } from "zustand";
 import { StoreState, useStore } from "./Store";
 
 export interface HistoryState {
@@ -29,6 +29,8 @@ export const useHistoryState = create<HistoryStoreState>()(() => ({
     stateBeforeDisabled: {} as any,
 }));
 
+export const GetHistoryState = () => useHistoryState.getState();
+
 export const SetHistoryState = (recipe: Recipe<HistoryStoreState>) => {
-    useHistoryState.setState(produce(useHistoryState.getState(), recipe));
+    useHistoryState.setState(produce(GetHistoryState(), recipe));
 };

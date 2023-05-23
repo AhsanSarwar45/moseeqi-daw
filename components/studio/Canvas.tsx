@@ -2,7 +2,7 @@ import { Box, useControllableState } from "@chakra-ui/react";
 import { useEvent } from "@Hooks/useEvent";
 import { BoxBounds } from "@Interfaces/Box";
 import { Coordinate } from "@Interfaces/Coordinate";
-import { DragSelect } from "@Utility/SelectionUtils";
+import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface CanvasProps {

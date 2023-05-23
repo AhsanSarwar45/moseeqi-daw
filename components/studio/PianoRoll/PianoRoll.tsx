@@ -21,12 +21,12 @@ import PianoRollSettingsView from "./PianoRollSettingsView";
 import Canvas from "@Components/studio/Canvas";
 import {
     AddNoteToSelectedTrack,
-    ClearSelectedNotesIndices,
+    ClearNotesSelection,
 } from "@Utility/NoteUtils";
 import { SnapDown } from "@Utility/SnapUtils";
 import { Coordinate } from "@Interfaces/Coordinate";
 import { BoxBounds } from "@Interfaces/Box";
-import { DragSelect } from "@Utility/SelectionUtils";
+import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
 import { SelectionType } from "@Interfaces/Selection";
 
 interface PianoRollProps {}
@@ -228,11 +228,9 @@ const PianoRoll = (props: PianoRollProps) => {
                                                 ].divisor
                                             );
                                         }}
-                                        onClick={() =>
-                                            ClearSelectedNotesIndices()
-                                        }
+                                        onClick={() => ClearNotesSelection()}
                                         onDragStop={(bounds: BoxBounds) =>
-                                            DragSelect(
+                                            DragSelectTimeBlocks(
                                                 bounds,
                                                 pixelsPerSecond,
                                                 pixelsPerRow,

@@ -6,7 +6,7 @@ import React, {
     useRef,
 } from "react";
 import { Snap } from "@Utility/SnapUtils";
-import { SelectionType, SubSelectionIndex } from "@Interfaces/Selection";
+import { SelectionSubId, SelectionType } from "@Interfaces/Selection";
 import { TimeBlock } from "@Interfaces/TimeBlock";
 import {
     GetSelectionStartIndex,
@@ -16,10 +16,13 @@ import {
     DragSelection,
     RightResizeSelection,
     GetSelectionOffsets,
+    SelectTimeBlock,
 } from "@Utility/SelectionUtils";
-import { Dimension } from "@Types/Types";
+import { ChildTimeBlockRecord, Dimension } from "@Types/Types";
 import { StrDimToNum } from "@Utility/DimensionUtils";
 import { DisableHistory, EnableHistory } from "@Utility/HistoryUtils";
+import { Entity } from "@Interfaces/Entity";
+import { ChildTimeBlock } from "@Interfaces/ChildEntity";
 
 // const [addMouseUpListener, removeMouseUpListener] = Listener();
 type ModifyHandler = (
@@ -29,9 +32,8 @@ type ModifyHandler = (
 
 interface TimeDraggableProps {
     children?: React.ReactNode;
-    timeBlock: TimeBlock;
+    timeBlockRecord: ChildTimeBlockRecord;
     selectionType: SelectionType;
-    subSelectionIndex: SubSelectionIndex;
     isSelected: boolean;
     snapWidth: number;
     rowHeight: number;
@@ -74,10 +76,12 @@ const TimeDraggable = (props: TimeDraggableProps) => {
     const prevRowIndex = useRef(0);
     const hasChanged = useRef(false);
 
-    const initialTimeBlock = useRef(props.timeBlock);
+    const [timeBlockId, timeBlock] = props.timeBlockRecord;
 
-    const width = props.timeBlock.duration * props.pixelsPerSecond;
-    const left = props.timeBlock.startTime * props.pixelsPerSecond;
+    const initialTimeBlock = useRef(timeBlock);
+
+    const width = timeBlock.duration * props.pixelsPerSecond;
+    const left = timeBlock.startTime * props.pixelsPerSecond;
 
     const HandleMouseMove = useCallback(
         (event: MouseEvent) => {
@@ -157,27 +161,19 @@ const TimeDraggable = (props: TimeDraggableProps) => {
         [props.snapWidth, props.rowHeight, props.pixelsPerSecond]
     );
 
-    const SetupSelection = (): SubSelectionIndex[] => {
-        const newSelectedPartIndices = Select(
-            props.subSelectionIndex.containerIndex,
-            props.subSelectionIndex.subContainerIndex,
-            props.selectionType
-        );
+    const SetupSelection = () => {
+        SelectTimeBlock(props.timeBlockRecord, props.selectionType);
 
         selectionTimeOffsets.current = GetSelectionOffsets(
-            props.timeBlock,
-            newSelectedPartIndices,
+            timeBlock,
             props.selectionType,
             "startTime"
         );
 
         selectionStartIndex.current = GetSelectionStartIndex(
-            newSelectedPartIndices,
             props.selectionType,
             "startTime"
         );
-
-        return newSelectedPartIndices;
     };
 
     const HandleMouseUp = useCallback(
@@ -223,7 +219,7 @@ const TimeDraggable = (props: TimeDraggableProps) => {
 
     const StartDrag = () => {
         hasChanged.current = false;
-        initialTimeBlock.current = props.timeBlock;
+        initialTimeBlock.current = timeBlock;
         // We don't want to add all teh intermediate movements to undo history
         DisableHistory();
         window.addEventListener("mousemove", HandleMouseMove);
@@ -259,24 +255,22 @@ const TimeDraggable = (props: TimeDraggableProps) => {
                 onMouseDown={(event) => {
                     event.preventDefault();
                     if (event.button === 0) {
-                        const selectionIndices = SetupSelection();
+                        SetupSelection();
 
                         selectionRowOffsets.current = GetSelectionOffsets(
-                            props.timeBlock,
-                            selectionIndices,
+                            timeBlock,
                             props.selectionType,
                             "rowIndex"
                         );
 
                         selectionRowStartIndex.current = GetSelectionStartIndex(
-                            selectionIndices,
                             props.selectionType,
                             "rowIndex"
                         );
 
                         isDraggingRef.current = true;
-                        prevRowIndex.current = props.timeBlock.rowIndex;
-                        prevTime.current = props.timeBlock.startTime;
+                        prevRowIndex.current = timeBlock.rowIndex;
+                        prevTime.current = timeBlock.startTime;
                         dragOffset.current = {
                             x: event.clientX - left,
                             y: event.clientY - StrDimToNum(props.top),
@@ -298,22 +292,20 @@ const TimeDraggable = (props: TimeDraggableProps) => {
                 onMouseDown={(event) => {
                     event.preventDefault();
                     if (event.button === 0) {
-                        const newSelectedIndices = Select(
-                            props.subSelectionIndex.containerIndex,
-                            props.subSelectionIndex.subContainerIndex,
+                        SelectTimeBlock(
+                            props.timeBlockRecord,
                             props.selectionType
                         );
 
                         selectionTimeOffsets.current = GetSelectionOffsets(
-                            props.timeBlock,
-                            newSelectedIndices,
+                            timeBlock,
                             props.selectionType,
                             "stopTime"
                         );
 
                         isResizingRightRef.current = true;
                         resizeOffset.current = left + width - event.clientX;
-                        prevTime.current = props.timeBlock.stopTime;
+                        prevTime.current = timeBlock.stopTime;
                         StartDrag();
                     }
                     return false;
@@ -335,7 +327,7 @@ const TimeDraggable = (props: TimeDraggableProps) => {
 
                         isResizingLeftRef.current = true;
                         resizeOffset.current = left - event.clientX;
-                        prevTime.current = props.timeBlock.startTime;
+                        prevTime.current = timeBlock.startTime;
 
                         StartDrag();
                     }
