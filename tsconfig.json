@@ -1,73 +1,36 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "baseUrl": ".",
-    "paths": {
-      "@Components/*": [
-        "components/*"
-      ],
-      "@Styles/*": [
-        "styles/*"
-      ],
-      "@Instruments/*": [
-        "assets/instruments/*"
-      ],
-      "@Interfaces/*": [
-        "interfaces/*"
-      ],
-      "@Types/*": [
-        "types/*"
-      ],
-      "@Hooks/*": [
-        "hooks/*"
-      ],
-      "@Assets/*": [
-        "assets/*"
-      ],
-      "@Icons/*": [
-        "assets/icons/*"
-      ],
-      "@Logos/*": [
-        "assets/logos/*"
-      ],
-      "@Data/*": [
-        "data/*"
-      ],
-      "@Utility/*": [
-        "utility/*"
-      ],
-      "@Debug/*": [
-        "debug/*"
-      ],
-      "@Theme/*": [
-        "theme/*"
-      ]
+    "compilerOptions": {
+        "target": "es5",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "baseUrl": ".",
+        "paths": {
+            "@Components/*": ["components/*"],
+            "@Styles/*": ["styles/*"],
+            "@Instruments/*": ["assets/instruments/*"],
+            "@Interfaces/*": ["interfaces/*"],
+            "@Types/*": ["types/*"],
+            "@Hooks/*": ["hooks/*"],
+            "@Assets/*": ["assets/*"],
+            "@Icons/*": ["assets/icons/*"],
+            "@Logos/*": ["assets/logos/*"],
+            "@data/*": ["data/*"],
+            "@logic/*": ["logic/*"],
+            "@Debug/*": ["debug/*"],
+            "@Theme/*": ["theme/*"]
+        },
+        "incremental": true
     },
-    "incremental": true
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "pages/_document.js"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/_document.js"],
+    "exclude": ["node_modules"]
 }

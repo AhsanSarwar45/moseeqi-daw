@@ -7,7 +7,7 @@ import {
     ButtonGroup,
 } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
-import { noteLengthOptions } from "@Data/Constants";
+import { noteLengthOptions } from "@data/Constants";
 import React from "react";
 import { BiChevronDown } from "react-icons/bi";
 

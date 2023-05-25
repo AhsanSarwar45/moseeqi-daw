@@ -1,9 +1,9 @@
-import { InstrumentUrl } from '@Interfaces/InstrumentUrl';
+import { InstrumentUrl } from "@Interfaces/InstrumentUrl";
 
 export interface Instrument {
-	name: string;
-	id: String;
-	urls: InstrumentUrl;
-	release: number;
-	attack: number;
+    name: string;
+    id: string;
+    urls: InstrumentUrl;
+    release: number;
+    attack: number;
 }

@@ -2,21 +2,20 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 import { Track } from "@Interfaces/Track";
-import { CreateTrackFromIndex } from "@Utility/TrackUtils";
-import { BpmToBps, DivisorToDuration } from "@Utility/TimeUtils";
+import { createTrackFromIndex } from "@logic/track";
+import { bpmToBps, divisorToDuration } from "@logic/time";
 import {
     defaultBPM,
     defaultInstrumentIndex,
     defaultProjectLength,
     defaultProjectName,
-} from "./Defaults";
-import { initialSecondsPerDivision } from "./Constants";
-import { produce, enableMapSet, enablePatches } from "immer";
+} from "@data/Defaults";
+import { initialSecondsPerDivision } from "@data/Constants";
+import { produce, enableMapSet, enablePatches, Draft } from "immer";
 import { Recipe } from "@Interfaces/Recipe";
-import { AddToHistory } from "@Utility/HistoryUtils";
+import { addToHistory } from "@logic/history";
 import { Id, TrackMap } from "@Types/Types";
 import { SelectionSubId } from "@Interfaces/Selection";
-import { GetHistoryState } from "./HistoryStore";
 
 enablePatches();
 enableMapSet();
@@ -35,20 +34,24 @@ export interface StoreState {
     readonly projectLength: number;
 }
 
+export const getDefaultProjectState = (): StoreState => {
+    const trackRecord = createTrackFromIndex(defaultInstrumentIndex);
+
+    return {
+        tracks: new Map<Id, Track>([trackRecord]),
+        selectedTracksId: new Array<Id>(),
+        selectedPartsId: new Array<SelectionSubId>(),
+        selectedNotesId: new Array<SelectionSubId>(),
+        lastSelectedTrackId: trackRecord[0],
+        bpm: defaultBPM,
+        projectName: defaultProjectName,
+        projectLength: defaultProjectLength,
+    };
+};
+
 export const useStore = create<StoreState>()(
     subscribeWithSelector(() => {
-        const trackRecord = CreateTrackFromIndex(defaultInstrumentIndex);
-
-        return {
-            tracks: new Map<Id, Track>([trackRecord]),
-            selectedTracksId: new Array<Id>(),
-            selectedPartsId: new Array<SelectionSubId>(),
-            selectedNotesId: new Array<SelectionSubId>(),
-            lastSelectedTrackId: trackRecord[0],
-            bpm: defaultBPM,
-            projectName: defaultProjectName,
-            projectLength: defaultProjectLength,
-        };
+        return getDefaultProjectState();
     })
 );
 
@@ -67,10 +70,30 @@ export const selectLastSelectedTrackId = (state: StoreState) =>
 export const selectBpm = (state: StoreState) => state.bpm;
 export const selectBps = (state: StoreState) => state.bpm / 60;
 export const selectCurrentSecondPerDivision = (state: StoreState) =>
-    initialSecondsPerDivision / BpmToBps(state.bpm);
+    initialSecondsPerDivision / bpmToBps(state.bpm);
 
 export const selectProjectName = (state: StoreState) => state.projectName;
 export const selectProjectLength = (state: StoreState) => state.projectLength;
+
+export const resetState = (state: Draft<StoreState>) => {
+    const [trackId, track]: [Id, Track] = createTrackFromIndex(
+        defaultInstrumentIndex
+    );
+    state.tracks.set(trackId, track);
+    state.lastSelectedTrackId = trackId;
+    state.bpm = defaultBPM;
+    state.projectName = defaultProjectName;
+    state.projectLength = defaultProjectLength;
+    resetSelectionState(state);
+
+    // console.log(state.tracks);
+};
+
+export const resetSelectionState = (state: Draft<StoreState>) => {
+    state.selectedTracksId.length = 0;
+    state.selectedPartsId.length = 0;
+    state.selectedNotesId.length = 0;
+};
 
 export const setState = (
     recipe: Recipe<StoreState>,
@@ -81,7 +104,7 @@ export const setState = (
 
     useStore.setState(
         produce(useStore.getState(), recipe, (patches, inversePatches) =>
-            AddToHistory(patches, inversePatches, actionName, addToUndoHistory)
+            addToHistory(patches, inversePatches, actionName, addToUndoHistory)
         )
     );
 };

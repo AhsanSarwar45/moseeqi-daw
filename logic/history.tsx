@@ -1,9 +1,13 @@
-import { getState, setState, useStore } from "@Data/Store";
-import { SetHistoryState, useHistoryState } from "@Data/HistoryStore";
+import { getState, setState, useStore } from "@data/stores/project";
+import {
+    resetHistoryState,
+    setHistoryState,
+    useHistoryState,
+} from "@data/stores/history";
 import { produce, applyPatches, Patch } from "immer";
-import { SynchronizeState } from "./StateUtils";
+import { synchronizeState } from "./state";
 
-export const AddToHistory = (
+export const addToHistory = (
     patches: Patch[],
     inversePatches: Patch[],
     actionName: string,
@@ -14,7 +18,7 @@ export const AddToHistory = (
         // If history had been disabled before this update, we need to cumulate the patches that were
         // made while history was disabled
         if (!historyState.prevHistoryEnabledState) {
-            // Add the latest patches too
+            // add the latest patches too
             const patchesWhileDisabled = [
                 ...historyState.patchesWhileDisabled,
                 ...patches,
@@ -33,69 +37,66 @@ export const AddToHistory = (
                 }
             );
         }
-        SetHistoryState((draftState) => {
+        setHistoryState((draftState) => {
             const state = {
                 patches: patches,
                 inversePatches: inversePatches,
                 actionName: actionName,
             };
             draftState.pastStates.push(state);
-            // Clearing redo states on a new state change is standard practice
+            // clearing redo states on a new state change is standard practice
             draftState.futureStates = [];
             draftState.patchesWhileDisabled = [];
             draftState.prevHistoryEnabledState = true;
         });
     } else {
-        SetHistoryState((draftState) => {
+        setHistoryState((draftState) => {
             draftState.patchesWhileDisabled.push(...patches);
             draftState.prevHistoryEnabledState = false;
         });
     }
 };
 
-export const Undo = () => {
+export const undo = () => {
     const prevState = getState();
-    SetHistoryState((draftState) => {
+    setHistoryState((draftState) => {
         const pastState = draftState.pastStates.pop();
         if (pastState) {
             console.log(pastState.inversePatches, getState());
             useStore.setState(
                 applyPatches(getState(), pastState.inversePatches)
             );
-            SynchronizeState(prevState);
+            synchronizeState(prevState);
             draftState.futureStates.push(pastState);
         }
     });
 };
 
-export const Redo = () => {
+export const redo = () => {
     const prevState = getState();
-    SetHistoryState((draftState) => {
+    setHistoryState((draftState) => {
         const futureState = draftState.futureStates.pop();
         if (futureState) {
             useStore.setState(applyPatches(getState(), futureState.patches));
-            SynchronizeState(prevState);
+            synchronizeState(prevState);
             draftState.pastStates.push(futureState);
         }
     });
 };
 
-export const ClearHistory = () => {
-    SetHistoryState((draftState) => {
-        draftState.pastStates = [];
-        draftState.futureStates = [];
-    });
+export const clearHistory = () => {
+    resetHistoryState();
 };
 
-export const DisableHistory = () => {
-    SetHistoryState((draftState) => {
+export const disableHistory = () => {
+    setHistoryState((draftState) => {
         draftState.isHistoryEnabled = false;
         draftState.stateBeforeDisabled = getState();
     });
 };
 
-export const EnableHistory = () => {
-    SetHistoryState((draftState) => {
+export const enableHistory = () => {
+    setHistoryState((draftState) => {
         draftState.isHistoryEnabled = true;
     });
 };

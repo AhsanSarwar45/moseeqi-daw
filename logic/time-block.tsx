@@ -2,7 +2,7 @@ import { BoxBounds } from "@Interfaces/Box";
 import { TimeBlock } from "@Interfaces/TimeBlock";
 import { Draft } from "immer";
 
-export const SetTimeBlock = (
+export const setTimeBlock = (
     timeBlock: Draft<TimeBlock>,
     startTime: number,
     stopTime: number
@@ -13,7 +13,7 @@ export const SetTimeBlock = (
     timeBlock.duration = stopTime - startTime;
 };
 
-export const SetTimeBlockRowIndex = (
+export const setTimeBlockRowIndex = (
     timeBlock: Draft<TimeBlock>,
     rowIndex: number
 ) => {
@@ -21,7 +21,7 @@ export const SetTimeBlockRowIndex = (
     // console.log(rowIndex);
 };
 
-export const MapTimeBlock = (
+export const mapTimeBlock = (
     timeBlock: Draft<TimeBlock>,
     mapper: (startTime: number) => number
 ) => {
@@ -30,19 +30,19 @@ export const MapTimeBlock = (
     timeBlock.duration = timeBlock.stopTime - timeBlock.startTime;
 };
 
-export const CopyTimeBlock = (to: Draft<TimeBlock>, from: Draft<TimeBlock>) => {
+export const copyTimeBlock = (to: Draft<TimeBlock>, from: Draft<TimeBlock>) => {
     to.startTime = from.startTime;
     to.stopTime = from.stopTime;
     to.duration = from.duration;
     to.rowIndex = from.rowIndex;
 };
 
-export const GetTimeBlockBounds = (
+export const getTimeBlockBounds = (
     timeBlock: TimeBlock,
     pixelsPerSecond: number,
     pixelsPerRow: number
 ): BoxBounds => {
-    console.log(timeBlock.startTime);
+    // console.log(timeBlock.startTime);
     const top = timeBlock.rowIndex * pixelsPerRow;
     const left = timeBlock.startTime * pixelsPerSecond;
     const width = timeBlock.duration * pixelsPerSecond;

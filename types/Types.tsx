@@ -2,7 +2,7 @@
 // TODO: Change to strings
 // export type PlaybackState = 0 | 1 | 2;
 
-import { StoreState } from "@Data/Store";
+import { StoreState } from "@data/stores/project";
 import { ChildTimeBlock } from "@Interfaces/ChildEntity";
 import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";

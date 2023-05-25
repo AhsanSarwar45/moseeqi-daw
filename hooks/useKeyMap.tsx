@@ -1,5 +1,5 @@
-import { selectFocusArea, useFocusAreaStore } from "@Data/FocusAreaStore";
-import { selectKeymap, useKeymapStore } from "@Data/KeymapStore";
+import { selectFocusArea, useFocusAreaStore } from "@data/stores/focus-area";
+import { selectKeymap, useKeymapStore } from "@data/stores/keymap";
 import { Panel } from "@Interfaces/enums/Panel";
 import { KeyAction } from "@Interfaces/Keymap";
 import { useHotkeys } from "react-hotkeys-hook";

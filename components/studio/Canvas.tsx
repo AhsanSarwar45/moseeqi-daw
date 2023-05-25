@@ -2,7 +2,7 @@ import { Box, useControllableState } from "@chakra-ui/react";
 import { useEvent } from "@Hooks/useEvent";
 import { BoxBounds } from "@Interfaces/Box";
 import { Coordinate } from "@Interfaces/Coordinate";
-import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
+import { dragSelectTimeBlocks } from "@logic/selection";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface CanvasProps {
@@ -24,11 +24,11 @@ const Canvas = (props: CanvasProps) => {
         height: 0,
     });
 
-    const IsSelectionZero = useCallback(() => {
+    const checkIsSelectionZero = useCallback(() => {
         return selectionBounds.width === 0 && selectionBounds.height === 0;
     }, [selectionBounds]);
 
-    const ResetSelectionBounds = () => {
+    const resetSelectionBounds = () => {
         setSelectionBounds({
             left: 0,
             top: 0,
@@ -38,35 +38,34 @@ const Canvas = (props: CanvasProps) => {
     };
 
     // console.log(clickAreaRef);
-
-    const HandleMouseUp = useCallback(() => {
+    const handleMouseMove = useCallback((event: MouseEvent) => {
         if (isDragSelecting.current) {
-            if (!IsSelectionZero()) {
-                props.onDragStop(selectionBounds);
-            }
-            isDragSelecting.current = false;
-            ResetSelectionBounds();
-            window.removeEventListener("mousemove", HandleMouseMove);
-        }
-    }, [IsSelectionZero, props.onDragStop, selectionBounds]);
-
-    useEvent("mouseup", HandleMouseUp);
-
-    const HandleMouseMove = useCallback((event: MouseEvent) => {
-        if (isDragSelecting.current) {
-            dragSelectCurrent.current = GetRelativeMousePos(event);
-            UpdateBounds();
+            dragSelectCurrent.current = getRelativeMousePos(event);
+            updateBounds();
         }
     }, []);
 
-    const GetRelativeMousePos = (
+    const handleMouseUp = useCallback(() => {
+        if (isDragSelecting.current) {
+            if (!checkIsSelectionZero()) {
+                props.onDragStop(selectionBounds);
+            }
+            isDragSelecting.current = false;
+            resetSelectionBounds();
+            window.removeEventListener("mousemove", handleMouseMove);
+        }
+    }, [handleMouseMove, checkIsSelectionZero, props, selectionBounds]);
+
+    useEvent("mouseup", handleMouseUp);
+
+    const getRelativeMousePos = (
         event: React.MouseEvent<HTMLElement> | MouseEvent
     ): Coordinate => {
         const rect = clickAreaRef.current?.getBoundingClientRect();
         return { x: event.clientX - rect?.left, y: event.clientY - rect?.top };
     };
 
-    const UpdateBounds = () => {
+    const updateBounds = () => {
         const top = Math.min(
             dragSelectStart.current.y,
             dragSelectCurrent.current.y
@@ -105,20 +104,20 @@ const Canvas = (props: CanvasProps) => {
                 // Check if this is a double click
                 // This is a workaround for the fact that "mouseup" event listener disables onDoubleClick
                 if (event.detail === 2) {
-                    props.onDoubleClick(GetRelativeMousePos(event));
+                    props.onDoubleClick(getRelativeMousePos(event));
                 } else {
                     if (event.currentTarget === event.target) {
-                        props.onClick(GetRelativeMousePos(event));
+                        props.onClick(getRelativeMousePos(event));
                         isDragSelecting.current = true;
-                        dragSelectStart.current = GetRelativeMousePos(event);
+                        dragSelectStart.current = getRelativeMousePos(event);
                         dragSelectCurrent.current = dragSelectStart.current;
-                        window.addEventListener("mousemove", HandleMouseMove);
-                        UpdateBounds();
+                        window.addEventListener("mousemove", handleMouseMove);
+                        updateBounds();
                     }
                 }
             }}
         >
-            {!IsSelectionZero() && (
+            {!checkIsSelectionZero() && (
                 <Box
                     bgColor="rgba(0, 0, 0, 0.2)"
                     borderColor="white"

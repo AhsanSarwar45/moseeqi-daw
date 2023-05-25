@@ -1,23 +1,23 @@
-import { IsAudioContextStarted, StartAudioContext } from "@Data/AudioContext";
-import { usePlaybackStore } from "@Data/PlaybackStore";
-import { useStore } from "@Data/Store";
+import { IsAudioContextStarted, StartAudioContext } from "@data/AudioContext";
+import { usePlaybackStore } from "@data/stores/playback";
+import { useStore } from "@data/stores/project";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 
-export const SetSeek = (seek: number) => {
+export const setSeek = (seek: number) => {
     if (!IsAudioContextStarted()) StartAudioContext();
     usePlaybackStore.setState({
         seek: seek,
     });
 };
 
-export const SetPlaybackState = (playbackState: PlaybackState) => {
+export const setPlaybackState = (playbackState: PlaybackState) => {
     if (!IsAudioContextStarted()) StartAudioContext();
     usePlaybackStore.setState({
         playbackState: playbackState,
     });
 };
 
-export const TogglePlayback = () => {
+export const togglePlayback = () => {
     if (!IsAudioContextStarted()) StartAudioContext();
     usePlaybackStore.setState((prev) => {
         let nextPlaybackState = PlaybackState.Stopped;

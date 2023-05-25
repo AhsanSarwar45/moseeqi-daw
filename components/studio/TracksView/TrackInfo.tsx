@@ -4,37 +4,44 @@ import * as Tone from "tone";
 import ToggleButton from "@Components/ToggleButton";
 import Meter from "./Meter";
 import {
-    SetLastSelectedTrackId,
-    ToggleTrackMute,
-    ToggleTrackSolo,
-} from "@Utility/TrackUtils";
+    setLastSelectedTrackId,
+    toggleTrackMute,
+    toggleTrackSolo,
+} from "@logic/track";
 import React, { useEffect } from "react";
-import { selectLastSelectedTrackId, useStore } from "@Data/Store";
+import { selectLastSelectedTrackId, useStore } from "@data/stores/project";
 import { Id } from "@Types/Types";
-import { Select } from "@Utility/SelectionUtils";
+import { select } from "@logic/selection";
 import { SelectionType } from "@Interfaces/Selection";
+import { Track } from "@Interfaces/Track";
 
 interface TrackInfoProps {
     trackId: Id;
+    track: Track;
 }
 
 const TrackInfo = (props: TrackInfoProps) => {
     const selectedTrackId = useStore(selectLastSelectedTrackId);
-    const isTrackMuted = useStore(
-        (state) => state.tracks.get(props.trackId)?.muted as boolean
-    );
-    const isTrackSoloMuted = useStore(
-        (state) => state.tracks.get(props.trackId)?.soloMuted as boolean
-    );
-    const isTrackSoloed = useStore(
-        (state) => state.tracks.get(props.trackId)?.soloed as boolean
-    );
-    const trackName = useStore(
-        (state) => state.tracks.get(props.trackId)?.name as string
-    );
-    const trackMeter = useStore(
-        (state) => state.tracks.get(props.trackId)?.meter as Tone.Meter
-    );
+    // const isTrackMuted = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.muted as boolean
+    // );
+    // const isTrackSoloMuted = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.soloMuted as boolean
+    // );
+    // const isTrackSoloed = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.soloed as boolean
+    // );
+    // const trackName = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.name as string
+    // );
+    // const trackMeter = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.meter as Tone.Meter
+    // );
+    // const trackInstrument = useStore(
+    //     (state) => state.tracks.get(props.trackId)?.instrument.name as String
+    // );
+
+    // console.log(trackInstrument);
 
     return (
         <HStack
@@ -52,30 +59,32 @@ const TrackInfo = (props: TrackInfoProps) => {
             borderBottomWidth={1}
             borderColor={"gray.500"}
             onMouseDown={(event) => {
-                Select(props.trackId, SelectionType.Track);
-                SetLastSelectedTrackId(props.trackId);
+                select(props.trackId, SelectionType.Track);
+                setLastSelectedTrackId(props.trackId);
             }}
             // height={200}
             position="relative"
             alignItems="flex-start"
         >
             <VStack alignItems="flex-start">
-                <Text color="white">{trackName}</Text>
+                <Text color="white">{props.track.name}</Text>
 
                 <HStack>
                     <ToggleButton
                         tooltipLabel={"Mute"}
-                        onClick={() => ToggleTrackMute(props.trackId)}
-                        isToggled={isTrackMuted}
+                        onClick={() => toggleTrackMute(props.trackId)}
+                        isToggled={props.track.muted}
                         label="M"
                         borderWidth={1}
                         size="xs"
-                        textColor={isTrackSoloMuted ? "secondary.500" : "white"}
+                        textColor={
+                            props.track.soloMuted ? "secondary.500" : "white"
+                        }
                     />
                     <ToggleButton
                         tooltipLabel={"Solo"}
-                        onClick={() => ToggleTrackSolo(props.trackId)}
-                        isToggled={isTrackSoloed}
+                        onClick={() => toggleTrackSolo(props.trackId)}
+                        isToggled={props.track.soloed}
                         label="S"
                         borderWidth={1}
                         size="xs"
@@ -84,7 +93,7 @@ const TrackInfo = (props: TrackInfoProps) => {
             </VStack>
             <Meter
                 width="10px"
-                meter={trackMeter}
+                meter={props.track.meter}
                 bgColor="brand.primary"
                 fillColor="brand.accent1"
                 borderColor="primary.700"

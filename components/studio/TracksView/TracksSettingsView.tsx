@@ -1,11 +1,11 @@
 import { HStack, Icon, useDisclosure } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
-import { AddTestMap, SetTestMap, useStore } from "@Data/Store";
+import { useStore } from "@data/stores/project";
 import {
-    AddTrackFromInstrumentIndex,
-    DuplicateSelectedTracks,
-} from "@Utility/TrackUtils";
+    addTrackFromInstrumentIndex,
+    duplicateSelectedTracks,
+} from "@logic/track";
 import React from "react";
 import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
 import { TiFolderOpen, TiPlus } from "react-icons/ti";
@@ -45,21 +45,7 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
                 />
                 <TooltipButton
                     aria-label="Duplicate track"
-                    onClick={DuplicateSelectedTracks}
-                    label=""
-                    icon={<Icon as={BiDuplicate} />}
-                    tooltip="Duplicate selected track"
-                />
-                <TooltipButton
-                    aria-label="Duplicate track"
-                    onClick={AddTestMap}
-                    label=""
-                    icon={<Icon as={BiDuplicate} />}
-                    tooltip="Duplicate selected track"
-                />
-                <TooltipButton
-                    aria-label="Duplicate track"
-                    onClick={SetTestMap}
+                    onClick={duplicateSelectedTracks}
                     label=""
                     icon={<Icon as={BiDuplicate} />}
                     tooltip="Duplicate selected track"
@@ -82,7 +68,7 @@ const TracksSettingsView = (props: TracksSettingsViewProps) => {
             <AddTrackModal
                 onClose={onClose}
                 isOpen={isOpen}
-                onSubmit={AddTrackFromInstrumentIndex}
+                onSubmit={addTrackFromInstrumentIndex}
             />
         </>
     );

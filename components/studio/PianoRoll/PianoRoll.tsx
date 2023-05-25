@@ -1,32 +1,33 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HStack, Icon, Box, Flex, VStack, ButtonGroup } from "@chakra-ui/react";
 import Ruler from "@scena/react-ruler";
-import { noteLengthOptions, PianoKeys } from "@Data/Constants";
+import { noteLengthOptions, PianoKeys } from "@data/Constants";
 import {
     blackKeyHeightModifier,
     secondsPerWholeNote,
     wholeNoteDivisions,
-} from "@Data/Constants";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+} from "@data/Constants";
+import { getPixelsPerSecond } from "@logic/time";
 
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 import KeysView from "./KeysView";
 import { Row } from "./Row";
 import { Timeline } from "./Timeline";
-import { selectProjectLength, selectTrackCount, useStore } from "@Data/Store";
+import {
+    selectProjectLength,
+    selectTrackCount,
+    useStore,
+} from "@data/stores/project";
 import GridView from "./GridView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
 import { Panel } from "@Interfaces/enums/Panel";
 import PianoRollSettingsView from "./PianoRollSettingsView";
 import Canvas from "@Components/studio/Canvas";
-import {
-    AddNoteToSelectedTrack,
-    ClearNotesSelection,
-} from "@Utility/NoteUtils";
-import { SnapDown } from "@Utility/SnapUtils";
+import { addNoteToSelectedTrack, clearNotesSelection } from "@logic/note";
+import { snapDown } from "@logic/snap";
 import { Coordinate } from "@Interfaces/Coordinate";
 import { BoxBounds } from "@Interfaces/Box";
-import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
+import { dragSelectTimeBlocks } from "@logic/selection";
 import { SelectionType } from "@Interfaces/Selection";
 
 interface PianoRollProps {}
@@ -40,7 +41,7 @@ const PianoRoll = (props: PianoRollProps) => {
     const numWhiteNotes = PianoKeys.filter(
         (label) => !label.includes("#")
     ).length;
-    const gridHeight = numWhiteNotes * whiteKeyHeight;
+    const gridHeight = numWhiteNotes * whiteKeyHeight - 16;
     const gridCellHeight = blackKeyHeightModifier * whiteKeyHeight;
     const pixelsPerRow = gridCellHeight;
 
@@ -48,7 +49,7 @@ const PianoRoll = (props: PianoRollProps) => {
 
     const baseWholeNoteWidth = columnWidth * wholeNoteDivisions;
     const basePixelsPerSecond = baseWholeNoteWidth / secondsPerWholeNote;
-    const pixelsPerSecond = GetPixelsPerSecond(basePixelsPerSecond);
+    const pixelsPerSecond = getPixelsPerSecond(basePixelsPerSecond);
 
     const [isSnappingOn, setIsSnappingOn] = useState(true);
     const [snapWidthIndex, setSnapWidthIndex] = useState(3);
@@ -153,16 +154,17 @@ const PianoRoll = (props: PianoRollProps) => {
                             >
                                 <Box
                                     position="relative"
+                                    bgColor="Red"
                                     width="full"
                                     height="full"
-                                    zIndex={1}
+                                    zIndex={4}
                                 >
                                     <Ruler
                                         type="horizontal"
                                         unit={1}
                                         zoom={wholeNoteDivisions * columnWidth}
                                         ref={scaleGridMinor}
-                                        backgroundColor={"rgba(0,0,0,0)"}
+                                        backgroundColor={"rgba(0,0,0,0.1)"}
                                         segment={wholeNoteDivisions}
                                         mainLineSize={0}
                                         shortLineSize={gridHeight}
@@ -177,10 +179,10 @@ const PianoRoll = (props: PianoRollProps) => {
                                     position="absolute"
                                     top={0}
                                     left={0}
-                                    // bgColor="Red"
+                                    // bgColor="green"
                                     width={projectLength * basePixelsPerSecond}
                                     height={gridHeight}
-                                    zIndex={0}
+                                    zIndex={5}
                                 >
                                     {PianoKeys.map((label, index) => {
                                         return (
@@ -197,7 +199,7 @@ const PianoRoll = (props: PianoRollProps) => {
                                     position="absolute"
                                     top={0}
                                     left={0}
-                                    // bgColor="Red"
+                                    bgColor="transparent"
                                     width={projectLength * basePixelsPerSecond}
                                     height={gridHeight}
                                     zIndex={7}
@@ -212,13 +214,13 @@ const PianoRoll = (props: PianoRollProps) => {
                                             mousePos: Coordinate
                                         ) => {
                                             if (isSnappingOn) {
-                                                mousePos.x = SnapDown(
+                                                mousePos.x = snapDown(
                                                     mousePos.x,
                                                     columnWidth
                                                 );
                                             }
 
-                                            AddNoteToSelectedTrack(
+                                            addNoteToSelectedTrack(
                                                 mousePos.x / pixelsPerSecond,
                                                 Math.floor(
                                                     mousePos.y / pixelsPerRow
@@ -228,9 +230,9 @@ const PianoRoll = (props: PianoRollProps) => {
                                                 ].divisor
                                             );
                                         }}
-                                        onClick={() => ClearNotesSelection()}
+                                        onClick={() => clearNotesSelection()}
                                         onDragStop={(bounds: BoxBounds) =>
-                                            DragSelectTimeBlocks(
+                                            dragSelectTimeBlocks(
                                                 bounds,
                                                 pixelsPerSecond,
                                                 pixelsPerRow,

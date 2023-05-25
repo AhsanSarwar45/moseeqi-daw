@@ -24,15 +24,15 @@ import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
-import { selectBpm, useStore } from "@Data/Store";
-import { SetBpm } from "@Utility/BpmUtils";
-import { SetPlaybackState, TogglePlayback } from "@Utility/PlaybackUtils";
+import { selectBpm, useStore } from "@data/stores/project";
+import { setBpm } from "@logic/bpm";
+import { setPlaybackState, togglePlayback } from "@logic/playback";
 import {
     PauseTransport,
     StartTransport,
     StopTransport,
-} from "@Utility/TransportUtils";
-import { selectPlaybackState, usePlaybackStore } from "@Data/PlaybackStore";
+} from "@logic/transport";
+import { selectPlaybackState, usePlaybackStore } from "@data/stores/playback";
 
 interface PlayBackControllerProps {}
 
@@ -152,7 +152,7 @@ const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Playing}
                     borderColor="secondary.700"
-                    onClick={() => SetPlaybackState(PlaybackState.Playing)}
+                    onClick={() => setPlaybackState(PlaybackState.Playing)}
                 />
                 <IconButton
                     aria-label="pause"
@@ -160,7 +160,7 @@ const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Paused}
                     borderColor="secondary.700"
-                    onClick={() => SetPlaybackState(PlaybackState.Paused)}
+                    onClick={() => setPlaybackState(PlaybackState.Paused)}
                 />
                 <IconButton
                     aria-label="stop"
@@ -168,7 +168,7 @@ const PlayBackController = (props: PlayBackControllerProps) => {
                     borderWidth={1}
                     isDisabled={playbackState === PlaybackState.Stopped}
                     borderColor="secondary.700"
-                    onClick={() => SetPlaybackState(PlaybackState.Stopped)}
+                    onClick={() => setPlaybackState(PlaybackState.Stopped)}
                 />
                 <IconButton
                     aria-label="fast-forward"
@@ -209,7 +209,7 @@ const PlayBackController = (props: PlayBackControllerProps) => {
                     defaultValue={120}
                     borderRadius="sm"
                     onBlur={(event) => {
-                        SetBpm(parseInt(event.target.value));
+                        setBpm(parseInt(event.target.value));
                     }}
                 >
                     <NumberInputField />

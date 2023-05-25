@@ -19,13 +19,13 @@ import {
 import { Instruments } from "@Instruments/Instruments";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
 
-interface AddTrackModalProps {
+interface addTrackModalProps {
     onClose: () => void;
     isOpen: boolean;
     onSubmit: (option: number) => void;
 }
 
-export const AddTrackModal = (props: AddTrackModalProps) => {
+export const AddTrackModal = (props: addTrackModalProps) => {
     const theme = useTheme();
     const [selectedInstrument, setSelectedInstrument] = useState(0);
 
@@ -38,7 +38,7 @@ export const AddTrackModal = (props: AddTrackModalProps) => {
         >
             <ModalOverlay />
             <ModalContent bgColor="primary.500">
-                <ModalHeader textColor="text.primary">Add Track</ModalHeader>
+                <ModalHeader textColor="text.primary">add Track</ModalHeader>
                 <ModalCloseButton color="text.primary" />
                 <ModalBody>
                     <Text>Select Instrument</Text>

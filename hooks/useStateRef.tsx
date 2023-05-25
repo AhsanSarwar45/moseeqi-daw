@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, setStateAction, useEffect, useRef, useState } from "react";
 
 export function useStateRef<Type>(
     initialValue: Type

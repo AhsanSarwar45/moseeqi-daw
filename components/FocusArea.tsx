@@ -1,5 +1,5 @@
 import { Box, ChakraProps, Flex } from "@chakra-ui/react";
-import { selectSetFocusArea, useFocusAreaStore } from "@Data/FocusAreaStore";
+import { selectSetFocusArea, useFocusAreaStore } from "@data/stores/focus-area";
 import { Panel } from "@Interfaces/enums/Panel";
 import React, { HTMLAttributes, ReactNode } from "react";
 

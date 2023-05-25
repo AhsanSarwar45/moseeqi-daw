@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { Heading, VStack, Flex } from "@chakra-ui/react";
 
 import KnobControl from "@Components/Knob";
-import { selectSelectedTrack, selectTrackCount, useStore } from "@Data/Store";
+import {
+    selectSelectedTrack,
+    selectTrackCount,
+    useStore,
+} from "@data/stores/project";
 
 interface PropertiesPanelProps {}
 

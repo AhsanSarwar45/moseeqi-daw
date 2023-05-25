@@ -1,11 +1,8 @@
 import { Box } from "@chakra-ui/react";
 import React, { useEffect, useRef } from "react";
 
-import { Note } from "@Interfaces/Note";
 import { Part } from "@Interfaces/Part";
 import { MidiNote } from "./MidiNote";
-import { IsIdSelected } from "@Utility/SelectionUtils";
-import { PartRecord } from "@Types/Types";
 
 interface PianoRollProps {
     part: Part;

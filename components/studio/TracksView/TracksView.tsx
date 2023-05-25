@@ -13,9 +13,13 @@ import { useState } from "react";
 
 import SeekHandle from "@Components/studio/SeekHandle";
 import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import { noteLengthOptions, secondsPerWholeNote } from "@Data/Constants";
+import { noteLengthOptions, secondsPerWholeNote } from "@data/Constants";
 
-import { selectProjectLength, selectTrackCount, useStore } from "@Data/Store";
+import {
+    selectProjectLength,
+    selectTrackCount,
+    useStore,
+} from "@data/stores/project";
 import SequenceView from "./SequenceView";
 import TracksInfoView from "./TracksInfoView";
 import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
@@ -23,15 +27,15 @@ import { Panel } from "@Interfaces/enums/Panel";
 import useKeyMap from "@Hooks/useKeyMap";
 import TracksSettingsView from "./TracksSettingsView";
 import {
-    CreatePartInTrack,
-    ClearSelectedPartsIndices,
-    DeleteSelectedParts,
-    GetNewPartStartTime,
-    GetNewPartStopTime,
-} from "@Utility/PartUtils";
+    createPartInTrack,
+    clearSelectedPartsIndices,
+    deleteSelectedParts,
+    getNewPartStartTime,
+    getNewPartStopTime,
+} from "@logic/part";
 import Canvas from "../Canvas";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
-import { DragSelectTimeBlocks } from "@Utility/SelectionUtils";
+import { getPixelsPerSecond } from "@logic/time";
+import { dragSelectTimeBlocks } from "@logic/selection";
 import { BoxBounds } from "@Interfaces/Box";
 import { SelectionType } from "@Interfaces/Selection";
 import { Coordinate } from "@Interfaces/Coordinate";
@@ -58,7 +62,7 @@ const TracksView = (props: TracksViewProps) => {
     const trackCount = useStore(selectTrackCount);
     const projectLength = useStore(selectProjectLength);
 
-    const pixelsPerSecond = GetPixelsPerSecond(basePixelsPerSecond);
+    const pixelsPerSecond = getPixelsPerSecond(basePixelsPerSecond);
 
     const sequenceViewHeight = trackCount * sequenceHeight;
 
@@ -93,7 +97,7 @@ const TracksView = (props: TracksViewProps) => {
                 sx={ScrollbarStyle}
                 onMouseDown={(event) => {
                     if (event.currentTarget === event.target) {
-                        ClearSelectedPartsIndices();
+                        clearSelectedPartsIndices();
                     }
                 }}
             >
@@ -162,24 +166,24 @@ const TracksView = (props: TracksViewProps) => {
                         />
                         <Canvas
                             onDoubleClick={(mousePos: Coordinate) => {
-                                const partStartTime = GetNewPartStartTime(
+                                const partStartTime = getNewPartStartTime(
                                     mousePos.x / pixelsPerSecond
                                 );
-                                const partStopTime = GetNewPartStopTime(
+                                const partStopTime = getNewPartStopTime(
                                     (mousePos.x + 1) / pixelsPerSecond
                                 );
-                                CreatePartInTrack(
+                                createPartInTrack(
                                     partStartTime,
                                     partStopTime,
                                     Math.floor(mousePos.y / pixelsPerRow)
                                 );
                             }}
                             onClick={() => {
-                                ClearSelectedPartsIndices();
-                                // SetSelectedTrackIndex(props.trackIndex);
+                                clearSelectedPartsIndices();
+                                // setSelectedTrackIndex(props.trackIndex);
                             }}
                             onDragStop={(bounds: BoxBounds) =>
-                                DragSelectTimeBlocks(
+                                dragSelectTimeBlocks(
                                     bounds,
                                     pixelsPerSecond,
                                     pixelsPerRow,

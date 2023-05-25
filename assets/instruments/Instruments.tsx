@@ -132,7 +132,7 @@ const InstrumentNames = [
     "gunshot",
 ];
 
-const GetInstrumentUrls = (name: string): InstrumentUrl => {
+const getInstrumentUrls = (name: string): InstrumentUrl => {
     const baseUrl =
         "//gleitz.github.io/midi-js-soundfonts/FluidR3_GM/" + name + "-mp3/";
     return {
@@ -239,7 +239,7 @@ export const Instruments: Array<Instrument> = InstrumentNames.map((name) => {
             c ? c.toUpperCase() : " " + d.toUpperCase()
         ),
         id: name,
-        urls: GetInstrumentUrls(name),
+        urls: getInstrumentUrls(name),
         release: 1,
         attack: 0,
     };

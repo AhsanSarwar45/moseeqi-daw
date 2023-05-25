@@ -7,7 +7,7 @@ import { useTheme } from "@chakra-ui/react";
 
 const Landing: NextPage = () => {
     const theme = useTheme();
-
+  
     return (
         <VStack
             gap="5%"

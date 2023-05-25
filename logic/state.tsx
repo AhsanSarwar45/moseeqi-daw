@@ -1,11 +1,11 @@
 // Modified from: https://stackoverflow.com/questions/52063018/intersection-of-two-deep-objects-in-javascript
 
-import { setState, StoreState } from "@Data/Store";
+import { setState, StoreState } from "@data/stores/project";
 import * as Tone from "tone";
-import { SynchronizePart } from "./PartUtils";
-import { DisposeTracks, GetTracksSaveData } from "./TrackUtils";
+import { synchronizePart as synchronizePart } from "./part";
+import { disposeTracks as disposeTracks, getTracksSaveData } from "./track";
 
-export const GetObjectIntersection = (object1: any, object2: any): any => {
+export const getObjectIntersection = (object1: any, object2: any): any => {
     // if (object1 == null) return;
     let intersectedProps = Object.keys(object1).map((k) => {
         let temp;
@@ -18,7 +18,7 @@ export const GetObjectIntersection = (object1: any, object2: any): any => {
             object2[k] &&
             typeof object2[k] === "object"
         ) {
-            temp = GetObjectIntersection(object1[k], object2[k]);
+            temp = getObjectIntersection(object1[k], object2[k]);
             return Object.keys(temp).length ? { [k]: temp } : {};
         }
         // if (k == null) return {};
@@ -41,14 +41,14 @@ export const GetObjectIntersection = (object1: any, object2: any): any => {
     }, {});
 };
 
-export const SynchronizeState = (oldState: StoreState) => {
-    DisposeTracks(oldState.tracks);
+export const synchronizeState = (oldState: StoreState) => {
+    disposeTracks(oldState.tracks);
     setState(
         (draftState) => {
             Tone.Transport.bpm.value = draftState.bpm;
             draftState.tracks.forEach((track) => {
                 track.parts.forEach((part) => {
-                    SynchronizePart(part);
+                    synchronizePart(part);
                     (part.tonePart as Tone.Part).mute =
                         track.muted || track.soloMuted;
                 });

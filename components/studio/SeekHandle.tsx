@@ -3,11 +3,11 @@ import {
     selectPlaybackState,
     selectSeek,
     usePlaybackStore,
-} from "@Data/PlaybackStore";
-import { useStore } from "@Data/Store";
+} from "@data/stores/playback";
+import { useStore } from "@data/stores/project";
 import { PlaybackState } from "@Interfaces/enums/PlaybackState";
 import { Dimension } from "@Types/Types";
-import { SetSeek } from "@Utility/PlaybackUtils";
+import { setSeek } from "@logic/playback";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import * as Tone from "tone";
@@ -34,7 +34,7 @@ const SeekHandle = (props: SeekHandleProps) => {
         data.lastX = Math.round(data.lastX / snapWidth) * snapWidth;
         const newSeek = data.lastX / (5 * props.scale);
         // console.log(newSeek, data.lastX)
-        SetSeek(newSeek);
+        setSeek(newSeek);
 
         Tone.Transport.seconds = newSeek * (30 / Tone.Transport.bpm.value);
         dragging.current = false;
@@ -44,12 +44,12 @@ const SeekHandle = (props: SeekHandleProps) => {
         () =>
             usePlaybackStore.subscribe(selectPlaybackState, (playbackState) => {
                 if (playbackState === PlaybackState.Stopped) {
-                    SetSeek(0);
+                    setSeek(0);
                     cancelAnimationFrame(seekAnimationRef.current);
                 } else if (playbackState === PlaybackState.Playing) {
                     seekAnimationRef.current = requestAnimationFrame(
                         function UpdateSeek() {
-                            SetSeek(
+                            setSeek(
                                 Tone.Transport.seconds *
                                     (Tone.Transport.bpm.value / 30)
                             );

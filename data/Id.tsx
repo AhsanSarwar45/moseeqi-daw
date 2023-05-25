@@ -1,4 +1,4 @@
-import createId from "@Utility/IdUtils";
+import createId from "@logic/id";
 
 export const getTrackId = createId();
 export const getPartId = createId();

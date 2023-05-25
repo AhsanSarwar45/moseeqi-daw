@@ -1,13 +1,15 @@
 import { Box } from "@chakra-ui/react";
-import { selectProjectLength, useStore } from "@Data/Store";
+import { selectProjectLength, useStore } from "@data/stores/project";
 import { PartMap } from "@Types/Types";
-import { ClearSelectedPartsIndices } from "@Utility/PartUtils";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+import { clearSelectedPartsIndices } from "@logic/part";
+import { getPixelsPerSecond } from "@logic/time";
 import React from "react";
 import PartView from "./PartView";
+import { Track } from "@Interfaces/Track";
 
 interface SequenceProps {
     trackId: number;
+    track: Track;
     trackIndex: number;
     basePixelsPerSecond: number;
     snapWidth: number;
@@ -15,9 +17,6 @@ interface SequenceProps {
 }
 
 const Sequence = (props: SequenceProps) => {
-    const parts = useStore(
-        (state) => state.tracks.get(props.trackId)?.parts as PartMap
-    );
     const projectLength = useStore(selectProjectLength);
 
     return (
@@ -30,19 +29,19 @@ const Sequence = (props: SequenceProps) => {
             padding="0px"
             // onMouseDown={(event) => {
             //     if (event.currentTarget === event.target) {
-            //         ClearSelectedPartsIndices();
-            //         SetSelectedTrackIndex(props.trackIndex);
+            //         clearSelectedPartsIndices();
+            //         setSelectedTrackIndex(props.trackIndex);
             //     }
             // }}
             // borderBottomWidth={1}
             // borderColor={"gray.500"}
             // boxSizing="border-box"
         >
-            {Array.from(parts.entries()).map((partRecord) => (
+            {Array.from(props.track.parts.entries()).map((partRecord) => (
                 <PartView
                     key={partRecord[0]}
                     partRecord={partRecord}
-                    pixelsPerSecond={GetPixelsPerSecond(
+                    pixelsPerSecond={getPixelsPerSecond(
                         props.basePixelsPerSecond
                     )}
                     snapWidth={props.snapWidth}

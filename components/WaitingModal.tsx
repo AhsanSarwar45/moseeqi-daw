@@ -8,7 +8,7 @@ import {
     Text,
     useDisclosure,
 } from "@chakra-ui/react";
-import { selectIsLoading, useLoadingStore } from "@Data/IsLoadingStore";
+import { selectIsLoading, useLoadingStore } from "@data/stores/loading-status";
 import { useEffect } from "react";
 
 const WaitingModal = () => {

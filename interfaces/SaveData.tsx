@@ -3,8 +3,15 @@ import { Note } from "./Note";
 import { Part } from "./Part";
 import { TimeBlock } from "./TimeBlock";
 
+// All fields must me JSON serializable, and composed only of POD types (string, number, boolean)
+
+export interface NoteSaveData extends TimeBlock {
+    readonly key: string;
+    readonly velocity: number;
+}
+
 export interface PartSaveData extends TimeBlock {
-    notes: Array<Note>;
+    notes: Array<NoteSaveData>;
 }
 
 export interface TrackSaveData {
@@ -16,8 +23,9 @@ export interface TrackSaveData {
     soloMuted: boolean;
 }
 
-export interface SaveData {
+export interface ProjectSaveData {
     tracks: Array<TrackSaveData>;
     bpm: number;
-    name: string;
+    projectName: string;
+    projectLength: number;
 }

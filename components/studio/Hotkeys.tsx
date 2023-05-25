@@ -1,20 +1,20 @@
 import useKeyMap from "@Hooks/useKeyMap";
-import { Undo, Redo } from "@Utility/HistoryUtils";
-import { DeleteSelectedNotes } from "@Utility/NoteUtils";
-import { DeleteSelectedParts } from "@Utility/PartUtils";
-import { TogglePlayback } from "@Utility/PlaybackUtils";
-import { DeleteSelectedTrack } from "@Utility/TrackUtils";
+import { undo, redo } from "@logic/history";
+import { deleteSelectedNotes } from "@logic/note";
+import { deleteSelectedParts } from "@logic/part";
+import { togglePlayback } from "@logic/playback";
+import { deleteSelectedTracks } from "@logic/track";
 import React from "react";
 
 const Hotkeys = () => {
-    useKeyMap("TOGGLE_PLAYBACK", TogglePlayback);
+    useKeyMap("TOGGLE_PLAYBACK", togglePlayback);
 
-    useKeyMap("DELETE_TRACKS", DeleteSelectedTrack);
-    useKeyMap("DELETE_PARTS", DeleteSelectedParts);
-    useKeyMap("DELETE_NOTES", DeleteSelectedNotes);
+    useKeyMap("DELETE_TRACKS", deleteSelectedTracks);
+    useKeyMap("DELETE_PARTS", deleteSelectedParts);
+    useKeyMap("DELETE_NOTES", deleteSelectedNotes);
 
-    useKeyMap("UNDO", Undo);
-    useKeyMap("REDO", Redo);
+    useKeyMap("UNDO", undo);
+    useKeyMap("REDO", redo);
 
     return <></>;
 };

@@ -5,9 +5,9 @@ import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { SelectionType } from "@Interfaces/Selection";
-import { IsIdSelected, IsTimeBlockSelected } from "@Utility/SelectionUtils";
-import { selectSelectedParts, useStore } from "@Data/Store";
-import { IsNoteDisabled } from "@Utility/NoteUtils";
+import { isIdSelected, checkIsTimeBlockSelected } from "@logic/selection";
+import { selectSelectedParts, useStore } from "@data/stores/project";
+import { IsNoteDisabled } from "@logic/note";
 import { PartRecord } from "@Types/Types";
 
 interface PartViewProps {
@@ -28,7 +28,10 @@ const PartView = (props: PartViewProps) => {
             selectionType={SelectionType.Part}
             snapWidth={props.snapWidth}
             pixelsPerSecond={props.pixelsPerSecond}
-            isSelected={IsTimeBlockSelected(props.partRecord, selectedParts)}
+            isSelected={checkIsTimeBlockSelected(
+                props.partRecord,
+                selectedParts
+            )}
             borderColor="white"
             selectedBorderColor="secondary.500"
             bgColor="rgb(0,0,0,0.4)"

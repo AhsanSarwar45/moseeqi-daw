@@ -20,14 +20,14 @@ import { BiCopy, BiPaste, BiExit, BiUndo, BiRedo } from "react-icons/bi";
 
 import MoseeqiLogo from "@Components/icons/MoseeqiLogo";
 import FileUploader from "@Components/FIleUploader";
-import { defaultProjectName } from "@Data/Defaults";
+import { defaultProjectName } from "@data/Defaults";
 import {
-    CreateNewProject,
-    SaveProjectToFile,
-    OpenProjectFromFile,
-    SetProjectName,
-} from "@Utility/ProjectUtils";
-import { selectProjectName, useStore } from "@Data/Store";
+    createNewProject,
+    saveProjectToFile,
+    openProjectFromFile,
+    setProjectName,
+} from "@logic/project";
+import { selectProjectName, useStore } from "@data/stores/project";
 
 interface TopBarProps {}
 
@@ -70,18 +70,18 @@ const TopBar = (props: TopBarProps) => {
                         <Text>File</Text>
                     </MenuButton>
 
-                    <MenuList bgColor="primary.500">
+                    <MenuList bgColor="primary.600">
                         <MenuItem
                             icon={<RiFileAddLine />}
                             command="⌘+N"
-                            onClick={CreateNewProject}
+                            onClick={createNewProject}
                         >
                             <Text>New</Text>
                         </MenuItem>
                         <MenuItem
                             icon={<IoMdSave />}
                             command="⌘+S"
-                            onClick={SaveProjectToFile}
+                            onClick={saveProjectToFile}
                         >
                             <Text>Save</Text>
                         </MenuItem>
@@ -93,7 +93,7 @@ const TopBar = (props: TopBarProps) => {
                         >
                             <FileUploader
                                 ref={fileInputRef}
-                                onFileUpload={OpenProjectFromFile}
+                                onFileUpload={openProjectFromFile}
                                 display={<Text>Open</Text>}
                             />
                         </MenuItem>
@@ -111,7 +111,7 @@ const TopBar = (props: TopBarProps) => {
                         <Text>Edit</Text>
                     </MenuButton>
 
-                    <MenuList bgColor="primary.500">
+                    <MenuList bgColor="primary.600">
                         <MenuItem icon={<BiUndo />} command="⌘+Z">
                             <Text>Undo</Text>
                         </MenuItem>
@@ -135,7 +135,7 @@ const TopBar = (props: TopBarProps) => {
                         <Text>Tutorials</Text>
                     </MenuButton>
 
-                    <MenuList bgColor="primary.500">
+                    <MenuList bgColor="primary.600">
                         <MenuItem>
                             <Text>Basics</Text>
                         </MenuItem>
@@ -152,7 +152,7 @@ const TopBar = (props: TopBarProps) => {
                 variant="unstyled"
                 value={localProjectName}
                 onChange={(event) => setLocalProjectName(event.target.value)}
-                onBlur={() => SetProjectName(localProjectName)}
+                onBlur={() => setProjectName(localProjectName)}
                 textColor="white"
                 size="lg"
                 borderRadius="sm"

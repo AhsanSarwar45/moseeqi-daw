@@ -1,7 +1,7 @@
 const Listener = () => {
     let isListenerAttached = false;
 
-    const Add = (
+    const add = (
         target: any,
         event: string,
         callback: (event: Event) => any
@@ -23,7 +23,7 @@ const Listener = () => {
         console.log("listener removed");
     };
 
-    return [Add, Remove];
+    return [add, Remove];
 };
 
 export default Listener;

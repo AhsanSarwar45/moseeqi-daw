@@ -1,6 +1,10 @@
 import { Box } from "@chakra-ui/react";
-import { selectLastSelectedTrack, selectTracks, useStore } from "@Data/Store";
-import { GetPixelsPerSecond } from "@Utility/TimeUtils";
+import {
+    selectLastSelectedTrack,
+    selectTracks,
+    useStore,
+} from "@data/stores/project";
+import { getPixelsPerSecond } from "@logic/time";
 import React, { useEffect, useRef } from "react";
 import PianoRollPartView from "./PianoRollPartView";
 
@@ -28,7 +32,7 @@ const GridView = (props: GridViewProps) => {
                             rowHeight={props.gridCellHeight}
                             cellWidth={props.columnWidth}
                             gridHeight={props.gridHeight}
-                            pixelsPerSecond={GetPixelsPerSecond(
+                            pixelsPerSecond={getPixelsPerSecond(
                                 props.basePixelsPerSecond
                             )}
                             snapWidth={props.snapWidth}

@@ -1,19 +1,20 @@
 import React from "react";
 
-import { selectTrackCount, useStore } from "@Data/Store";
+import { selectTrackCount, useStore } from "@data/stores/project";
 import TrackInfo from "./TrackInfo";
-import { GetTrackIds } from "@Utility/TrackUtils";
+import { getTrackIds } from "@logic/track";
 
 interface TracksInfoViewProps {}
 
 const TracksInfoView = () => {
-    const trackCount = useStore(selectTrackCount);
+    const trackMap = useStore((state) => state.tracks);
 
     return (
         <>
-            {GetTrackIds().map((trackId) => {
-                // console.log(index, trackCount, 4);
-                return <TrackInfo trackId={trackId} key={trackId} />;
+            {Array.from(trackMap).map(([trackId, track]) => {
+                return (
+                    <TrackInfo trackId={trackId} track={track} key={trackId} />
+                );
             })}
         </>
     );

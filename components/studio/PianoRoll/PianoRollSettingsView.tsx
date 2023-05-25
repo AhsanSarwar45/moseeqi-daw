@@ -1,9 +1,9 @@
 import { HStack, ButtonGroup, Icon } from "@chakra-ui/react";
 import ToggleButton from "@Components/ToggleButton";
 import TooltipButton from "@Components/TooltipButton";
-import { noteLengthOptions } from "@Data/Constants";
-import { useStore } from "@Data/Store";
-import { ClearSelectedTrack } from "@Utility/TrackUtils";
+import { noteLengthOptions } from "@data/Constants";
+import { useStore } from "@data/stores/project";
+import { clearSelectedTrack } from "@logic/track";
 import React from "react";
 import { BiTrash, BiMagnet } from "react-icons/bi";
 import SnapSettings from "../SnapSettings";
@@ -55,7 +55,7 @@ const PianoRollSettingsView = (props: PianoRollSettingsViewProps) => {
             </ButtonGroup>
             <TooltipButton
                 aria-label="Clear project"
-                onClick={ClearSelectedTrack}
+                onClick={clearSelectedTrack}
                 label="Clear"
                 icon={<Icon as={BiTrash} />}
                 tooltip="Clear all the notes in the piano roll"

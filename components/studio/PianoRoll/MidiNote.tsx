@@ -1,19 +1,17 @@
-import { selectSelectedNotes, useStore } from "@Data/Store";
-import { Note } from "@Interfaces/Note";
+import { selectSelectedNotes, useStore } from "@data/stores/project";
 import { Part } from "@Interfaces/Part";
 import TimeDraggable from "@Components/TimeDraggable";
 import { SelectionType } from "@Interfaces/Selection";
 import {
-    DeleteNote,
+    deleteNote,
     IsNoteDisabled,
-    PlayKey,
-    PlayNote,
-    PlaySelectedTrackKey,
-    PlaySelectedTrackNote,
-} from "@Utility/NoteUtils";
-import { IsIdSelected, IsTimeBlockSelected } from "@Utility/SelectionUtils";
-import { useEffect } from "react";
-import { PianoKeys } from "@Data/Constants";
+    playKey,
+    playNote,
+    playSelectedTrackKey,
+    playSelectedTrackNote,
+} from "@logic/note";
+import { checkIsTimeBlockSelected } from "@logic/selection";
+import { PianoKeys } from "@data/Constants";
 import { NoteRecord } from "@Types/Types";
 
 interface MidiNoteProps {
@@ -32,7 +30,7 @@ export const MidiNote = (props: MidiNoteProps) => {
     const [noteId, note] = props.noteRecord;
 
     const HandleResize = (duration: number) => {
-        PlaySelectedTrackKey(PianoKeys[note.rowIndex], duration);
+        playSelectedTrackKey(PianoKeys[note.rowIndex], duration);
     };
 
     // console.log(selectedNotes);
@@ -43,7 +41,10 @@ export const MidiNote = (props: MidiNoteProps) => {
             selectionType={SelectionType.Note}
             snapWidth={props.snapWidth}
             rowHeight={props.cellHeight}
-            isSelected={IsTimeBlockSelected(props.noteRecord, selectedNotes)}
+            isSelected={checkIsTimeBlockSelected(
+                props.noteRecord,
+                selectedNotes
+            )}
             pixelsPerSecond={props.pixelsPerSecond}
             borderColor={
                 IsNoteDisabled(note, props.part) ? "gray.600" : "secondary.600"
@@ -56,7 +57,7 @@ export const MidiNote = (props: MidiNoteProps) => {
             height={`${props.cellHeight}px`}
             top={`${note.rowIndex * props.cellHeight}px`}
             onDragY={(rowIndex) =>
-                PlaySelectedTrackKey(PianoKeys[rowIndex], note.duration)
+                playSelectedTrackKey(PianoKeys[rowIndex], note.duration)
             }
             onResizeLeftStop={(startTime, initialTimeBlock) =>
                 HandleResize(initialTimeBlock.stopTime - startTime)
@@ -65,8 +66,8 @@ export const MidiNote = (props: MidiNoteProps) => {
                 HandleResize(stopTime - initialTimeBlock.startTime)
             }
             onMouseDown={(event) => {
-                if (event.button === 0) PlaySelectedTrackNote(note);
-                if (event.button === 2) DeleteNote(props.noteRecord);
+                if (event.button === 0) playSelectedTrackNote(note);
+                if (event.button === 2) deleteNote(props.noteRecord);
             }}
         />
     );
