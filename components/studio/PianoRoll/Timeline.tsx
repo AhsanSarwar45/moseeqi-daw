@@ -1,15 +1,10 @@
 import { Box, Flex, HStack } from "@chakra-ui/react";
-import { PianoKeys } from "@data/Constants";
-import SeekHandle from "../SeekHandle";
+
+import SeekHandle from "../seek-handle";
 import Ruler from "@scena/react-ruler";
-import Theme from "@Theme/index.ts";
-import { Dimension } from "@Types/Types";
-import { StrDimToNum } from "@logic/dimension";
-import {
-    blackKeyHeightModifier,
-    blackKeyWidthModifier,
-    wholeNoteDivisions,
-} from "@data/Constants";
+import Theme from "@theme/index";
+import { Dimension } from "@types/types";
+import { wholeNoteDivisions } from "@data/constants";
 
 interface TimelineProps {
     gridHeight: Dimension;

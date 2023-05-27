@@ -1,11 +1,8 @@
-import { Id, NoteMap } from "@Types/Types";
+import { Id, NoteMap } from "@types/types";
 import Tone from "tone";
-import { ChildEntity, ChildTimeBlock } from "./ChildEntity";
-import { Note } from "./Note";
-import { TimeBlock } from "./TimeBlock";
-import { Track } from "./Track";
+import { ChildEntity, ChildTimeBlock } from "./child-entity";
 
 export interface Part extends ChildTimeBlock {
-    readonly tonePart: Tone.Part | undefined;
+    readonly tonePart: Tone.Part;
     readonly notes: NoteMap;
 }

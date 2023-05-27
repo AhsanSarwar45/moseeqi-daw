@@ -1,4 +1,4 @@
-import { InstrumentUrl } from "@Interfaces/InstrumentUrl";
+import { InstrumentUrl } from "@interfaces/instrument-url";
 
 export interface Instrument {
     name: string;

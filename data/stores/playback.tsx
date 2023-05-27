@@ -1,4 +1,4 @@
-import { PlaybackState } from "@Interfaces/enums/PlaybackState";
+import { PlaybackState } from "@interfaces/enums/playback-state";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 

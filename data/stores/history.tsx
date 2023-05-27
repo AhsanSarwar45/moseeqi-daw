@@ -1,4 +1,4 @@
-import { Recipe } from "@Interfaces/Recipe";
+import { Recipe } from "@interfaces/recipe";
 import { produce, Patch } from "immer";
 import { create } from "zustand";
 import { StoreState, useStore } from "./project";

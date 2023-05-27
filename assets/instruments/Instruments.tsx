@@ -1,5 +1,5 @@
-import { Instrument } from "@Interfaces/Instrument";
-import { InstrumentUrl } from "@Interfaces/InstrumentUrl";
+import { Instrument } from "@interfaces/instrument";
+import { InstrumentUrl } from "@interfaces/instrument-url";
 
 const InstrumentNames = [
     "acoustic_grand_piano",

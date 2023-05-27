@@ -1,7 +1,7 @@
-import { Id } from "@Types/Types";
-import { ChildEntity, ChildTimeBlock } from "./ChildEntity";
-import { Part } from "./Part";
-import { TimeBlock } from "./TimeBlock";
+import { Id } from "@types/types";
+import { ChildEntity, ChildTimeBlock } from "./child-entity";
+import { Part } from "./part";
+import { TimeBlock } from "./time-block";
 
 export interface Note extends ChildTimeBlock {
     readonly key: string;

@@ -1,6 +1,6 @@
 import * as Tone from "tone";
 
-import { Instrument } from "@Interfaces/Instrument";
+import { Instrument } from "@interfaces/instrument";
 
 const CreateSampler = (instrument: Instrument, onLoad: () => void) => {
     return new Tone.Sampler({

@@ -1,7 +1,7 @@
 import { Box, useControllableState } from "@chakra-ui/react";
-import { useEvent } from "@Hooks/useEvent";
-import { BoxBounds } from "@Interfaces/Box";
-import { Coordinate } from "@Interfaces/Coordinate";
+import { useEvent } from "@hooks/use-event";
+import { BoxBounds } from "@interfaces/box";
+import { Coordinate } from "@interfaces/coordinate";
 import { dragSelectTimeBlocks } from "@logic/selection";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 

@@ -1,7 +1,7 @@
-import { selectSelectedNotes, useStore } from "@data/stores/project";
-import { Part } from "@Interfaces/Part";
-import TimeDraggable from "@Components/TimeDraggable";
-import { SelectionType } from "@Interfaces/Selection";
+import { selectSelectedNotesIds, useStore } from "@data/stores/project";
+import { Part } from "@interfaces/part";
+import TimeDraggable from "@components/time-draggable";
+import { SelectionType } from "@interfaces/selection";
 import {
     deleteNote,
     IsNoteDisabled,
@@ -11,8 +11,8 @@ import {
     playSelectedTrackNote,
 } from "@logic/note";
 import { checkIsTimeBlockSelected } from "@logic/selection";
-import { PianoKeys } from "@data/Constants";
-import { NoteRecord } from "@Types/Types";
+import { PianoKeys } from "@data/constants";
+import { NoteRecord } from "@types/types";
 
 interface MidiNoteProps {
     noteRecord: NoteRecord;
@@ -25,7 +25,7 @@ interface MidiNoteProps {
 }
 
 export const MidiNote = (props: MidiNoteProps) => {
-    const selectedNotes = useStore(selectSelectedNotes);
+    const selectedNotes = useStore(selectSelectedNotesIds);
 
     const [noteId, note] = props.noteRecord;
 

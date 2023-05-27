@@ -5,11 +5,11 @@ import {
     setState,
 } from "@data/stores/project";
 import { useStore } from "@data/stores/project";
-import { ProjectSaveData } from "@Interfaces/SaveData";
-import { Track } from "@Interfaces/Track";
+import { ProjectSaveData } from "@interfaces/save-data";
+import { Track } from "@interfaces/track";
 import saveAs from "file-saver";
 import { clearHistory } from "./history";
-import { createPart } from "./part";
+import { addPartToTrack } from "./part";
 import {
     changeTracksBpm,
     createTrack,
@@ -17,9 +17,7 @@ import {
     disposeTracks,
     getTracksSaveData,
 } from "./track";
-import { createNote } from "./note";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
+import { synchronizeTone } from "./state";
 
 export const setProjectName = (name: string) => {
     setState((draftState) => {
@@ -69,7 +67,20 @@ export const openProjectFromFile = async (file: File) => {
     // pendingBpmUpdateRef.current = saveData.bpm;
     setState(
         (draftState) => {
+            // TODO: This code is bug-prone.
+            // It requires the following order of operations:
+            // 1. Dispose tracks
+            // 2. Set bpm
+            // 3. Synchronize tone
+            // 4. Set tracks
+            // 5. resetSelectionState
+            // 6. Synchronize tone
+            // A change in this order will make it not work
+            // TODO: Change the architecture to avoid this.
+
             disposeTracks(draftState.tracks);
+            draftState.bpm = saveData.bpm;
+            synchronizeTone(draftState);
 
             const newTracks = saveData.tracks.map((trackSaveData, index) => {
                 return createTrack(
@@ -84,19 +95,14 @@ export const openProjectFromFile = async (file: File) => {
 
             const tracks = new Map<number, Track>(newTracks);
 
-            changeTracksBpm(tracks, saveData.bpm, draftState.bpm);
             draftState.tracks.clear();
             Array.from(tracks).forEach(([trackId, track]) => {
                 draftState.tracks.set(trackId, track);
             });
-            draftState.bpm = saveData.bpm;
             draftState.projectName = saveData.projectName;
             draftState.projectLength = saveData.projectLength;
-            draftState.lastSelectedTrackId = tracks.size
-                ? Array.from(tracks.keys())[0]
-                : -1;
             resetSelectionState(draftState);
-            // // Convert track to current bpm
+            synchronizeTone(draftState);
         },
         "Open project",
         false

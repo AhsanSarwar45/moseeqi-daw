@@ -1,5 +1,5 @@
-import { Id } from "@Types/Types";
-import { TimeBlock } from "./TimeBlock";
+import { Id } from "@types/types";
+import { TimeBlock } from "./time-block";
 
 export interface ChildEntity {
     readonly parentId: Id;

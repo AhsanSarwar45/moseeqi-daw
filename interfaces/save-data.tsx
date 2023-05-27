@@ -1,7 +1,7 @@
-import { Instrument } from "./Instrument";
-import { Note } from "./Note";
-import { Part } from "./Part";
-import { TimeBlock } from "./TimeBlock";
+import { Instrument } from "./instrument";
+import { Note } from "./note";
+import { Part } from "./part";
+import { TimeBlock } from "./time-block";
 
 // All fields must me JSON serializable, and composed only of POD types (string, number, boolean)
 

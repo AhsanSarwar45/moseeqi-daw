@@ -1,7 +1,7 @@
 import React from "react";
 
 import { selectTrackCount, useStore } from "@data/stores/project";
-import TrackInfo from "./TrackInfo";
+import TrackInfo from "./track-info";
 import { getTrackIds } from "@logic/track";
 
 interface TracksInfoViewProps {}

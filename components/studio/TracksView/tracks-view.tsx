@@ -11,34 +11,35 @@ import {
 import Ruler from "@scena/react-ruler";
 import { useState } from "react";
 
-import SeekHandle from "@Components/studio/SeekHandle";
-import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import { noteLengthOptions, secondsPerWholeNote } from "@data/Constants";
+import SeekHandle from "@components/studio/seek-handle";
+import { ScrollbarStyle } from "@styles/scrollbar-style";
+import { noteLengthOptions, secondsPerWholeNote } from "@data/constants";
 
 import {
     selectProjectLength,
     selectTrackCount,
     useStore,
 } from "@data/stores/project";
-import SequenceView from "./SequenceView";
-import TracksInfoView from "./TracksInfoView";
-import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
-import { Panel } from "@Interfaces/enums/Panel";
-import useKeyMap from "@Hooks/useKeyMap";
-import TracksSettingsView from "./TracksSettingsView";
+import SequenceView from "./sequence-view";
+import TracksInfoView from "./tracks-info-view";
+import { FocusArea, FlexFocusArea } from "@components/focus-area";
+import { Panel } from "@interfaces/enums/panel";
+import useKeyMap from "@hooks/use-keymap";
+import TracksSettingsView from "./tracks-settings-view";
 import {
-    createPartInTrack,
+    addPartToTrackIndex,
     clearSelectedPartsIndices,
     deleteSelectedParts,
     getNewPartStartTime,
     getNewPartStopTime,
 } from "@logic/part";
-import Canvas from "../Canvas";
+import Canvas from "../canvas";
 import { getPixelsPerSecond } from "@logic/time";
 import { dragSelectTimeBlocks } from "@logic/selection";
-import { BoxBounds } from "@Interfaces/Box";
-import { SelectionType } from "@Interfaces/Selection";
-import { Coordinate } from "@Interfaces/Coordinate";
+import { BoxBounds } from "@interfaces/box";
+import { SelectionType } from "@interfaces/selection";
+import { Coordinate } from "@interfaces/coordinate";
+import GridLines from "react-gridlines";
 
 interface TracksViewProps {}
 
@@ -64,7 +65,7 @@ const TracksView = (props: TracksViewProps) => {
 
     const pixelsPerSecond = getPixelsPerSecond(basePixelsPerSecond);
 
-    const sequenceViewHeight = trackCount * sequenceHeight;
+    const sequenceViewHeight = trackCount * sequenceHeight + 1;
 
     const HandleWindowResize = () => {
         scaleGridTop.current?.resize();
@@ -110,7 +111,7 @@ const TracksView = (props: TracksViewProps) => {
                 >
                     <FocusArea panel={Panel.TracksInfoView}>
                         <Box
-                            height={30}
+                            height={31}
                             bgColor="primary.600"
                             borderBottom="1px solid gray"
                             position="sticky"
@@ -150,7 +151,7 @@ const TracksView = (props: TracksViewProps) => {
                         marginTop="30px"
                         position="relative"
                     >
-                        <Ruler
+                        {/* <Ruler
                             type="horizontal"
                             unit={1}
                             zoom={40}
@@ -163,7 +164,17 @@ const TracksView = (props: TracksViewProps) => {
                             height={sequenceViewHeight}
                             lineColor="rgba(255,255,255,0.1)"
                             textColor="rgba(0,0,0,0)"
-                        />
+                        /> */}
+                        <GridLines
+                            className="grid-area"
+                            cellWidth={10}
+                            cellHeight={sequenceHeight}
+                            strokeWidth={1}
+                            lineColor="rgba(255,255,255,0.2)"
+                            // cellWidth2={12}
+                        >
+                            <Box height={sequenceViewHeight} />
+                        </GridLines>
                         <Canvas
                             onDoubleClick={(mousePos: Coordinate) => {
                                 const partStartTime = getNewPartStartTime(
@@ -172,7 +183,7 @@ const TracksView = (props: TracksViewProps) => {
                                 const partStopTime = getNewPartStopTime(
                                     (mousePos.x + 1) / pixelsPerSecond
                                 );
-                                createPartInTrack(
+                                addPartToTrackIndex(
                                     partStartTime,
                                     partStopTime,
                                     Math.floor(mousePos.y / pixelsPerRow)

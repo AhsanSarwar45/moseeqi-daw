@@ -3,8 +3,8 @@ import {
     HalfNoteIcon,
     QuarterNoteIcon,
     WholeNoteIcon,
-} from "@Components/icons/Notes";
-import { DrawLengthOption } from "@Interfaces/DrawLengthOption";
+} from "@components/icons/Notes";
+import { DrawLengthOption } from "@interfaces/draw-length-option";
 
 export const wholeNoteDivisions = 8;
 export const secondsPerWholeNote = 4;

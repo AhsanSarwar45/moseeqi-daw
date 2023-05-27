@@ -1,9 +1,9 @@
 import { Box, HStack } from "@chakra-ui/react";
-import { PianoKeys } from "@data/Constants";
-import { Dimension } from "@Types/Types";
+import { PianoKeys } from "@data/constants";
+import { Dimension } from "@types/types";
 import { StrDimToNum } from "@logic/dimension";
 import { memo } from "react";
-import Key from "./Key";
+import Key from "./key";
 
 interface KeysViewProps {
     width: Dimension;

@@ -1,4 +1,5 @@
 import * as Tone from "tone";
+import { synchronizeTone } from "./state";
 
 export const StopTransport = () => {
     Tone.Transport.stop();
@@ -6,6 +7,7 @@ export const StopTransport = () => {
 };
 
 export const StartTransport = () => {
+    synchronizeTone();
     Tone.Transport.start();
 };
 

@@ -58,27 +58,27 @@ export const addToHistory = (
 };
 
 export const undo = () => {
-    const prevState = getState();
+    const currentState = getState();
     setHistoryState((draftState) => {
         const pastState = draftState.pastStates.pop();
         if (pastState) {
-            console.log(pastState.inversePatches, getState());
+            console.log(pastState.inversePatches, currentState);
             useStore.setState(
-                applyPatches(getState(), pastState.inversePatches)
+                applyPatches(currentState, pastState.inversePatches)
             );
-            synchronizeState(prevState);
+            synchronizeState(currentState);
             draftState.futureStates.push(pastState);
         }
     });
 };
 
 export const redo = () => {
-    const prevState = getState();
+    const currentState = getState();
     setHistoryState((draftState) => {
         const futureState = draftState.futureStates.pop();
         if (futureState) {
             useStore.setState(applyPatches(getState(), futureState.patches));
-            synchronizeState(prevState);
+            synchronizeState(currentState);
             draftState.pastStates.push(futureState);
         }
     });

@@ -3,11 +3,11 @@
 // export type PlaybackState = 0 | 1 | 2;
 
 import { StoreState } from "@data/stores/project";
-import { ChildTimeBlock } from "@Interfaces/ChildEntity";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
-import { TimeBlock } from "@Interfaces/TimeBlock";
-import { Track } from "@Interfaces/Track";
+import { ChildTimeBlock } from "@interfaces/child-entity";
+import { Note } from "@interfaces/note";
+import { Part } from "@interfaces/part";
+import { TimeBlock } from "@interfaces/time-block";
+import { Track } from "@interfaces/track";
 
 export type Dimension = string | number;
 

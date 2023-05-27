@@ -2,7 +2,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { render } from "@testing-library/react";
 import { ReactNode } from "react";
 
-import Theme from "@Theme/";
+import Theme from "@theme/";
 
 const renderWithTheme = (ui: any) => {
     const Wrapper = ({ children }: any) => (

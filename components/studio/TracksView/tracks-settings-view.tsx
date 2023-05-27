@@ -1,6 +1,6 @@
 import { HStack, Icon, useDisclosure } from "@chakra-ui/react";
-import ToggleButton from "@Components/ToggleButton";
-import TooltipButton from "@Components/TooltipButton";
+import ToggleButton from "@components/toggle-button";
+import TooltipButton from "@components/tooltip-button";
 import { useStore } from "@data/stores/project";
 import {
     addTrackFromInstrumentIndex,
@@ -9,8 +9,8 @@ import {
 import React from "react";
 import { BiTrash, BiMagnet, BiDuplicate, BiChevronDown } from "react-icons/bi";
 import { TiFolderOpen, TiPlus } from "react-icons/ti";
-import SnapSettings from "../SnapSettings";
-import { AddTrackModal } from "./AddTrackModal";
+import SnapSettings from "../snap-settings";
+import { AddTrackModal } from "./add-track-modal";
 
 interface TracksSettingsViewProps {
     snapWidthIndex: number;

@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import { KeyType } from "@Interfaces/KeyType";
+import { KeyType } from "@interfaces/key-type";
 import { useRef } from "react";
 
 interface RowProps {

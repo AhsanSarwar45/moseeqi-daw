@@ -1,11 +1,11 @@
 import { Box } from "@chakra-ui/react";
 import { selectProjectLength, useStore } from "@data/stores/project";
-import { PartMap } from "@Types/Types";
+import { PartMap } from "@types/types";
 import { clearSelectedPartsIndices } from "@logic/part";
 import { getPixelsPerSecond } from "@logic/time";
 import React from "react";
-import PartView from "./PartView";
-import { Track } from "@Interfaces/Track";
+import PartView from "./part-view";
+import { Track } from "@interfaces/track";
 
 interface SequenceProps {
     trackId: number;
@@ -23,6 +23,7 @@ const Sequence = (props: SequenceProps) => {
         <Box
             top={props.height * props.trackIndex}
             key={props.trackId}
+            // bgColor="red"
             // height={props.height}
             // width={projectLength * props.basePixelsPerSecond}
             position="relative"

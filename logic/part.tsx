@@ -1,15 +1,15 @@
 import * as Tone from "tone";
 
-import { wholeNoteDivisions } from "@data/Constants";
-import { Note } from "@Interfaces/Note";
-import { createNote, getNotesSaveData, getPartNote } from "./note";
-import { getPartId } from "@data/Id";
+import { wholeNoteDivisions } from "@data/constants";
+import { Note } from "@interfaces/note";
+import { addNoteToPart, getNotesSaveData, getPartNote } from "./note";
+import { getPartId } from "@data/id";
 import { getSecondsPerDivision } from "./time";
-import { Part } from "@Interfaces/Part";
+import { Part } from "@interfaces/part";
 import { StoreState, useStore } from "@data/stores/project";
 import { mapTimeBlock } from "./time-block";
 import { setState } from "@data/stores/project";
-import { NoteSaveData, PartSaveData } from "@Interfaces/SaveData";
+import { NoteSaveData, PartSaveData } from "@interfaces/save-data";
 import { produce, Draft } from "immer";
 import { snapDown, snapUp } from "./snap";
 import {
@@ -19,7 +19,7 @@ import {
     PartMap,
     PartRecord,
     TrackRecord,
-} from "@Types/Types";
+} from "@types/types";
 
 export const createTonePart = (sampler: Draft<Tone.Sampler>) => {
     return new Tone.Part((time, value: any) => {
@@ -32,37 +32,35 @@ export const createTonePart = (sampler: Draft<Tone.Sampler>) => {
     }, []);
 };
 
-export const addPartToTrack = (
-    [partId, part]: Draft<PartRecord>,
-    [trackId, track]: Draft<TrackRecord>
-) => {
-    part.tonePart = createTonePart(track.sampler);
-    synchronizePart(part);
-    part.parentId = trackId;
-    part.notes.forEach((note) => (note.trackId = trackId));
-    track.parts.set(partId, part);
-};
+// export const addPartToTrack = (
+//     partData: PartSaveData,
+//     trackRecord: Draft<TrackRecord>
+// ) => {
+//     createPart(
+//         partData.startTime,
+//         partData.stopTime,
+//         partData.rowIndex,
+//         trackRecord,
+//         partData.notes
+//     );
+// };
 
-export const createPart = (
+export const addPartToTrack = (
+    parentTrackRecord: Draft<TrackRecord>,
     startTime: number,
     stopTime: number,
     rowIndex: number,
-    notesData: Array<NoteSaveData> = [],
-    parentTrackRecord: TrackRecord | undefined = undefined
+    notesData: Array<NoteSaveData> = []
 ): PartRecord => {
     const id = getPartId();
-    let tonePart: Tone.Part<any> | undefined = undefined;
-    let parentId = -1;
-    if (parentTrackRecord) {
-        const [trackId, track] = parentTrackRecord;
-        tonePart = createTonePart(track.sampler);
-        parentId = trackId;
-    }
+
+    const [trackId, track] = parentTrackRecord;
+    const parentId = trackId;
 
     const partRecord: PartRecord = [
         id,
         {
-            tonePart: tonePart,
+            tonePart: createTonePart(track.sampler),
             startTime: startTime,
             stopTime: stopTime,
             rowIndex: rowIndex,
@@ -74,17 +72,15 @@ export const createPart = (
 
     const [partId, part] = partRecord;
 
+    track.parts.set(id, part);
+
     notesData.forEach((noteData) => {
-        const [noteId, note] = createNote(
+        addNoteToPart(
+            partRecord,
             noteData.startTime,
             noteData.duration,
-            noteData.rowIndex,
-            partRecord
+            noteData.rowIndex
         );
-        if (tonePart) {
-            tonePart.add(getPartNote(note));
-        }
-        part.notes.set(noteId, note);
     });
 
     return partRecord;
@@ -95,7 +91,7 @@ export const mapPartTime = (
     mapper: (startTime: number) => number
 ) => {
     mapTimeBlock(part, mapper);
-    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const setPartTime = (
@@ -106,54 +102,55 @@ export const setPartTime = (
     part.startTime = startTime;
     part.stopTime = stopTime;
     part.duration = part.stopTime - part.startTime;
-    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const updatePart = ([partId, part]: Draft<PartRecord>) => {
-    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const createPartInTrack = (
+export const addPartToTrackIndex = (
     startTime: number,
     stopTime: number,
     trackIndex: number
 ) => {
     setState((draftState) => {
         const trackRecord = Array.from(draftState.tracks.entries())[trackIndex];
-        const partRecord = createPart(startTime, stopTime, trackIndex);
-        const [partId, part] = partRecord;
-        const [trackId, track] = trackRecord;
-        addPartToTrack(partRecord, trackRecord);
-        track.parts.set(partId, part);
+        addPartToTrack(trackRecord, startTime, stopTime, trackIndex, []);
+        // const [partId, part] = partRecord;
+        // const [trackId, track] = trackRecord;
+        // track.parts.set(partId, part);
     }, "add part");
 };
 
-export const addNoteToPart = (
-    [noteId, note]: Draft<NoteRecord>,
-    [partId, part]: Draft<PartRecord>
-) => {
-    note.parentId = partId;
-    note.trackId = part.parentId;
-    part.notes.set(noteId, note);
-    part.tonePart?.add(getPartNote(note));
-};
+// export const addNoteToPart = (
+//     [noteId, note]: Draft<NoteRecord>,
+//     [partId, part]: Draft<PartRecord>
+// ) => {
+//     note.parentId = partId;
+//     note.trackId = part.parentId;
+//     part.notes.set(noteId, note);
+//     part.tonePart.add(getPartNote(note));
+// };
 
 export const synchronizePartNotes = (part: Draft<Part>) => {
-    part.tonePart?.clear();
+    // It isn't possible to edit notes in a tone part, so we have to clear it and re-add all the notes
+    part.tonePart.clear();
     part.notes.forEach((note) => {
-        part.tonePart?.add(getPartNote(note));
+        part.tonePart.add(getPartNote(note));
     });
 };
 
+// Synchronize the part with Tone backend
 export const synchronizePart = (part: Draft<Part>) => {
     synchronizePartNotes(part);
-    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
-export const extendPart = (note: Draft<Note>, part: Draft<Part>) => {
-    part.stopTime = getExtendedPartStopTime(note.stopTime);
+export const extendPart = (noteData: NoteSaveData, part: Draft<Part>) => {
+    part.stopTime = getExtendedPartStopTime(noteData.stopTime);
     part.duration = part.stopTime - part.startTime;
-    part.tonePart?.cancel(0).start(part.startTime).stop(part.stopTime);
+    part.tonePart.cancel(0).start(part.startTime).stop(part.stopTime);
 };
 
 export const getNewPartStartTime = (noteStartTime: number) => {
@@ -193,6 +190,16 @@ export const deleteSelectedParts = () => {
         draftState.selectedPartsId = [];
         draftState.selectedNotesId = [];
     }, "Delete parts");
+};
+
+export const getPartSaveData = (part: Part): PartSaveData => {
+    return {
+        startTime: part.startTime,
+        stopTime: part.stopTime,
+        duration: part.duration,
+        rowIndex: part.rowIndex,
+        notes: getNotesSaveData(Array.from(part.notes.values())),
+    };
 };
 
 export const getPartsSaveData = (parts: Part[]): PartSaveData[] => {

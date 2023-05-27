@@ -1,14 +1,14 @@
 import { Box } from "@chakra-ui/react";
 import React, { forwardRef } from "react";
 
-import { Part } from "@Interfaces/Part";
-import TimeDraggable from "@Components/TimeDraggable";
+import { Part } from "@interfaces/part";
+import TimeDraggable from "@components/time-draggable";
 import { isHotkeyPressed } from "react-hotkeys-hook";
-import { SelectionType } from "@Interfaces/Selection";
-import { isIdSelected, checkIsTimeBlockSelected } from "@logic/selection";
-import { selectSelectedParts, useStore } from "@data/stores/project";
+import { SelectionType } from "@interfaces/selection";
+import { checkIsTimeBlockSelected } from "@logic/selection";
+import { selectSelectedPartsIds, useStore } from "@data/stores/project";
 import { IsNoteDisabled } from "@logic/note";
-import { PartRecord } from "@Types/Types";
+import { PartRecord } from "@types/types";
 
 interface PartViewProps {
     partRecord: PartRecord;
@@ -18,7 +18,7 @@ interface PartViewProps {
 }
 
 const PartView = (props: PartViewProps) => {
-    const selectedParts = useStore(selectSelectedParts);
+    const selectedParts = useStore(selectSelectedPartsIds);
 
     const [partId, part] = props.partRecord;
 

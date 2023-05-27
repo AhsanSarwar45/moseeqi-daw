@@ -6,7 +6,7 @@ import {
 } from "@data/stores/project";
 import { getPixelsPerSecond } from "@logic/time";
 import React, { useEffect, useRef } from "react";
-import PianoRollPartView from "./PianoRollPartView";
+import PianoRollPartView from "./piano-roll-part-view";
 
 interface GridViewProps {
     basePixelsPerSecond: number;

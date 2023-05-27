@@ -1,4 +1,4 @@
-import { Panel } from "@Interfaces/enums/Panel";
+import { Panel } from "@interfaces/enums/panel";
 import { create } from "zustand";
 
 interface FocusAreaStoreState {

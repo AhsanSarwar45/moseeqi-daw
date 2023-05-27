@@ -23,7 +23,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
-import { PlaybackState } from "@Interfaces/enums/PlaybackState";
+import { PlaybackState } from "@interfaces/enums/playback-state";
 import { selectBpm, useStore } from "@data/stores/project";
 import { setBpm } from "@logic/bpm";
 import { setPlaybackState, togglePlayback } from "@logic/playback";
@@ -33,6 +33,7 @@ import {
     StopTransport,
 } from "@logic/transport";
 import { selectPlaybackState, usePlaybackStore } from "@data/stores/playback";
+import { synchronizeTone } from "@logic/state";
 
 interface PlayBackControllerProps {}
 
@@ -87,6 +88,7 @@ const PlayBackController = (props: PlayBackControllerProps) => {
         () =>
             useStore.subscribe(selectBpm, (bpm) => {
                 setLocalBpm(bpm);
+                synchronizeTone();
             }),
         []
     );

@@ -2,7 +2,7 @@ import { Icon } from "@chakra-ui/react";
 
 import { forwardRef, ReactNode, useRef } from "react";
 
-import TooltipButton from "./TooltipButton";
+import TooltipButton from "./tooltip-button";
 
 interface FileUploaderProps {
     display: ReactNode;

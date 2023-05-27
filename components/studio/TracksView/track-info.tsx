@@ -1,19 +1,19 @@
 import { HStack, VStack, Text } from "@chakra-ui/react";
 import * as Tone from "tone";
 
-import ToggleButton from "@Components/ToggleButton";
-import Meter from "./Meter";
-import {
-    setLastSelectedTrackId,
-    toggleTrackMute,
-    toggleTrackSolo,
-} from "@logic/track";
+import ToggleButton from "@components/toggle-button";
+import Meter from "./meter";
+import { toggleTrackMute, toggleTrackSolo } from "@logic/track";
 import React, { useEffect } from "react";
-import { selectLastSelectedTrackId, useStore } from "@data/stores/project";
-import { Id } from "@Types/Types";
+import {
+    selectLastSelectedTrackId,
+    selectSelectedTracksIds,
+    useStore,
+} from "@data/stores/project";
+import { Id } from "@types/types";
 import { select } from "@logic/selection";
-import { SelectionType } from "@Interfaces/Selection";
-import { Track } from "@Interfaces/Track";
+import { SelectionType } from "@interfaces/selection";
+import { Track } from "@interfaces/track";
 
 interface TrackInfoProps {
     trackId: Id;
@@ -22,6 +22,7 @@ interface TrackInfoProps {
 
 const TrackInfo = (props: TrackInfoProps) => {
     const selectedTrackId = useStore(selectLastSelectedTrackId);
+    const selectedTracksIds = useStore(selectSelectedTracksIds);
     // const isTrackMuted = useStore(
     //     (state) => state.tracks.get(props.trackId)?.muted as boolean
     // );
@@ -52,6 +53,8 @@ const TrackInfo = (props: TrackInfoProps) => {
             height={90}
             bgColor={
                 selectedTrackId === props.trackId
+                    ? "primary.800"
+                    : selectedTracksIds.includes(props.trackId)
                     ? "primary.700"
                     : "primary.500"
             }
@@ -60,11 +63,11 @@ const TrackInfo = (props: TrackInfoProps) => {
             borderColor={"gray.500"}
             onMouseDown={(event) => {
                 select(props.trackId, SelectionType.Track);
-                setLastSelectedTrackId(props.trackId);
             }}
             // height={200}
             position="relative"
             alignItems="flex-start"
+            userSelect="none"
         >
             <VStack alignItems="flex-start">
                 <Text color="white">{props.track.name}</Text>

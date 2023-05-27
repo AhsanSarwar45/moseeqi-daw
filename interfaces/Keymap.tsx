@@ -1,4 +1,4 @@
-import { Hotkey } from "./Hotkey";
+import { Hotkey } from "./hotkey";
 
 export type KeyAction =
     | "TOGGLE_PLAYBACK"

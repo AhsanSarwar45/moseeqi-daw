@@ -1,34 +1,35 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HStack, Icon, Box, Flex, VStack, ButtonGroup } from "@chakra-ui/react";
 import Ruler from "@scena/react-ruler";
-import { noteLengthOptions, PianoKeys } from "@data/Constants";
+import { noteLengthOptions, PianoKeys } from "@data/constants";
 import {
     blackKeyHeightModifier,
     secondsPerWholeNote,
     wholeNoteDivisions,
-} from "@data/Constants";
+} from "@data/constants";
 import { getPixelsPerSecond } from "@logic/time";
 
-import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
-import KeysView from "./KeysView";
-import { Row } from "./Row";
-import { Timeline } from "./Timeline";
+import { ScrollbarStyle } from "@styles/scrollbar-style";
+import KeysView from "./keys-view";
+import { Row } from "./row";
+import { Timeline } from "./timeline";
 import {
     selectProjectLength,
     selectTrackCount,
     useStore,
 } from "@data/stores/project";
-import GridView from "./GridView";
-import { FocusArea, FlexFocusArea } from "@Components/FocusArea";
-import { Panel } from "@Interfaces/enums/Panel";
-import PianoRollSettingsView from "./PianoRollSettingsView";
-import Canvas from "@Components/studio/Canvas";
+import GridView from "./grid-view";
+import { FocusArea, FlexFocusArea } from "@components/focus-area";
+import { Panel } from "@interfaces/enums/panel";
+import PianoRollSettingsView from "./piano-roll-settings-view";
+import Canvas from "@components/studio/canvas";
 import { addNoteToSelectedTrack, clearNotesSelection } from "@logic/note";
 import { snapDown } from "@logic/snap";
-import { Coordinate } from "@Interfaces/Coordinate";
-import { BoxBounds } from "@Interfaces/Box";
+import { Coordinate } from "@interfaces/coordinate";
+import { BoxBounds } from "@interfaces/box";
 import { dragSelectTimeBlocks } from "@logic/selection";
-import { SelectionType } from "@Interfaces/Selection";
+import { SelectionType } from "@interfaces/selection";
+import GridLines from "react-gridlines";
 
 interface PianoRollProps {}
 
@@ -154,12 +155,12 @@ const PianoRoll = (props: PianoRollProps) => {
                             >
                                 <Box
                                     position="relative"
-                                    bgColor="Red"
+                                    // bgColor="Red"
                                     width="full"
                                     height="full"
-                                    zIndex={4}
+                                    zIndex={6}
                                 >
-                                    <Ruler
+                                    {/* <Ruler
                                         type="horizontal"
                                         unit={1}
                                         zoom={wholeNoteDivisions * columnWidth}
@@ -172,7 +173,17 @@ const PianoRoll = (props: PianoRollProps) => {
                                         height={gridHeight}
                                         lineColor="rgba(255,255,255,0.1)"
                                         textColor="rgba(0,0,0,0)"
-                                    />
+                                    /> */}
+                                    <GridLines
+                                        className="grid-area"
+                                        cellWidth={40}
+                                        cellHeight={gridHeight}
+                                        strokeWidth={1}
+                                        lineColor="rgba(255,255,255,0.2)"
+                                        // cellWidth2={12}
+                                    >
+                                        <Box height={gridHeight} />
+                                    </GridLines>
                                 </Box>
 
                                 <Box

@@ -2,21 +2,21 @@ import { Draft } from "immer";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import _ from "lodash";
 
-import { PianoKeys } from "@data/Constants";
-import { defaultMinPartDuration } from "@data/Defaults";
+import { PianoKeys } from "@data/constants";
+import { defaultMinPartDuration } from "@data/defaults";
 import { getState, setState, StoreState } from "@data/stores/project";
 import { useStore } from "@data/stores/project";
-import { BoxBounds } from "@Interfaces/Box";
-import { ChildTimeBlock } from "@Interfaces/ChildEntity";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
+import { BoxBounds } from "@interfaces/box";
+import { ChildTimeBlock } from "@interfaces/child-entity";
+import { Note } from "@interfaces/note";
+import { Part } from "@interfaces/part";
 import {
     SelectionType,
     SelectionSubId,
     SelectionId,
-} from "@Interfaces/Selection";
-import { TimeBlock } from "@Interfaces/TimeBlock";
-import { Track } from "@Interfaces/Track";
+} from "@interfaces/selection";
+import { TimeBlock } from "@interfaces/time-block";
+import { Track } from "@interfaces/track";
 import {
     ChildTimeBlockMap,
     ChildTimeBlockRecord,
@@ -28,7 +28,7 @@ import {
     PartRecord,
     TimeBlockRecord,
     TrackMap,
-} from "@Types/Types";
+} from "@types/types";
 import { UpdateNote } from "./note";
 import { setPartTime, updatePart } from "./part";
 import {
@@ -36,14 +36,14 @@ import {
     setTimeBlock,
     setTimeBlockRowIndex,
 } from "./time-block";
-import { getLastSelectedTrackConst, getSelectedTrack } from "./track";
+import { getLastSelectedTrackConst, getLastSelectedTrack } from "./track";
 
 export const setSelectedIndices = (
     selectedIds: Draft<SelectionId>[],
     selectionType: SelectionType,
     draftState: Draft<StoreState>
 ) => {
-    console.log("selectedTracksId", selectionType, selectedIds);
+    // console.log("selectedTracksId", selectionType, selectedIds);
     switch (selectionType) {
         case SelectionType.Part:
             draftState.selectedPartsId = selectedIds as SelectionSubId[];
@@ -75,24 +75,20 @@ export const selectTimeBlock = (
 export const select = (id: SelectionId, selectionType: SelectionType) => {
     setState((draftState) => {
         let selectedIds = getSelectedIds(selectionType);
-        console.log("selectedIds", selectedIds);
         const isIdSelected = checkIsIdSelected(id, selectedIds);
+        console.log("selectedIds", selectionType, selectedIds, id);
+
+        selectedIds = selectedIds.filter((selectedId) => selectedId !== id);
+
+        console.log("selectedIds", selectionType, selectedIds);
 
         if (isHotkeyPressed("shift")) {
-            // if this object is already selected, deselect it, otherwise select it
-            if (isIdSelected) {
-                selectedIds = selectedIds.filter((selectedId) => {
-                    selectedId !== id;
-                });
-            } else {
+            if (!isIdSelected || selectedIds.length == 0)
                 selectedIds = [...selectedIds, id];
-            }
         } else {
-            // If selection does not contain this object, then reset selected object to only this object
-            if (!isIdSelected) {
-                selectedIds = [id];
-            }
+            selectedIds = [id];
         }
+        console.log("selectedIds", selectionType, selectedIds);
         setSelectedIndices(selectedIds, selectionType, draftState);
     }, `Select ${SelectionType.toString(selectionType).toLowerCase()}`);
 };
@@ -103,7 +99,7 @@ export const getContainer = (
 ): Draft<ContainerMap> => {
     if (selectionType === SelectionType.Part) return draftState.tracks;
     // Notes can only be selected (in the piano roll) from the currently selected track
-    else return getSelectedTrack(draftState).parts;
+    else return getLastSelectedTrack(draftState).parts;
 };
 
 export const getSubContainer = (

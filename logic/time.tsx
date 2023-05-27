@@ -1,4 +1,4 @@
-import { initialSecondsPerDivision, wholeNoteDivisions } from "@data/Constants";
+import { initialSecondsPerDivision, wholeNoteDivisions } from "@data/constants";
 import { useStore } from "@data/stores/project";
 
 export const columnToSeconds = (column: number) => {

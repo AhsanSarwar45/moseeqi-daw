@@ -1,7 +1,7 @@
 import { Flex } from "@chakra-ui/react";
-import { blackKeyHeightModifier, blackKeyWidthModifier } from "@data/Constants";
-import { KeyType } from "@Interfaces/KeyType";
-import { getSelectedTrack } from "@logic/track";
+import { blackKeyHeightModifier, blackKeyWidthModifier } from "@data/constants";
+import { KeyType } from "@interfaces/key-type";
+import { getLastSelectedTrack } from "@logic/track";
 import { memo, useMemo, useRef, useState } from "react";
 
 interface KeyProps {
@@ -28,11 +28,11 @@ const BlackKeyOffsets = [
 
 const Key = (props: KeyProps) => {
     const OnKeyDown = (key: string) => {
-        getSelectedTrack().sampler.triggerAttack([key]);
+        getLastSelectedTrack().sampler.triggerAttack([key]);
     };
 
     const OnKeyUp = (key: string) => {
-        getSelectedTrack().sampler.triggerRelease([key]);
+        getLastSelectedTrack().sampler.triggerRelease([key]);
     };
 
     const type = useRef<KeyType>(

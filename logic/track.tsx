@@ -1,20 +1,24 @@
-import { getTrackId } from "@data/Id";
+import { getTrackId } from "@data/id";
 import { useLoadingStore } from "@data/stores/loading-status";
-import { getState, setState } from "@data/stores/project";
+import {
+    getState,
+    selectSelectedTracksIds,
+    setState,
+} from "@data/stores/project";
 import { StoreState, useStore } from "@data/stores/project";
-import { Instruments } from "@Instruments/Instruments";
-import { Instrument } from "@Interfaces/Instrument";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
-import { PartSaveData, TrackSaveData } from "@Interfaces/SaveData";
-import { Track } from "@Interfaces/Track";
-import { Id, NoteRecord, TrackMap, TrackRecord } from "@Types/Types";
+import { Instruments } from "@instruments/instruments";
+import { Instrument } from "@interfaces/instrument";
+import { Note } from "@interfaces/note";
+import { Part } from "@interfaces/part";
+import { PartSaveData, TrackSaveData } from "@interfaces/save-data";
+import { Track } from "@interfaces/track";
+import { Id, NoteRecord, PartMap, TrackMap, TrackRecord } from "@types/types";
 import { produce, Draft } from "immer";
 import * as Tone from "tone";
 import { getNotesSaveData, getPartNote, mapNoteTime } from "./note";
 import {
-    addPartToTrack as addPartToTrack,
-    createPart,
+    addPartToTrack,
+    getPartSaveData,
     getPartsSaveData,
     mapPartTime,
 } from "./part";
@@ -23,9 +27,9 @@ import CreateSampler from "./sampler";
 export const disposeTracks = (tracks: Draft<TrackMap>) => {
     tracks.forEach((track) => {
         track.parts.forEach((part) => {
-            part.tonePart?.stop();
-            part.tonePart?.clear(); // TODO: find if necessary
-            part.tonePart?.dispose();
+            part.tonePart.stop();
+            part.tonePart.clear(); // TODO: find if necessary
+            part.tonePart.dispose();
         });
     });
 };
@@ -109,13 +113,13 @@ export const changeTracksBpm = (
 
     tracks.forEach((track) => {
         track.parts.forEach((part) => {
-            part.tonePart?.clear();
+            part.tonePart.clear();
             mapPartTime(part, (time) => time * newTimeMultiplier);
 
             part.notes.forEach((note) => {
                 mapNoteTime(note, (time) => time * newTimeMultiplier);
 
-                part.tonePart?.add(getPartNote(note));
+                part.tonePart.add(getPartNote(note));
             });
         });
     });
@@ -123,13 +127,13 @@ export const changeTracksBpm = (
 
 export const stopTrackParts = (track: Draft<Track>) => {
     track.parts.forEach((part) => {
-        part.tonePart?.stop();
+        part.tonePart.stop();
     });
 };
 
 export const clearTrack = (track: Draft<Track>) => {
     track.parts.forEach((part) => {
-        part.tonePart?.clear();
+        part.tonePart.clear();
         part.notes.clear();
     });
 };
@@ -166,18 +170,14 @@ export const createTrack = (
         },
     ];
 
-    const [trackId, track] = trackRecord;
-
     partsData.forEach((partData) => {
-        const [partId, part] = createPart(
+        addPartToTrack(
+            trackRecord,
             partData.startTime,
             partData.stopTime,
             partData.rowIndex,
-            partData.notes,
-            trackRecord
+            partData.notes
         );
-
-        track.parts.set(partId, part);
     });
 
     return trackRecord;
@@ -195,39 +195,44 @@ export const getTrackIndexFromId = (trackId: Id): Id => {
 };
 
 export const copyPartsToTrack = (
-    fromTrack: Track,
-    toTrackRecord: Draft<TrackRecord>
+    parts: Draft<PartMap>,
+    trackRecord: Draft<TrackRecord>
 ) => {
-    fromTrack.parts.forEach((part) => {
-        const partRecord = createPart(
+    parts.forEach((part) => {
+        addPartToTrack(
+            trackRecord,
             part.startTime,
             part.stopTime,
             part.rowIndex,
             getNotesSaveData(Array.from(part.notes.values()))
         );
-        addPartToTrack(partRecord, toTrackRecord);
     });
 };
 
-export const getLastSelectedTrackConst = (): Track => {
-    return getState().tracks.get(getState().lastSelectedTrackId) as Track;
+export const getLastSelectedTrackId = (
+    state: Draft<StoreState> = getState()
+): number => {
+    return state.selectedTracksId.slice(-1)[0] ?? -1;
 };
 
-export const getSelectedTrack = (
+export const getLastSelectedTrackConst = (): Track | undefined => {
+    return getState().tracks.get(getState().selectedTracksId.slice(-1)[0]);
+};
+
+export const getLastSelectedTrack = (
     draftState: Draft<StoreState> = getState()
 ): Draft<Track> => {
     return draftState.tracks.get(
-        draftState.lastSelectedTrackId
+        getLastSelectedTrackId(draftState)
     ) as Draft<Track>;
 };
 
-export const getSelectedTrackRecord = (
+export const getLastSelectedTrackRecord = (
     draftState: Draft<StoreState> = getState()
-): Draft<TrackRecord> => {
-    return [
-        draftState.lastSelectedTrackId,
-        draftState.tracks.get(draftState.lastSelectedTrackId) as Draft<Track>,
-    ];
+): Draft<TrackRecord> | undefined => {
+    const id = getLastSelectedTrackId(draftState);
+    if (id == -1) return undefined;
+    return [id, draftState.tracks.get(id) as Draft<Track>];
 };
 
 export const deleteSelectedTracks = () => {
@@ -239,7 +244,6 @@ export const deleteSelectedTracks = () => {
         });
 
         const trackIds = Array.from(draftState.tracks.keys());
-        draftState.lastSelectedTrackId = trackIds.length ? trackIds[0] : -1;
         draftState.selectedTracksId = trackIds.length ? [trackIds[0]] : [];
         draftState.selectedPartsId = [];
         draftState.selectedNotesId = [];
@@ -253,39 +257,46 @@ export const getTrackIds = (): Id[] => {
     return Array.from(useStore.getState().tracks.keys());
 };
 
-export const setLastSelectedTrackId = (trackId: Id) => {
-    setState((draftState) => {
-        draftState.lastSelectedTrackId = trackId;
-    }, "Select track");
-};
+// export const setLastSelectedTrackId = (trackId: Id) => {
+//     setState((draftState) => {
+//         draftState.lastSelectedTrackId = trackId;
+//     }, "Select track");
+// };
 
 export const setSelectedTrackAttack = (attack: number) => {
     setState((draftState) => {
-        const selectedTrack = getSelectedTrack(draftState);
+        const selectedTrack = getLastSelectedTrack(draftState);
         if (selectedTrack) setTrackAttack(selectedTrack, attack);
     }, "Set track attack");
 };
 
 export const setSelectedTrackRelease = (release: number) => {
     setState((draftState) => {
-        const selectedTrack = getSelectedTrack(draftState);
+        const selectedTrack = getLastSelectedTrack(draftState);
         if (selectedTrack) setTrackRelease(selectedTrack, release);
     }, "Set track release");
 };
 
 export const duplicateSelectedTracks = () => {
-    const tracks = useStore.getState().tracks;
+    // const selectedTracks = getSelectedTrack();
 
-    tracks.forEach((track) => {
-        const newTrack = createTrack(track.instrument);
-        addTrack(newTrack);
-        copyPartsToTrack(track, newTrack);
-    });
+    setState((draftState) => {
+        console.log(draftState.selectedTracksId);
+        draftState.selectedTracksId.forEach((trackId) => {
+            const track = draftState.tracks.get(trackId);
+            if (track) {
+                const newTrackRecord = createTrack(track.instrument);
+                const [newTrackId, newTrack] = newTrackRecord;
+                draftState.tracks.set(newTrackId, newTrack);
+                copyPartsToTrack(track.parts, newTrackRecord);
+            }
+        });
+    }, "Duplicate selected tracks");
 };
 
 export const clearSelectedTrack = () => {
     setState((draftState) => {
-        const selectedTrack = getSelectedTrack(draftState);
+        const selectedTrack = getLastSelectedTrack(draftState);
         if (selectedTrack) clearTrack(selectedTrack);
     }, "Clear track");
 };

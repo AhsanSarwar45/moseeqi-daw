@@ -1,4 +1,4 @@
-import { Panel } from "./enums/Panel";
+import { Panel } from "./enums/panel";
 
 export interface Hotkey {
     key: string;

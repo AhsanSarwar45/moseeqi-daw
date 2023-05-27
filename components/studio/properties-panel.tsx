@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Heading, VStack, Flex } from "@chakra-ui/react";
 
-import KnobControl from "@Components/Knob";
+import KnobControl from "@components/knob";
 import {
     selectSelectedTrack,
     selectTrackCount,

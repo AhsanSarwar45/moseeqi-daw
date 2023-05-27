@@ -1,59 +1,26 @@
-// Modified from: https://stackoverflow.com/questions/52063018/intersection-of-two-deep-objects-in-javascript
-
-import { setState, StoreState } from "@data/stores/project";
+import { getState, setState, StoreState } from "@data/stores/project";
 import * as Tone from "tone";
 import { synchronizePart as synchronizePart } from "./part";
 import { disposeTracks as disposeTracks, getTracksSaveData } from "./track";
+import { Draft } from "immer";
 
-export const getObjectIntersection = (object1: any, object2: any): any => {
-    // if (object1 == null) return;
-    let intersectedProps = Object.keys(object1).map((k) => {
-        let temp;
-        if (!(k in object2)) {
-            return {};
-        }
-        if (
-            object1[k] &&
-            typeof object1[k] === "object" &&
-            object2[k] &&
-            typeof object2[k] === "object"
-        ) {
-            temp = getObjectIntersection(object1[k], object2[k]);
-            return Object.keys(temp).length ? { [k]: temp } : {};
-        }
-        // if (k == null) return {};
-        // if (object1[k] === object2[k]) {
-        //     return { [k]: object1[k] };
-        // }
-        return { [k]: object1[k] };
+export const synchronizeTone = (state: Draft<StoreState> = getState()) => {
+    Tone.Transport.bpm.value = state.bpm;
+    state.tracks.forEach((track) => {
+        track.parts.forEach((part) => {
+            synchronizePart(part);
+            (part.tonePart as Tone.Part).mute = track.muted || track.soloMuted;
+        });
+        // TODO: maybe sync sampler
     });
-
-    intersectedProps = intersectedProps.filter(
-        (item) => Object.keys(item)[0] != null
-    );
-
-    // console.log(intersectedProps);
-
-    return intersectedProps.reduce(function (result, item) {
-        var key = Object.keys(item)[0];
-        result[key] = item[key];
-        return result;
-    }, {});
 };
 
 export const synchronizeState = (oldState: StoreState) => {
+    // Why do we need to dispose tracks?
     disposeTracks(oldState.tracks);
     setState(
         (draftState) => {
-            Tone.Transport.bpm.value = draftState.bpm;
-            draftState.tracks.forEach((track) => {
-                track.parts.forEach((part) => {
-                    synchronizePart(part);
-                    (part.tonePart as Tone.Part).mute =
-                        track.muted || track.soloMuted;
-                });
-                // TODO: maybe sync sampler
-            });
+            synchronizeTone(draftState);
         },
         "Sync state",
         false

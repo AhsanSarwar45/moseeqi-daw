@@ -1,15 +1,15 @@
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
 import { SplitDirection } from "@devbookhq/splitter";
 
-import PlayBackController from "@Components/studio/PlaybackController";
-import PianoRoll from "@Components/studio/PianoRoll/PianoRoll";
-import TracksView from "@Components/studio/TracksView/TracksView";
-import PropertiesPanel from "@Components/studio/PropertiesPanel";
-import WaitingModal from "@Components/WaitingModal";
-import Splitter from "@Components/Splitter";
+import PlayBackController from "@components/studio/playback-controller";
+import PianoRoll from "@components/studio/PianoRoll/piano-roll";
+import TracksView from "@components/studio/TracksView/tracks-view";
+import PropertiesPanel from "@components/studio/properties-panel";
+import WaitingModal from "@components/waiting-modal";
+import Splitter from "@components/splitter";
 
-import TopBar from "./TopBar";
-import Hotkeys from "./Hotkeys";
+import TopBar from "./top-bar";
+import Hotkeys from "./hotkeys";
 
 const Studio = () => {
     return (

@@ -1,7 +1,7 @@
-import { Instrument } from "@Interfaces/Instrument";
-import { Container, PartMap } from "@Types/Types";
+import { Instrument } from "@interfaces/instrument";
+import { Part } from "@interfaces/part";
+import { Container, PartMap } from "@types/types";
 import { Sampler, Meter } from "tone";
-import { Part } from "./Part";
 
 export interface Track {
     readonly name: string;

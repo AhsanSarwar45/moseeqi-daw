@@ -1,7 +1,7 @@
-import { IsAudioContextStarted, StartAudioContext } from "@data/AudioContext";
+import { IsAudioContextStarted, StartAudioContext } from "@data/audio-context";
 import { usePlaybackStore } from "@data/stores/playback";
 import { useStore } from "@data/stores/project";
-import { PlaybackState } from "@Interfaces/enums/PlaybackState";
+import { PlaybackState } from "@interfaces/enums/playback-state";
 
 export const setSeek = (seek: number) => {
     if (!IsAudioContextStarted()) StartAudioContext();

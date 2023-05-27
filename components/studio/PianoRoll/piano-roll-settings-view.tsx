@@ -1,12 +1,12 @@
 import { HStack, ButtonGroup, Icon } from "@chakra-ui/react";
-import ToggleButton from "@Components/ToggleButton";
-import TooltipButton from "@Components/TooltipButton";
-import { noteLengthOptions } from "@data/Constants";
+import ToggleButton from "@components/toggle-button";
+import TooltipButton from "@components/tooltip-button";
+import { noteLengthOptions } from "@data/constants";
 import { useStore } from "@data/stores/project";
 import { clearSelectedTrack } from "@logic/track";
 import React from "react";
 import { BiTrash, BiMagnet } from "react-icons/bi";
-import SnapSettings from "../SnapSettings";
+import SnapSettings from "../snap-settings";
 
 interface PianoRollSettingsViewProps {
     isSnappingOn: boolean;

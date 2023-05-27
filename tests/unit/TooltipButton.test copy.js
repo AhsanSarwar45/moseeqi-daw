@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 
 import renderWithTheme from "@Tests/renderWithTheme";
 
-import ToggleButton from "@Components/ToggleButton";
+import ToggleButton from "@components/ToggleButton";
 
 it("should render ToggleButton correctly", () => {
     render(<ToggleButton label="Test toggle Button" onClick={() => {}} />);

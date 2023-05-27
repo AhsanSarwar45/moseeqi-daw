@@ -1,6 +1,6 @@
-import { defaultKeymap } from "@data/Defaults";
-import { Panel } from "@Interfaces/enums/Panel";
-import { KeyAction, Keymap } from "@Interfaces/Keymap";
+import { defaultKeymap } from "@data/defaults";
+import { Panel } from "@interfaces/enums/panel";
+import { KeyAction, Keymap } from "@interfaces/keymap";
 import { create } from "zustand";
 
 interface KeymapStoreState {

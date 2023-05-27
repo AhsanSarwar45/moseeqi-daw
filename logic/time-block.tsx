@@ -1,5 +1,5 @@
-import { BoxBounds } from "@Interfaces/Box";
-import { TimeBlock } from "@Interfaces/TimeBlock";
+import { BoxBounds } from "@interfaces/box";
+import { TimeBlock } from "@interfaces/time-block";
 import { Draft } from "immer";
 
 export const setTimeBlock = (

@@ -5,8 +5,8 @@ import {
     useStore,
 } from "@data/stores/project";
 import { Box } from "@chakra-ui/react";
-import { Track } from "@Interfaces/Track";
-import Sequence from "./Sequence";
+import { Track } from "@interfaces/track";
+import Sequence from "./sequence";
 import { getTrackEntries, getTrackIds } from "@logic/track";
 
 interface SequenceViewProps {

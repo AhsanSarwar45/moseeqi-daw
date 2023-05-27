@@ -6,8 +6,8 @@ import React, {
     useRef,
 } from "react";
 import { snap } from "@logic/snap";
-import { SelectionSubId, SelectionType } from "@Interfaces/Selection";
-import { TimeBlock } from "@Interfaces/TimeBlock";
+import { SelectionSubId, SelectionType } from "@interfaces/selection";
+import { TimeBlock } from "@interfaces/time-block";
 import {
     getSelectionStartIndex,
     select,
@@ -18,11 +18,10 @@ import {
     getSelectionOffsets,
     selectTimeBlock,
 } from "@logic/selection";
-import { ChildTimeBlockRecord, Dimension } from "@Types/Types";
+import { ChildTimeBlockRecord, Dimension } from "@types/types";
 import { StrDimToNum } from "@logic/dimension";
 import { disableHistory, enableHistory } from "@logic/history";
 
-// const [addMouseUpListener, removeMouseUpListener] = Listener();
 type ModifyHandler = (
     changedValue: number,
     initialTimeBlock: TimeBlock

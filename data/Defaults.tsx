@@ -1,5 +1,5 @@
-import { Panel } from "@Interfaces/enums/Panel";
-import { Keymap } from "@Interfaces/Keymap";
+import { Panel } from "@interfaces/enums/panel";
+import { Keymap } from "@interfaces/keymap";
 
 export const defaultBPM = 120;
 export const defaultInstrumentIndex = 0;

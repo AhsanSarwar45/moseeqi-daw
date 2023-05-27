@@ -1,7 +1,7 @@
 import { selectFocusArea, useFocusAreaStore } from "@data/stores/focus-area";
 import { selectKeymap, useKeymapStore } from "@data/stores/keymap";
-import { Panel } from "@Interfaces/enums/Panel";
-import { KeyAction } from "@Interfaces/Keymap";
+import { Panel } from "@interfaces/enums/panel";
+import { KeyAction } from "@interfaces/keymap";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const useKeyMap = (action: KeyAction, callback: Function | undefined) => {

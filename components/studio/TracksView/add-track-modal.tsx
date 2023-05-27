@@ -16,8 +16,8 @@ import {
     Select,
 } from "@chakra-ui/react";
 
-import { Instruments } from "@Instruments/Instruments";
-import { ScrollbarStyle } from "@Styles/ScrollbarStyle";
+import { Instruments } from "@instruments/instruments";
+import { ScrollbarStyle } from "@styles/scrollbar-style";
 
 interface addTrackModalProps {
     onClose: () => void;

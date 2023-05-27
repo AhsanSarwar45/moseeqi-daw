@@ -1,4 +1,4 @@
-import useKeyMap from "@Hooks/useKeyMap";
+import useKeyMap from "@hooks/use-keymap";
 import { undo, redo } from "@logic/history";
 import { deleteSelectedNotes } from "@logic/note";
 import { deleteSelectedParts } from "@logic/part";

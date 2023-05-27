@@ -1,13 +1,13 @@
 import { NextPage } from "next";
 import NextLink from "next/link";
-import { Navbar } from "@Components/NavBar";
+import { Navbar } from "@components/NavBar";
 import { Box, Button, Container, Flex, Link, VStack } from "@chakra-ui/react";
-import MoseeqiLogo from "@Components/icons/MoseeqiLogo";
+import MoseeqiLogo from "@components/icons/MoseeqiLogo";
 import { useTheme } from "@chakra-ui/react";
 
 const Landing: NextPage = () => {
     const theme = useTheme();
-  
+
     return (
         <VStack
             gap="5%"

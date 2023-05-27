@@ -18,9 +18,9 @@ import { TiFolderOpen } from "react-icons/ti";
 import { RiFileAddLine } from "react-icons/ri";
 import { BiCopy, BiPaste, BiExit, BiUndo, BiRedo } from "react-icons/bi";
 
-import MoseeqiLogo from "@Components/icons/MoseeqiLogo";
-import FileUploader from "@Components/FIleUploader";
-import { defaultProjectName } from "@data/Defaults";
+import MoseeqiLogo from "@components/icons/MoseeqiLogo";
+import FileUploader from "@components/file-uploader";
+import { defaultProjectName } from "@data/defaults";
 import {
     createNewProject,
     saveProjectToFile,

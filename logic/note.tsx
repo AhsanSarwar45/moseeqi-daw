@@ -1,22 +1,20 @@
-import { PianoKeys } from "@data/Constants";
-import { getNoteId } from "@data/Id";
+import { PianoKeys } from "@data/constants";
+import { getNoteId } from "@data/id";
 import { getState, setState } from "@data/stores/project";
 import { useStore } from "@data/stores/project";
-import { Note } from "@Interfaces/Note";
-import { Part } from "@Interfaces/Part";
-import { Track } from "@Interfaces/Track";
+import { Note } from "@interfaces/note";
+import { Part } from "@interfaces/part";
+import { Track } from "@interfaces/track";
 import {
     NoteMap,
     NoteRecord,
     PartRecord,
     TrackMap,
     TrackRecord,
-} from "@Types/Types";
+} from "@types/types";
 import { produce, Draft } from "immer";
 import {
-    addNoteToPart,
     addPartToTrack,
-    createPart,
     extendPart,
     getNewPartStartTime,
     getNewPartStopTime,
@@ -26,38 +24,39 @@ import { copyTimeBlock, mapTimeBlock } from "./time-block";
 import { divisorToDuration } from "./time";
 import {
     getLastSelectedTrackConst,
-    getSelectedTrack,
-    getSelectedTrackRecord,
+    getLastSelectedTrack,
+    getLastSelectedTrackRecord,
     getTrackIndexFromId,
 } from "./track";
-import { NoteSaveData } from "@Interfaces/SaveData";
+import { NoteSaveData } from "@interfaces/save-data";
 
-export const createNote = (
+export const addNoteToPart = (
+    parentPartRecord: Draft<PartRecord>,
     startTime: number,
     duration: number,
-    row: number,
-    parentPartRecord: PartRecord | undefined = undefined
+    rowIndex: number
 ): NoteRecord => {
-    let parentId = -1;
-    let trackId = -1;
-    if (parentPartRecord) {
-        const [partId, part] = parentPartRecord;
-        parentId = partId;
-        trackId = part.parentId;
-    }
-    return [
+    const [partId, part] = parentPartRecord;
+    const parentId = partId;
+    const trackId = part.parentId;
+    const noteRecord: NoteRecord = [
         getNoteId(),
         {
             startTime: startTime,
             stopTime: startTime + duration,
-            rowIndex: row,
-            key: PianoKeys[row],
+            rowIndex: rowIndex,
+            key: PianoKeys[rowIndex],
             duration: duration,
             velocity: 1.0,
             parentId: parentId,
             trackId: trackId,
         },
     ];
+    const [noteId, note] = noteRecord;
+    part.notes.set(noteId, note);
+    part.tonePart.add(getPartNote(note));
+
+    return noteRecord;
 };
 
 export const getPartNote = (note: Draft<Note>) => {
@@ -71,14 +70,13 @@ export const getPartNote = (note: Draft<Note>) => {
 
 export const addNoteToTrack = (
     trackRecord: Draft<TrackRecord>,
-    noteRecord: Draft<NoteRecord>
-) => {
-    const [noteId, note] = noteRecord;
+    noteData: NoteSaveData
+): NoteRecord => {
     const [trackId, track] = trackRecord;
     // Check which part the note is in
-    const partRecord = Array.from(track.parts.entries()).find(
+    let partRecord = Array.from(track.parts.entries()).find(
         ([partId, part]) => {
-            return checkIsNoteInPart(note, part);
+            return checkIsNoteInPart(noteData, part);
         }
     );
 
@@ -86,36 +84,54 @@ export const addNoteToTrack = (
     if (partRecord) {
         const [partId, part] = partRecord;
         // if the end of the note lies beyond the end of the part, extend the part
-        if (note.stopTime > part.stopTime) {
-            extendPart(note, part);
+        if (noteData.stopTime > part.stopTime) {
+            extendPart(noteData, part);
         }
-        makeNoteRelative(note, part);
+        // makeNoteRelativeToPart(note, part);
         // console.log(note);
-        addNoteToPart(noteRecord, partRecord);
     }
     // If in not in any existing part, create a new part and add the note to it
     else {
         // TODO: add snap settings
-        const partStartTime = getNewPartStartTime(note.startTime);
-        const partStopTime = getNewPartStopTime(note.stopTime);
+        const partStartTime = getNewPartStartTime(noteData.startTime);
+        const partStopTime = getNewPartStopTime(noteData.stopTime);
         const trackIndex = getTrackIndexFromId(trackId);
-        const newPartRecord = createPart(
+        const newPartRecord = addPartToTrack(
+            trackRecord,
             partStartTime,
             partStopTime,
-            trackIndex
+            trackIndex,
+            []
         );
-        const [partId, part] = newPartRecord;
-        makeNoteRelative(note, part);
-        addPartToTrack(newPartRecord, trackRecord);
-        addNoteToPart(noteRecord, newPartRecord);
+        partRecord = newPartRecord;
+        // makeNoteRelativeToPart(note, part);
     }
+
+    const [partId, part] = partRecord;
+
+    const noteRecord = addNoteToPart(
+        partRecord,
+        noteData.startTime,
+        noteData.duration,
+        noteData.rowIndex
+    );
+
+    const [noteId, note] = noteRecord;
+
+    makeNoteRelativeToPart(note, part);
+
+    return noteRecord;
 };
 
-export const playNote = (track: Track, note: Note) => {
+export const playNote = (track: Track | undefined, note: Note) => {
     playKey(track, note.key, note.duration);
 };
-export const playKey = (track: Track, key: string, duration: number) => {
-    track.sampler.triggerAttackRelease(key, duration);
+export const playKey = (
+    track: Track | undefined,
+    key: string,
+    duration: number
+) => {
+    track?.sampler.triggerAttackRelease(key, duration);
 };
 
 export const playSelectedTrackKey = (key: string, duration: number) => {
@@ -132,11 +148,20 @@ export const mapNoteTime = (
     mapTimeBlock(note, mapper);
 };
 
-export const checkIsNoteInPart = (note: Draft<Note>, part: Draft<Part>) => {
-    return part.startTime <= note.startTime && part.stopTime > note.startTime;
+export const checkIsNoteInPart = (
+    noteData: NoteSaveData,
+    part: Draft<Part>
+) => {
+    return (
+        part.startTime <= noteData.startTime &&
+        part.stopTime > noteData.startTime
+    );
 };
 
-export const makeNoteRelative = (note: Draft<Note>, part: Draft<Part>) => {
+export const makeNoteRelativeToPart = (
+    note: Draft<Note>,
+    part: Draft<Part>
+) => {
     note.startTime -= part.startTime;
     note.stopTime -= part.startTime;
 };
@@ -166,7 +191,7 @@ export const UpdateNote = (
         // Remove the note from the current part
         part.notes.delete(noteId);
         makeNoteAbsolute(note, part);
-        addNoteToTrack([note.trackId, track], noteRecord);
+        addNoteToTrack([note.trackId, track], getNoteSaveData(note));
     }
 
     synchronizePartNotes(part);
@@ -185,7 +210,7 @@ export const IsNoteDisabled = (note: Note, part: Part) => {
 
 export const deleteNote = ([noteId, note]: NoteRecord) => {
     setState((draftState) => {
-        const selectedTrack = getSelectedTrack(draftState) as Draft<Track>;
+        const selectedTrack = getLastSelectedTrack(draftState) as Draft<Track>;
         const part = selectedTrack.parts.get(note.parentId) as Draft<Part>;
         part.notes.delete(noteId);
         synchronizePartNotes(part);
@@ -194,7 +219,7 @@ export const deleteNote = ([noteId, note]: NoteRecord) => {
 
 export const deleteSelectedNotes = () => {
     setState((draftState) => {
-        const selectedTrack = getSelectedTrack(draftState) as Draft<Track>;
+        const selectedTrack = getLastSelectedTrack(draftState) as Draft<Track>;
         draftState.selectedNotesId.forEach(({ containerId, entityId }) => {
             const part = selectedTrack.parts.get(containerId) as Draft<Part>;
             part.notes.delete(entityId);
@@ -211,24 +236,48 @@ export const addNoteToSelectedTrack = (
     divisor: number
 ) => {
     setState((draftState) => {
-        const duration = divisorToDuration(divisor);
-        const note = createNote(startTime, duration, row);
-        const selectedTrackRecord = getSelectedTrackRecord(draftState);
+        const selectedTrackRecord = getLastSelectedTrackRecord(draftState);
 
-        addNoteToTrack(selectedTrackRecord, note);
-        playNote(getLastSelectedTrackConst(), note[1]);
-    }, "add note");
+        if (selectedTrackRecord === undefined) return;
+
+        const duration = divisorToDuration(divisor);
+        const [noteId, note] = addNoteToTrack(
+            selectedTrackRecord,
+            createNoteSaveData(startTime, duration, row)
+        );
+        playNote(getLastSelectedTrackConst(), note);
+    }, "Add note");
+};
+
+export const getNoteSaveData = (note: Note) => {
+    return {
+        startTime: note.startTime,
+        stopTime: note.stopTime,
+        rowIndex: note.rowIndex,
+        key: note.key,
+        duration: note.duration,
+        velocity: note.velocity,
+    };
 };
 
 export const getNotesSaveData = (notes: Note[]): NoteSaveData[] => {
     return notes.map((note) => {
-        return {
-            startTime: note.startTime,
-            stopTime: note.stopTime,
-            rowIndex: note.rowIndex,
-            key: note.key,
-            duration: note.duration,
-            velocity: note.velocity,
-        };
+        return getNoteSaveData(note);
     });
+};
+
+export const createNoteSaveData = (
+    startTime: number,
+    duration: number,
+    rowIndex: number,
+    velocity: number = 1
+) => {
+    return {
+        startTime: startTime,
+        stopTime: startTime + duration,
+        rowIndex: rowIndex,
+        key: PianoKeys[rowIndex],
+        duration: duration,
+        velocity: velocity,
+    };
 };
