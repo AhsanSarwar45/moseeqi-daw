@@ -12,7 +12,7 @@ import {
 } from "@logic/note";
 import { checkIsTimeBlockSelected } from "@logic/selection";
 import { PianoKeys } from "@data/constants";
-import { NoteRecord } from "@types/types";
+import { NoteRecord } from "@custom-types/types";
 
 interface MidiNoteProps {
     noteRecord: NoteRecord;

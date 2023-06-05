@@ -6,7 +6,7 @@ import {
 } from "@data/stores/playback";
 import { useStore } from "@data/stores/project";
 import { PlaybackState } from "@interfaces/enums/playback-state";
-import { Dimension } from "@types/types";
+import { Dimension } from "@custom-types/types";
 import { setSeek } from "@logic/playback";
 import { useContext, useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";

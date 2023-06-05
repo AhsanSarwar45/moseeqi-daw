@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import { selectProjectLength, useStore } from "@data/stores/project";
-import { PartMap } from "@types/types";
+import { PartMap } from "@custom-types/types";
 import { clearSelectedPartsIndices } from "@logic/part";
 import { getPixelsPerSecond } from "@logic/time";
 import React from "react";

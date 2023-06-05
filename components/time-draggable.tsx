@@ -18,7 +18,7 @@ import {
     getSelectionOffsets,
     selectTimeBlock,
 } from "@logic/selection";
-import { ChildTimeBlockRecord, Dimension } from "@types/types";
+import { ChildTimeBlockRecord, Dimension } from "@custom-types/types";
 import { StrDimToNum } from "@logic/dimension";
 import { disableHistory, enableHistory } from "@logic/history";
 

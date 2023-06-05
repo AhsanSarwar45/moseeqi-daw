@@ -24,7 +24,6 @@ import SequenceView from "./sequence-view";
 import TracksInfoView from "./tracks-info-view";
 import { FocusArea, FlexFocusArea } from "@components/focus-area";
 import { Panel } from "@interfaces/enums/panel";
-import useKeyMap from "@hooks/use-keymap";
 import TracksSettingsView from "./tracks-settings-view";
 import {
     addPartToTrackIndex,

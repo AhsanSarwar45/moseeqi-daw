@@ -1,4 +1,4 @@
-import { Id } from "@types/types";
+import { Id } from "@custom-types/types";
 import { ChildEntity, ChildTimeBlock } from "./child-entity";
 import { Part } from "./part";
 import { TimeBlock } from "./time-block";

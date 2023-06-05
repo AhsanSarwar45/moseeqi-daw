@@ -14,10 +14,16 @@ export const defaultKeymap: Keymap = {
     DELETE_NOTES: { key: "delete", scope: Panel.PianoRoll },
     UNDO: { key: "ctrl+z", scope: Panel.None },
     REDO: { key: "ctrl+shift+z", scope: Panel.None },
+    COPY_TRACKS: { key: "ctrl+c", scope: Panel.TracksInfoView },
+    COPY_PARTS: { key: "ctrl+c", scope: Panel.SequenceView },
+    COPY_NOTES: { key: "ctrl+c", scope: Panel.PianoRoll },
+    PASTE_TRACKS: { key: "ctrl+v", scope: Panel.TracksInfoView },
+    PASTE_PARTS: { key: "ctrl+v", scope: Panel.SequenceView },
+    PASTE_NOTES: { key: "ctrl+v", scope: Panel.PianoRoll },
+    CUT_TRACKS: { key: "ctrl+x", scope: Panel.TracksInfoView },
+    CUT_PARTS: { key: "ctrl+x", scope: Panel.SequenceView },
+    CUT_NOTES: { key: "ctrl+x", scope: Panel.PianoRoll },
+    SELECT_ALL_TRACKS: { key: "ctrl+a", scope: Panel.TracksInfoView },
+    SELECT_ALL_PARTS: { key: "ctrl+a", scope: Panel.SequenceView },
+    SELECT_ALL_NOTES: { key: "ctrl+a", scope: Panel.PianoRoll },
 };
-
-// export const defaultKeyMaps: Array<KeyMap> = [
-//     { action: "toggle_playback", key: "space", scope: Panel.None },
-//     { action: "delete_tracks", key: "delete", scope: Panel.TracksInfoView },
-//     { action: "delete_parts", key: "delete", scope: Panel.SequenceView },
-// ];

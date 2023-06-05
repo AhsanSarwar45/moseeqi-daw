@@ -1,4 +1,4 @@
-import { Id } from "@types/types";
+import { Id } from "@custom-types/types";
 
 export enum SelectionType {
     None,

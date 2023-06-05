@@ -12,7 +12,13 @@ import { Note } from "@interfaces/note";
 import { Part } from "@interfaces/part";
 import { PartSaveData, TrackSaveData } from "@interfaces/save-data";
 import { Track } from "@interfaces/track";
-import { Id, NoteRecord, PartMap, TrackMap, TrackRecord } from "@types/types";
+import {
+    Id,
+    NoteRecord,
+    PartMap,
+    TrackMap,
+    TrackRecord,
+} from "@custom-types/types";
 import { produce, Draft } from "immer";
 import * as Tone from "tone";
 import { getNotesSaveData, getPartNote, mapNoteTime } from "./note";
@@ -23,6 +29,7 @@ import {
     mapPartTime,
 } from "./part";
 import CreateSampler from "./sampler";
+import { create } from "lodash";
 
 export const disposeTracks = (tracks: Draft<TrackMap>) => {
     tracks.forEach((track) => {
@@ -188,6 +195,34 @@ export const createTrackFromIndex = (instrumentIndex: number): TrackRecord => {
     return createTrack(instrument);
 };
 
+export const createTrackFromTrack = (track: Track) => {
+    const trackRecord = createTrack(
+        track.instrument,
+        getPartsSaveData(Array.from(track.parts.values())),
+        track.name,
+        track.muted,
+        track.soloed,
+        track.soloMuted
+    );
+    return trackRecord;
+};
+
+export const addTrack = ([trackId, track]: Draft<TrackRecord>) => {
+    setState((draftState) => {
+        draftState.tracks.set(trackId, track);
+    }, "Add track");
+};
+
+export const addInstrumentTrack = (instrument: Instrument) => {
+    const track = createTrack(instrument);
+    addTrack(track);
+};
+
+export const addTrackFromInstrumentIndex = (instrumentIndex: number) => {
+    const instrument = Instruments[instrumentIndex];
+    addInstrumentTrack(instrument);
+};
+
 export const getTrackIndexFromId = (trackId: Id): Id => {
     return Array.from(useStore.getState().tracks.keys()).findIndex(
         (id) => id === trackId
@@ -220,19 +255,17 @@ export const getLastSelectedTrackConst = (): Track | undefined => {
 };
 
 export const getLastSelectedTrack = (
-    draftState: Draft<StoreState> = getState()
+    state: Draft<StoreState> = getState()
 ): Draft<Track> => {
-    return draftState.tracks.get(
-        getLastSelectedTrackId(draftState)
-    ) as Draft<Track>;
+    return state.tracks.get(getLastSelectedTrackId(state)) as Draft<Track>;
 };
 
 export const getLastSelectedTrackRecord = (
-    draftState: Draft<StoreState> = getState()
+    state: Draft<StoreState> = getState()
 ): Draft<TrackRecord> | undefined => {
-    const id = getLastSelectedTrackId(draftState);
+    const id = getLastSelectedTrackId(state);
     if (id == -1) return undefined;
-    return [id, draftState.tracks.get(id) as Draft<Track>];
+    return [id, state.tracks.get(id) as Draft<Track>];
 };
 
 export const deleteSelectedTracks = () => {
@@ -248,6 +281,28 @@ export const deleteSelectedTracks = () => {
         draftState.selectedPartsId = [];
         draftState.selectedNotesId = [];
     }, "Delete track");
+};
+
+export const copySelectedTracks = () => {
+    const selectedTracksId = getState().selectedTracksId;
+    setState((draftState) => {
+        draftState.copiedTracksId = selectedTracksId;
+    }, "Copy tracks");
+};
+
+export const pasteSelectedTracks = () => {
+    if (useLoadingStore.getState().isLoading) return;
+    const copiedTracksId = getState().copiedTracksId;
+    setState((draftState) => {
+        copiedTracksId.forEach((trackId) => {
+            const track = getState().tracks.get(trackId);
+            if (track) {
+                const [newTrackId, newTrack] = createTrackFromTrack(track);
+                draftState.tracks.set(newTrackId, newTrack);
+            }
+        });
+        draftState.selectedTracksId = copiedTracksId;
+    }, "Paste tracks");
 };
 
 export const getTrackEntries = (): TrackRecord[] => {
@@ -277,20 +332,24 @@ export const setSelectedTrackRelease = (release: number) => {
     }, "Set track release");
 };
 
-export const duplicateSelectedTracks = () => {
-    // const selectedTracks = getSelectedTrack();
+export const createTrackFromTrackRecord = (trackRecord: TrackRecord) => {
+    const [trackId, track] = trackRecord;
+    return createTrackFromTrack(track);
+};
 
+export const duplicateSelectedTracks = () => {
+    const selectedTracksId = getState().selectedTracksId;
     setState((draftState) => {
-        console.log(draftState.selectedTracksId);
-        draftState.selectedTracksId.forEach((trackId) => {
-            const track = draftState.tracks.get(trackId);
+        const newTrackIds = new Array<Id>();
+        selectedTracksId.forEach((trackId) => {
+            const track = getState().tracks.get(trackId);
             if (track) {
-                const newTrackRecord = createTrack(track.instrument);
-                const [newTrackId, newTrack] = newTrackRecord;
+                const [newTrackId, newTrack] = createTrackFromTrack(track);
                 draftState.tracks.set(newTrackId, newTrack);
-                copyPartsToTrack(track.parts, newTrackRecord);
+                newTrackIds.push(newTrackId);
             }
         });
+        draftState.selectedTracksId = newTrackIds;
     }, "Duplicate selected tracks");
 };
 
@@ -317,22 +376,6 @@ export const toggleTrackSolo = (trackId: Id) => {
             !track.soloed
         );
     }, "Solo track");
-};
-
-export const addTrack = ([trackId, track]: Draft<TrackRecord>) => {
-    setState((draftState) => {
-        draftState.tracks.set(trackId, track);
-    }, "add track");
-};
-
-export const addInstrumentTrack = (instrument: Instrument) => {
-    const track = createTrack(instrument);
-    addTrack(track);
-};
-
-export const addTrackFromInstrumentIndex = (instrumentIndex: number) => {
-    const instrument = Instruments[instrumentIndex];
-    addInstrumentTrack(instrument);
 };
 
 export const deleteAllTracks = () => {

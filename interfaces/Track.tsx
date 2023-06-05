@@ -1,6 +1,6 @@
 import { Instrument } from "@interfaces/instrument";
 import { Part } from "@interfaces/part";
-import { Container, PartMap } from "@types/types";
+import { Container, PartMap } from "@custom-types/types";
 import { Sampler, Meter } from "tone";
 
 export interface Track {

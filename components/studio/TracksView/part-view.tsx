@@ -8,7 +8,7 @@ import { SelectionType } from "@interfaces/selection";
 import { checkIsTimeBlockSelected } from "@logic/selection";
 import { selectSelectedPartsIds, useStore } from "@data/stores/project";
 import { IsNoteDisabled } from "@logic/note";
-import { PartRecord } from "@types/types";
+import { PartRecord } from "@custom-types/types";
 
 interface PartViewProps {
     partRecord: PartRecord;

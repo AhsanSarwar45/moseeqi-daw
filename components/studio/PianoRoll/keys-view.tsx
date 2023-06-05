@@ -1,6 +1,6 @@
 import { Box, HStack } from "@chakra-ui/react";
 import { PianoKeys } from "@data/constants";
-import { Dimension } from "@types/types";
+import { Dimension } from "@custom-types/types";
 import { StrDimToNum } from "@logic/dimension";
 import { memo } from "react";
 import Key from "./key";

@@ -28,7 +28,7 @@ import {
     PartRecord,
     TimeBlockRecord,
     TrackMap,
-} from "@types/types";
+} from "@custom-types/types";
 import { UpdateNote } from "./note";
 import { setPartTime, updatePart } from "./part";
 import {

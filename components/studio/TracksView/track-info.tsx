@@ -10,7 +10,7 @@ import {
     selectSelectedTracksIds,
     useStore,
 } from "@data/stores/project";
-import { Id } from "@types/types";
+import { Id } from "@custom-types/types";
 import { select } from "@logic/selection";
 import { SelectionType } from "@interfaces/selection";
 import { Track } from "@interfaces/track";

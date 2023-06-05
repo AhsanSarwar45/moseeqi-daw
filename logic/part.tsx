@@ -19,7 +19,7 @@ import {
     PartMap,
     PartRecord,
     TrackRecord,
-} from "@types/types";
+} from "@custom-types/types";
 
 export const createTonePart = (sampler: Draft<Tone.Sampler>) => {
     return new Tone.Part((time, value: any) => {

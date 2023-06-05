@@ -11,7 +11,7 @@ import {
     PartRecord,
     TrackMap,
     TrackRecord,
-} from "@types/types";
+} from "@custom-types/types";
 import { produce, Draft } from "immer";
 import {
     addPartToTrack,

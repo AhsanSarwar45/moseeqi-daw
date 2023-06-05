@@ -14,7 +14,7 @@ import { initialSecondsPerDivision } from "@data/constants";
 import { produce, enableMapSet, enablePatches, Draft } from "immer";
 import { Recipe } from "@interfaces/recipe";
 import { addToHistory } from "@logic/history";
-import { Id, TrackMap } from "@types/types";
+import { Id, TrackMap } from "@custom-types/types";
 import { SelectionSubId } from "@interfaces/selection";
 
 enablePatches();
@@ -31,6 +31,10 @@ export interface StoreState {
 
     readonly projectName: string;
     readonly projectLength: number;
+
+    readonly copiedTracksId: Id[];
+    readonly copiedPartsId: SelectionSubId[];
+    readonly copiedNotesId: SelectionSubId[];
 }
 
 export const getDefaultProjectState = (): StoreState => {
@@ -45,6 +49,9 @@ export const getDefaultProjectState = (): StoreState => {
         bpm: defaultBPM,
         projectName: defaultProjectName,
         projectLength: defaultProjectLength,
+        copiedTracksId: new Array<Id>(),
+        copiedPartsId: new Array<SelectionSubId>(),
+        copiedNotesId: new Array<SelectionSubId>(),
     };
 };
 

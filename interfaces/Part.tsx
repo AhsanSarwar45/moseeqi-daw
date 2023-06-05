@@ -1,4 +1,4 @@
-import { Id, NoteMap } from "@types/types";
+import { Id, NoteMap } from "@custom-types/types";
 import Tone from "tone";
 import { ChildEntity, ChildTimeBlock } from "./child-entity";
 

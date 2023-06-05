@@ -19,7 +19,7 @@
             "@styles/*": ["styles/*"],
             "@instruments/*": ["assets/instruments/*"],
             "@interfaces/*": ["interfaces/*"],
-            "@types/*": ["types/*"],
+            "@custom-types/*": ["types/*"],
             "@hooks/*": ["hooks/*"],
             "@assets/*": ["assets/*"],
             "@icons/*": ["assets/icons/*"],

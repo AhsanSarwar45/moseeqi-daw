@@ -3,7 +3,7 @@ import { Box, Flex, HStack } from "@chakra-ui/react";
 import SeekHandle from "../seek-handle";
 import Ruler from "@scena/react-ruler";
 import Theme from "@theme/index";
-import { Dimension } from "@types/types";
+import { Dimension } from "@custom-types/types";
 import { wholeNoteDivisions } from "@data/constants";
 
 interface TimelineProps {
