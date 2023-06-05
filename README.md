@@ -4,7 +4,7 @@ An online digital audio workstation that I have been developing as a hobby proje
 
 Try the [web app](https://moseeqi-daw.vercel.app) (Not supported on mobile devices yet).
 
-Follow dev plans on the [trello board](https://trello.com/b/4WkCkUfQ/moseeqi-daw#).
+<!-- Follow dev plans on the [trello board](https://trello.com/b/4WkCkUfQ/moseeqi-daw#). -->
 
 ## Build Status
 
